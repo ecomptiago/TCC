@@ -1,0 +1,5 @@
+/trunk/CMakeLists.txt
+/trunk/catkin_ws/src/CMakeLists.txt
+/trunk/catkin_ws/build
+/trunk/catkin_ws/devel
+.catkin_workspace
