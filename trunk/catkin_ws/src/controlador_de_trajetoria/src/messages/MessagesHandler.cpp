@@ -1,3 +1,4 @@
+#include <controlador_de_trajetoria/messages/MessagesHandler.h>
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 
@@ -87,3 +88,5 @@ int main(int argc, char **argv)
 
    return 0;
  }
+
+

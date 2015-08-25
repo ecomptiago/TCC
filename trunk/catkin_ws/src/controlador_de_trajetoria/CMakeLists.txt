@@ -115,6 +115,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  include
 )
 
 ## Declare a C++ library
@@ -140,16 +141,16 @@ include_directories(
 # )
 
 
-add_executable(Messages_handler src/Messages_handler.cpp)
-target_link_libraries(Messages_handler ${catkin_LIBRARIES})
+add_executable(MessagesHandler src/messages/MessagesHandler.cpp)
+target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)
 
-add_executable(Movimentation_executor src/Movimentation_executor.cpp)
-target_link_libraries(Movimentation_executor ${catkin_LIBRARIES})
+add_executable(MovimentationExecutor src/movimentation/MovimentationExecutor.cpp)
+target_link_libraries(MovimentationExecutor ${catkin_LIBRARIES})
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)
 
-add_executable(Position_handler src/Position_handler.cpp)
-target_link_libraries(Position_handler ${catkin_LIBRARIES})
+add_executable(PositionHandler src/position/PositionHandler.cpp)
+target_link_libraries(PositionHandler ${catkin_LIBRARIES})
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)
 
 #############
