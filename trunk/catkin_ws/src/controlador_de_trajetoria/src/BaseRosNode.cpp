@@ -5,22 +5,21 @@
  *      Author: tiago
  */
 
-#include <controlador_de_trajetoria/BaseRosNode.h>
-#include <ros/ros.h>
-#include <stdexcept>
+#include "stdexcept"
+#include "string"
+#include "ros/ros.h"
+#include "ros/exceptions.h"
+#include "controlador_de_trajetoria/BaseRosNode.h"
 
-BaseRosNode::BaseRosNode(int argc, char **argv, char *nodeName) {
-	this->nodeName = nodeName;
-
+//Constructors
+BaseRosNode::BaseRosNode(int argc, char **argv, std::string nodeName) {
+	ROS_INFO("Initializing ROS node %s",nodeName.c_str());
 	ros::init(argc, argv, nodeName);
-	ROS_INFO("Initialized ROS node %s",nodeName);
 }
 
-BaseRosNode::~BaseRosNode() {
-	ROS_INFO("Shutting down ROS node %s",nodeName);
-	nodeHandler.shutdown();
-}
+//Getters and setters
 
-int::main(int argc, char **argv) {
-	throw new std::exception("This method was not implemented");
+//Methods
+int BaseRosNode::runNode() {
+	throw new std::runtime_error("This method was not implemented");
 }
