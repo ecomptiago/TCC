@@ -140,6 +140,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+set (SOURCEFILES src/BaseRosNode.cpp src/error/MethodNotImplemented.cpp)
 
 #add_executable(MessagesHandler src/messages/MessagesHandler.cpp)
 #target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
@@ -149,7 +150,7 @@ include_directories(
 #target_link_libraries(MovimentationExecutor ${catkin_LIBRARIES})
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)
 
-add_executable(PositionHanlder src/BaseRosNode.cpp src/position/PositionHandler.cpp)
+add_executable(PositionHanlder ${SOURCEFILES} src/position/PositionHandler.cpp)
 target_link_libraries(PositionHanlder ${catkin_LIBRARIES})
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)
 

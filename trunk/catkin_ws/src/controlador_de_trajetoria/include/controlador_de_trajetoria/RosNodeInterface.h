@@ -8,10 +8,15 @@
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_ROSNODEINTERFACE_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_ROSNODEINTERFACE_H_
 
+#include "controlador_de_trajetoria/BaseRosNode.h"
+
 class RosNodeInterface {
 	public:
 		//Destructor
 		virtual ~RosNodeInterface() {};
+
+		//Setters and getters
+		virtual const std::string getNodeName() = 0;
 
 		//Methods
 		virtual int runNode() = 0;

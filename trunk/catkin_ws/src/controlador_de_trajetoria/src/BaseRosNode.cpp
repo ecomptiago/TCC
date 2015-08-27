@@ -7,9 +7,11 @@
 
 #include "stdexcept"
 #include "string"
+#include "typeinfo"
 #include "ros/ros.h"
 #include "ros/exceptions.h"
 #include "controlador_de_trajetoria/BaseRosNode.h"
+#include "controlador_de_trajetoria/error/MethodNotImplementedError.h"
 
 //Constructors
 BaseRosNode::BaseRosNode(int argc, char **argv, std::string nodeName) {
@@ -18,8 +20,11 @@ BaseRosNode::BaseRosNode(int argc, char **argv, std::string nodeName) {
 }
 
 //Getters and setters
+const std::string BaseRosNode::getNodeName() {
+	MethodNotImplementedError error(__func__,"BaseRosNode");
+}
 
 //Methods
 int BaseRosNode::runNode() {
-	throw new std::runtime_error("This method was not implemented");
+	MethodNotImplementedError error(__func__,"BaseRosNode");
 }

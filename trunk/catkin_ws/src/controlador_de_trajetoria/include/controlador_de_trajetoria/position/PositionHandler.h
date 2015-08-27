@@ -11,12 +11,13 @@
 #include "string"
 #include "controlador_de_trajetoria/BaseRosNode.h"
 
-//Constants
-const std::string nodeName = "Position_handler";
-
 class PositionHandler :public BaseRosNode{
 	private:
 		//Attributes
+		/**TODO - Pass this attributed to base class
+		to be inherited by derivated class. The actual
+		problem is that it can not be instantied before
+		calling ros::init*/
 		ros::NodeHandle nodeHandler;
 
 	public:
@@ -27,7 +28,7 @@ class PositionHandler :public BaseRosNode{
 		virtual ~PositionHandler() {} ;
 
 		//Getters and setters
-		const std::string getNodeName();
+		virtual const std::string getNodeName();
 
 		//Methods
 		virtual int runNode();

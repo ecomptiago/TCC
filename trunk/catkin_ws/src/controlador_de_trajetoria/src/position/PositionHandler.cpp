@@ -1,5 +1,7 @@
 #include "string"
+#include "stdexcept"
 #include "ros/ros.h"
+#include "controlador_de_trajetoria/error/MethodNotImplementedError.h"
 #include "controlador_de_trajetoria/position/PositionHandler.h"
 
 //Constructors
@@ -10,7 +12,7 @@ PositionHandler::PositionHandler(int argc, char **argv) :
 
 //Getters and setters
 const std::string PositionHandler::getNodeName() {
-	return nodeName;
+	return "Position_handler";
 }
 
 //Methods
@@ -20,6 +22,10 @@ int PositionHandler::runNode() {
 
 //Main
 int main(int argc,char **argv) {
-	PositionHandler positionHandler(argc,argv);
-	return positionHandler.runNode();
+	try {
+		PositionHandler positionHandler(argc,argv);
+		return positionHandler.runNode();
+	} catch (std::exception &e) {
+		return 0;
+	}
 }
