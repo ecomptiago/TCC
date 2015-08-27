@@ -26,6 +26,7 @@ int main(int argc,char **argv) {
 		PositionHandler positionHandler(argc,argv);
 		return positionHandler.runNode();
 	} catch (std::exception &e) {
+		ros::shutdown();
 		return 0;
 	}
 }
