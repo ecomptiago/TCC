@@ -8,7 +8,7 @@
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_POSITION_POSITIONHANDLER_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_POSITION_POSITIONHANDLER_H_
 
-#include "string"
+#include "std_msgs/String.h"
 #include "controlador_de_trajetoria/BaseRosNode.h"
 
 class PositionHandler :public BaseRosNode{
@@ -29,9 +29,14 @@ class PositionHandler :public BaseRosNode{
 
 		//Getters and setters
 		virtual const std::string getNodeName();
+		ros::NodeHandle getNodeHandler() const;
 
 		//Methods
 		virtual int runNode();
+		void callback(const std_msgs::String::ConstPtr& message);
+		//TODO - Make it inherited by BaseRosNode class
+		bool subscribeToTopics();
+
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_POSITION_POSITIONHANDLER_H_ */

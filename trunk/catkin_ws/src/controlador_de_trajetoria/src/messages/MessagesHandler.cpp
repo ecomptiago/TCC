@@ -1,6 +1,5 @@
 #include <controlador_de_trajetoria/messages/MessagesHandler.h>
-#include "ros/ros.h"
-#include "std_msgs/String.h"
+
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.

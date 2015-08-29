@@ -8,7 +8,8 @@
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_MESSAGES_MESSAGESHANDLER_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MESSAGES_MESSAGESHANDLER_H_
 
-#include <controlador_de_trajetoria/BaseRosNode.h>
+#include "std_msgs/String.h"
+#include "controlador_de_trajetoria/BaseRosNode.h"
 
 class MessagesHandler :public BaseRosNode{
 	public:

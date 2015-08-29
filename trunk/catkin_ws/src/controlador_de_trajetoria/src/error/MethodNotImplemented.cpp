@@ -5,9 +5,6 @@
  *      Author: tiago
  */
 
-#include "string"
-#include  "stdexcept"
-#include "ros/ros.h"
 #include "controlador_de_trajetoria/error/MethodNotImplementedError.h"
 
 MethodNotImplementedError::MethodNotImplementedError(std::string methodName,

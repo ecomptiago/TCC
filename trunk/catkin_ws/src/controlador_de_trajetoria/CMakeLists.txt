@@ -142,6 +142,9 @@ include_directories(
 
 set (SOURCEFILES src/BaseRosNode.cpp src/error/MethodNotImplemented.cpp)
 
+add_executable(Talker src/Talker.cpp)
+target_link_libraries(Talker ${catkin_LIBRARIES})
+#
 #add_executable(MessagesHandler src/messages/MessagesHandler.cpp)
 #target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
 #add_dependencies(talker beginner_tutorials_generate_messages_cpp)

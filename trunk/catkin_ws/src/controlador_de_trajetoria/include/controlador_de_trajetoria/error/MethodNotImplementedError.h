@@ -8,7 +8,8 @@
 #ifndef SRC_ERROR_METHODNOTIMPLEMENTEDERROR_H_
 #define SRC_ERROR_METHODNOTIMPLEMENTEDERROR_H_
 
-#include "string"
+#include "stdexcept"
+#include "ros/ros.h"
 
 class MethodNotImplementedError {
 

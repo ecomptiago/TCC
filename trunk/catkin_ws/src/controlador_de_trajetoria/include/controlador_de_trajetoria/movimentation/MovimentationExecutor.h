@@ -8,7 +8,8 @@
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 
-#include <controlador_de_trajetoria/BaseRosNode.h>
+#include "std_msgs/String.h"
+#include "controlador_de_trajetoria/BaseRosNode.h"
 
 class MovimentationExecutor :public BaseRosNode{
 	public:
