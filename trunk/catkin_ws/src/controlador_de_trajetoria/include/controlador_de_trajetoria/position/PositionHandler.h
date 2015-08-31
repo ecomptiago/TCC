@@ -8,8 +8,13 @@
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_POSITION_POSITIONHANDLER_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_POSITION_POSITIONHANDLER_H_
 
+#include "nav_msgs/Odometry.h"
 #include "std_msgs/String.h"
 #include "controlador_de_trajetoria/BaseRosNode.h"
+
+const char* actualRobotPositionTopic = "actual_robot_position";
+const char* poseTopic = "/RosAria/pose";
+const char* nodeName = "Position_handler";
 
 class PositionHandler :public BaseRosNode{
 	private:
@@ -27,15 +32,11 @@ class PositionHandler :public BaseRosNode{
 		//Destructor
 		virtual ~PositionHandler() {} ;
 
-		//Getters and setters
-		virtual const std::string getNodeName();
-		ros::NodeHandle getNodeHandler() const;
-
 		//Methods
 		virtual int runNode();
-		void callback(const std_msgs::String::ConstPtr& message);
-		//TODO - Make it inherited by BaseRosNode class
+		void transformOdometryToPosition(const nav_msgs::Odometry::ConstPtr& message);
 		bool subscribeToTopics();
+		bool createPublishers();
 
 };
 

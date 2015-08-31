@@ -9,6 +9,8 @@
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_BASEROSNODE_H_
 
 #include "stdexcept"
+#include "map"
+#include "string"
 #include "ros/ros.h"
 #include "ros/exceptions.h"
 #include "controlador_de_trajetoria/RosNodeInterface.h"
@@ -19,7 +21,8 @@ class BaseRosNode : public RosNodeInterface{
 
 	protected:
 		//Attributes
-		BaseRosNode *pointerToNode;
+		std::map<std::string,ros::Subscriber> subscriberMap;
+		std::map<std::string,ros::Publisher> publisherMap;
 
 	public:
 		//Constructors
@@ -28,13 +31,10 @@ class BaseRosNode : public RosNodeInterface{
 		//Destructor
 		virtual ~BaseRosNode() {};
 
-		//Setters and getters
-		virtual const std::string getNodeName();
-		BaseRosNode*& getPointerToNode();
-		void setPointerToNode(BaseRosNode* pointerToNode);
-
 		//Methods
 		virtual int runNode();
+		virtual bool subscribeToTopics();
+		virtual bool createPublishers();
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_BASEROSNODE_H_ */

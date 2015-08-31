@@ -16,10 +16,12 @@ class RosNodeInterface {
 		virtual ~RosNodeInterface() {};
 
 		//Setters and getters
-		virtual const std::string getNodeName() = 0;
+//		virtual const std::string getNodeName() = 0;
 
 		//Methods
 		virtual int runNode() = 0;
+		virtual bool subscribeToTopics() = 0;
+		virtual bool createPublishers() = 0;
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_ROSNODEINTERFACE_H_ */
