@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -44,11 +45,19 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+#  DIRECTORY
+#    msg/pos_msgs
+  FILES
+    Position.msg
+)
+
+add_message_files(
+#  DIRECTORY
+#    msg/mov_msgs
+  FILES
+    Move_robot.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -65,10 +74,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -100,9 +109,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include msg
 #  LIBRARIES controlador_de_trajetoria
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+  CATKIN_DEPENDS message_runtime roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -115,6 +124,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   include
+  msg
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -141,21 +151,19 @@ include_directories(
 # )
 
 set (SOURCEFILES src/BaseRosNode.cpp src/error/MethodNotImplemented.cpp)
+set (MSG_GENERATION controlador_de_trajetoria_generate_messages_cpp)
 
-add_executable(Talker src/Talker.cpp)
-target_link_libraries(Talker ${catkin_LIBRARIES})
-#
-#add_executable(MessagesHandler src/messages/MessagesHandler.cpp)
-#target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
-#add_dependencies(talker beginner_tutorials_generate_messages_cpp)
+add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)
+target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
+add_dependencies(MessagesHandler ${MSG_GENERATION})
 
-#add_executable(MovimentationExecutor src/movimentation/MovimentationExecutor.cpp)
-#target_link_libraries(MovimentationExecutor ${catkin_LIBRARIES})
-#add_dependencies(talker beginner_tutorials_generate_messages_cpp)
+add_executable(MovimentationExecutor ${SOURCEFILES} src/movimentation/MovimentationExecutor.cpp)
+target_link_libraries(MovimentationExecutor ${catkin_LIBRARIES})
+add_dependencies(MovimentationExecutor ${MSG_GENERATION})
 
-add_executable(PositionHanlder ${SOURCEFILES} src/position/PositionHandler.cpp)
-target_link_libraries(PositionHanlder ${catkin_LIBRARIES})
-#add_dependencies(talker beginner_tutorials_generate_messages_cpp)
+add_executable(PositionHandler ${SOURCEFILES} src/position/PositionHandler.cpp)
+target_link_libraries(PositionHandler ${catkin_LIBRARIES})
+add_dependencies(PositionHandler ${MSG_GENERATION})
 
 
 #############
@@ -173,7 +181,7 @@ target_link_libraries(PositionHanlder ${catkin_LIBRARIES})
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS controlador_de_trajetoria controlador_de_trajetoria_node
+# install(TARGETS PositionHandler MovimentationExecutor MessagesHandler 
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -182,14 +190,15 @@ target_link_libraries(PositionHanlder ${catkin_LIBRARIES})
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
 #   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
+#   FILES_MATCHING PATTERN "*.h *.msg"
 #   PATTERN ".svn" EXCLUDE
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
+# install(
+#  FILES
+#   msg/mov_msgs/Move_robot.msg 
+   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
