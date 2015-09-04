@@ -2,8 +2,9 @@
 #include "controlador_de_trajetoria/position/PositionHandler.h"
 
 //Constructors
-PositionHandler::PositionHandler(int argc, char **argv) :
+PositionHandler::PositionHandler(int argc, char **argv, float actualRobotPositionDelay) :
 	BaseRosNode(argc,argv,nodeName) {
+	this->actualRobotPositionDelay = actualRobotPositionDelay;
 }
 
 //Methods
@@ -61,7 +62,6 @@ void PositionHandler::transformOdometryToPosition(
 	ROS_INFO("Received a message from pose topic");
 
 	ROS_DEBUG("Processing odometry message");
-	position.header.stamp = odometryPosition->header.stamp;
 	position.x = odometryPosition->pose.pose.position.x;
 	position.y = odometryPosition->pose.pose.position.y;
 }
@@ -69,11 +69,8 @@ void PositionHandler::transformOdometryToPosition(
 
 void PositionHandler::publishPosition(const ros::TimerEvent& timerEvent) {
 	ROS_DEBUG("Publishing position message");
-	std::map<std::string,ros::Publisher>::iterator i = publisherMap.find(actualRobotPositionTopic);
-	if(i != publisherMap.end()) {
-		i->second.publish(position);
-	} else {
-		ROS_DEBUG("actual_robot_position was not found");
+	if(hasPublisher(actualRobotPositionTopic)) {
+		publisherMap[actualRobotPositionTopic].publish(position);
 	}
 }
 
@@ -81,7 +78,7 @@ void PositionHandler::publishPosition(const ros::TimerEvent& timerEvent) {
 //Main
 int main(int argc,char **argv) {
 	try {
-		PositionHandler positionHandler(argc,argv);
+		PositionHandler positionHandler(argc,argv,1);
 
 		if(positionHandler.subscribeToTopics() &&
 				positionHandler.createPublishers() &&

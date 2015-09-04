@@ -17,7 +17,6 @@ const char* actualRobotPositionTopic = "Position_handler/actual_robot_position";
 const char* poseTopic = "/RosAria/pose";
 const char* nodeName = "Position_handler";
 const char* timerActualRobotPosition = "actualRobotPositionTimer";
-const float actualRobotPositionDelay = 1; // this is in seconds
 
 class PositionHandler :public BaseRosNode{
 	private:
@@ -28,10 +27,11 @@ class PositionHandler :public BaseRosNode{
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
 		controlador_de_trajetoria::Position position;
+		float actualRobotPositionDelay; //This is in seconds
 
 	public:
 		//Constructors
-		PositionHandler(int argc,char **argv);
+		PositionHandler(int argc,char **argv, float actualRobotPositionDelay);
 
 		//Destructor
 		virtual ~PositionHandler() {} ;

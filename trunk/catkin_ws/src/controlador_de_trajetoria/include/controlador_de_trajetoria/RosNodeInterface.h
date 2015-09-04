@@ -16,7 +16,6 @@ class RosNodeInterface {
 		virtual ~RosNodeInterface() {};
 
 		//Setters and getters
-//		virtual const std::string getNodeName() = 0;
 
 		//Methods
 		virtual int runNode() = 0;

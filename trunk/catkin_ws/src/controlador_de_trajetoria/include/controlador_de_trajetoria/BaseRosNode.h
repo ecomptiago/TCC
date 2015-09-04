@@ -27,6 +27,9 @@ class BaseRosNode : public RosNodeInterface{
 		//we can remove this map
 		std::map<std::string,ros::Timer> timerMap;
 
+		//Methods
+		bool hasPublisher(const char* topicName);
+
 	public:
 		//Constructors
 		BaseRosNode(int argc, char **argv, std::string nodeName);
@@ -36,6 +39,9 @@ class BaseRosNode : public RosNodeInterface{
 
 		//Methods
 		virtual int runNode();
+
+		//This methods can be generic and implemented by the
+		//baserosnode using template <class ContainerAllocator>
 		virtual bool subscribeToTopics();
 		virtual bool createPublishers();
 		virtual bool createTimers();

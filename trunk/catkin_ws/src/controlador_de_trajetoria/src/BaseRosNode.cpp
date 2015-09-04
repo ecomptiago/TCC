@@ -29,3 +29,14 @@ bool BaseRosNode::createPublishers() {
 bool BaseRosNode::createTimers() {
 	MethodNotImplementedError error(__func__,"BaseRosNode");
 }
+
+bool BaseRosNode::hasPublisher(const char* topicName) {
+	std::map<std::string,ros::Publisher>::iterator i = publisherMap.find(topicName);
+	if(i != publisherMap.end()) {
+		return true;
+	} else {
+		ROS_DEBUG("%s was not found",topicName);
+		return false;
+	}
+}
+
