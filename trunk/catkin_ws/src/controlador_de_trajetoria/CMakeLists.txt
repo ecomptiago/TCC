@@ -59,6 +59,13 @@ add_message_files(
     Move_robot.msg
 )
 
+add_message_files(
+#  DIRECTORY
+#    msg/mov_msgs
+  FILES
+    Move_robot_multi_array.msg
+)
+
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES

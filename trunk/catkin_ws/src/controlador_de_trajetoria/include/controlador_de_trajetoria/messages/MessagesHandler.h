@@ -14,14 +14,16 @@
 #include "controlador_de_trajetoria/BaseRosNode.h"
 #include "controlador_de_trajetoria/Move_robot.h"
 #include "controlador_de_trajetoria/Position.h"
-
+#include "controlador_de_trajetoria/Move_robot_multi_array.h"
 
 const char* moveRobotAssyncTopic = "Message_handler/move_robot_assync";
 const char* targetPositionTopic = "Message_handler/target_position";
 const char* targetPositionAchievedTopic = "Message_handler/target_position_achieved";
 const char* freeCoordinatesTopic = "Message_handler/free_coordinates";
+const char* nextTargetsTopic = "Message_handler/next_targets";
 const char* nodeName = "Message_handler";
 const char* timerFreeCoordinates = "freeCoordinatesTimer";
+const char* timerNextTargets = "nextTargetsTimer";
 
 class MessagesHandler :public BaseRosNode{
 	private:
@@ -31,7 +33,7 @@ class MessagesHandler :public BaseRosNode{
 		problem is that it can not be instantied before
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
-		std::vector<controlador_de_trajetoria::Move_robot::ConstPtr> coordinatesList;
+		std::vector<controlador_de_trajetoria::Move_robot> coordinatesList;
 		double wakeUpTime;
 		bool arrivedInTargetPosition;
 		float freeCoordinatesDelay; //This is in seconds
@@ -54,6 +56,7 @@ class MessagesHandler :public BaseRosNode{
 		void positionAchieved(
 				const controlador_de_trajetoria::Position::ConstPtr& positionAchieved);
 		void publishFreeCoordinates(const ros::TimerEvent& timerEvent);
+		void nextTargets(const ros::TimerEvent& timerEvent);
 
 };
 
