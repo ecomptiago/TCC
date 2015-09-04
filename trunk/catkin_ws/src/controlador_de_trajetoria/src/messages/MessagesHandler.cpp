@@ -1,11 +1,13 @@
 #include <controlador_de_trajetoria/messages/MessagesHandler.h>
 
 //Constructors
-MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesToStore) :
+MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesToStore,
+		double wakeUpTime, float freeCoordinatesDelay) :
 	BaseRosNode(argc,argv,nodeName) {
-	wakeUpTime = 1;
-	arrivedInTargetPosition = false;
+	this->wakeUpTime = wakeUpTime;
+	this->freeCoordinatesDelay = freeCoordinatesDelay;
 	coordinatesList.resize(numberOfCoordinatesToStore);
+	arrivedInTargetPosition = false;
 }
 
 //Methods
@@ -57,14 +59,33 @@ bool MessagesHandler::createPublishers() {
 	ros::Publisher pub =
 			nodeHandler.advertise<controlador_de_trajetoria::Move_robot>(
 			targetPositionTopic, 1000);
-	if(pub) {
+	ros::Publisher pub2 =
+			nodeHandler.advertise<std_msgs::Int32>(
+			freeCoordinatesTopic, 1000);
+	if(pub && pub2) {
 		publisherMap[targetPositionTopic] =  pub;
+		publisherMap[freeCoordinatesTopic] =  pub2;
 		return true;
 	} else {
 		ROS_DEBUG("Could not create all publishers");
 		return false;
 	}
 	return true;
+}
+
+bool MessagesHandler::createTimers() {
+	ROS_INFO("Creating timers");
+	ros::Timer timer =
+			nodeHandler.createTimer(ros::Duration(freeCoordinatesDelay),
+				&MessagesHandler::publishFreeCoordinates,
+				this,false);
+	if(timer) {
+		timerMap[timerFreeCoordinates] = timer;
+		return true;
+	} else {
+		ROS_DEBUG("Could not create all timers");
+		return false;
+	}
 }
 
 //Callback
@@ -92,12 +113,21 @@ void MessagesHandler::positionAchieved(
 	}
 }
 
+void MessagesHandler::publishFreeCoordinates(
+		const ros::TimerEvent& timerEvent) {
+	std_msgs::Int32 freeCoordinates;
+	freeCoordinates.data = coordinatesList.max_size() - coordinatesList.size();
+	publisherMap[freeCoordinatesTopic].publish(freeCoordinates);
+}
+
 //Main
 int main(int argc,char **argv) {
 	try {
-		MessagesHandler messagesHandler(argc,argv,100);
+		MessagesHandler messagesHandler(argc,argv,100,1,1);
 
-		if(messagesHandler.subscribeToTopics() && messagesHandler.createPublishers()) {
+		if(messagesHandler.subscribeToTopics() &&
+				messagesHandler.createPublishers() &&
+				messagesHandler.createTimers()) {
 			return messagesHandler.runNode();
 		} else {
 			ros::shutdown();
