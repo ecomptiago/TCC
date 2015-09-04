@@ -23,6 +23,9 @@ class BaseRosNode : public RosNodeInterface{
 		//Attributes
 		std::map<std::string,ros::Subscriber> subscriberMap;
 		std::map<std::string,ros::Publisher> publisherMap;
+		//TODO - Take a look at TimerManager class, maybe
+		//we can remove this map
+		std::map<std::string,ros::Timer> timerMap;
 
 	public:
 		//Constructors
@@ -35,6 +38,7 @@ class BaseRosNode : public RosNodeInterface{
 		virtual int runNode();
 		virtual bool subscribeToTopics();
 		virtual bool createPublishers();
+		virtual bool createTimers();
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_BASEROSNODE_H_ */

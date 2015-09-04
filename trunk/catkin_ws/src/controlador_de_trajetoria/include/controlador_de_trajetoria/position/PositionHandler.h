@@ -11,10 +11,13 @@
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/String.h"
 #include "controlador_de_trajetoria/BaseRosNode.h"
+#include "controlador_de_trajetoria/Position.h"
 
-const char* actualRobotPositionTopic = "actual_robot_position";
+const char* actualRobotPositionTopic = "Position_handler/actual_robot_position";
 const char* poseTopic = "/RosAria/pose";
 const char* nodeName = "Position_handler";
+const char* timerActualRobotPosition = "actualRobotPositionTimer";
+const float actualRobotPositionDelay = 1; // this is in seconds
 
 class PositionHandler :public BaseRosNode{
 	private:
@@ -24,6 +27,7 @@ class PositionHandler :public BaseRosNode{
 		problem is that it can not be instantied before
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
+		controlador_de_trajetoria::Position position;
 
 	public:
 		//Constructors
@@ -34,9 +38,12 @@ class PositionHandler :public BaseRosNode{
 
 		//Methods
 		virtual int runNode();
-		void transformOdometryToPosition(const nav_msgs::Odometry::ConstPtr& message);
 		bool subscribeToTopics();
 		bool createPublishers();
+		bool createTimers();
+		void transformOdometryToPosition
+			(const nav_msgs::Odometry::ConstPtr& odometryPosition);
+		void publishPosition(const ros::TimerEvent& timerEvent);
 
 };
 

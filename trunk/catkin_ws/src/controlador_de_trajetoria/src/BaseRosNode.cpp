@@ -26,3 +26,6 @@ bool BaseRosNode::createPublishers() {
 	MethodNotImplementedError error(__func__,"BaseRosNode");
 }
 
+bool BaseRosNode::createTimers() {
+	MethodNotImplementedError error(__func__,"BaseRosNode");
+}
