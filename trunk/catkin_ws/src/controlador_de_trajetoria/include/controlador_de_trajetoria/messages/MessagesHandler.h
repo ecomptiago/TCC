@@ -16,12 +16,12 @@
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot_multi_array.h"
 
+const char* nodeName = "Message_handler";
 const char* moveRobotAssyncTopic = "Message_handler/move_robot_assync";
 const char* targetPositionTopic = "Message_handler/target_position";
 const char* targetPositionAchievedTopic = "Message_handler/target_position_achieved";
 const char* freeCoordinatesTopic = "Message_handler/free_coordinates";
 const char* nextTargetsTopic = "Message_handler/next_targets";
-const char* nodeName = "Message_handler";
 const char* timerFreeCoordinates = "freeCoordinatesTimer";
 const char* timerNextTargets = "nextTargetsTimer";
 

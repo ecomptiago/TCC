@@ -9,6 +9,7 @@ PositionHandler::PositionHandler(int argc, char **argv, float actualRobotPositio
 
 //Methods
 int PositionHandler::runNode() {
+	ROS_INFO("Running node");
 	ros::spin();
 	return 0;
 }

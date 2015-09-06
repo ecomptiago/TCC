@@ -13,6 +13,7 @@ MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesT
 //Methods
 int MessagesHandler::runNode() {
 	ros::Rate rate(1/wakeUpTime);
+	ROS_INFO("Running node");
 	while(ros::ok()) {
 		if(coordinatesList.size() > 0) {
 			if(arrivedInTargetPosition) {

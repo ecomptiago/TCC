@@ -1,89 +1,148 @@
+#include <controlador_de_trajetoria/movimentation/MovimentationExecutor.h>
 
-#include "controlador_de_trajetoria/movimentation/MovimentationExecutor.h"
+//Constructors
+MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
+	float nextTryInterval, double velocity, double wakeUpTime)
+	: BaseRosNode(argc,argv,nodeName) {
+	this->pointerTargetPosition = NULL;
+	this->pointerActualOdometryPosition = NULL;
+	this->nextTryInterval = nextTryInterval;
+	this->velocity = velocity;
+	this->wakeUpTime = wakeUpTime;
+	this->targetAchieved = false;
+	this->angle = 0;
+}
 
-/**
- * This tutorial demonstrates simple receipt of messages over the ROS system.
- 
-void chatterCallback(const std_msgs::String::ConstPtr& msg)
-{
-  ROS_INFO("I heard: [%s]", msg->data.c_str());
-}*/
-
-int main(int argc, char **argv)
-{
-  /**
-   * The ros::init() function needs to see argc and argv so that it can perform
-   * any ROS arguments and name remapping that were provided at the command line.
-   * For programmatic remappings you can use a different version of init() which takes
-   * remappings directly, but for most command-line programs, passing argc and argv is
-   * the easiest way to do it.  The third argument to init() is the name of the node.
-   *
-   * You must call one of the versions of ros::init() before using any other
-   * part of the ROS system.
-   */
-  ros::init(argc, argv, "Moviment_executor");
-
-  /**
-   * NodeHandle is the main access point to communications with the ROS system.
-   * The first NodeHandle constructed will fully initialize this node, and the last
-   * NodeHandle destructed will close down the node.
-   */
-  ros::NodeHandle n;
-
-  /**
-    * The advertise() function is how you tell ROS that you want to
-    * publish on a given topic name. This invokes a call to the ROS
-    * master node, which keeps a registry of who is publishing and who
-    * is subscribing. After this advertise() call is made, the master
-    * node will notify anyone who is trying to subscribe to this topic name,
-    * and they will in turn negotiate a peer-to-peer connection with this
-    * node.  advertise() returns a Publisher object which allows you to
-    * publish messages on that topic through a call to publish().  Once
-    * all copies of the returned Publisher object are destroyed, the topic
-    * will be automatically unadvertised.
-    *
-    * The second parameter to advertise() is the size of the message queue
-    * used for publishing messages.  If messages are published more quickly
-    * than we can send them, the number here specifies how many messages to
-    * buffer up before throwing some away.
-    */
-   ros::Publisher chatter_pub = n.advertise<std_msgs::String>("me_mov", 1000);
-
-   ros::Rate loop_rate(10);
-
-   /**
-    * A count of how many messages we have sent. This is used to create
-    * a unique string for each message.
-   */
-   int count = 0;
-   while (ros::ok())
-   {
-     /**
-      * This is a message object. You stuff it with data, and then publish it.
-      */
-     std_msgs::String msg;
-
-     std::stringstream ss;
-     ss << "hello world from Moviment_executor" << count;
-     msg.data = ss.str();
-
-     ROS_INFO("%s", msg.data.c_str());
-
-     /**
-      * The publish() function is how you send messages. The parameter
-      * is the message object. The type of this object must agree with the type
-      * given as a template parameter to the advertise<>() call, as was done
-      * in the constructor above.
-      */
-     chatter_pub.publish(msg);
-
-     ros::spinOnce();
-
-     loop_rate.sleep();
-     ++count;
-
-   }
+//Methods
+int MovimentationExecutor::runNode() {
+	ros::Rate rate(1/wakeUpTime);
+	ROS_INFO("Running node");
+	while(ros::ok()) {
+		if(pointerTargetPosition != NULL &&
+				targetAchieved == true) {
+			ROS_INFO("Moving robot to position");
+			verifyMotorState();
+			rotateRobot();
+			moveRobot();
+		}
+		ros::spinOnce();
+		rate.sleep();
+	}
+	return 0;
+}
 
 
-   return 0;
- }
+void MovimentationExecutor::verifyMotorState() {
+}
+
+void MovimentationExecutor::rotateRobot() {
+	ROS_DEBUG("Calculating what the angle to rotate");
+	if(pointerTargetPosition->x ==
+			pointerActualOdometryPosition->pose.pose.position.x) {
+	} else if(pointerTargetPosition->y ==
+			pointerActualOdometryPosition->pose.pose.position.y) {
+	} else {
+	}
+}
+
+void MovimentationExecutor::moveRobot() {
+}
+
+bool MovimentationExecutor::subscribeToTopics() {
+	ROS_INFO("Subscribing to topics");
+	ros::Subscriber sub =
+		nodeHandler.subscribe(motorStateTopic,
+		1000,&MovimentationExecutor::receivedMotorState,this);
+	ros::Subscriber sub2 =
+		nodeHandler.subscribe(targetPositionTopic,
+		1000,&MovimentationExecutor::receivedTargetPosition,this);
+	ros::Subscriber sub3 =
+		nodeHandler.subscribe(actualRobotPositionTopic,
+		1000,&MovimentationExecutor::receivedActualOdometryRobotPosition,this);
+	if(sub && sub2 && sub3) {
+		subscriberMap[motorStateTopic] = sub;
+		subscriberMap[targetPositionTopic] = sub;
+		subscriberMap[actualRobotPositionTopic] = sub;
+		return true;
+	} else {
+		ROS_DEBUG("Could not subscribe to all topics");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool MovimentationExecutor::createPublishers() {
+	ROS_INFO("Creating publishers");
+	ros::Publisher pub =
+		nodeHandler.advertise<controlador_de_trajetoria::Position>(
+		targetPositionAchievedTopic, 1000);
+	ros::Publisher pub2 =
+		nodeHandler.advertise<controlador_de_trajetoria::Move_robot>(
+		targetPositionTopic, 1000);
+	ros::Publisher pub3 =
+		nodeHandler.advertise<geometry_msgs::Twist>(
+		cmdVelTopic, 1000);
+	if(pub && pub2 && pub3) {
+		publisherMap[targetPositionAchievedTopic] =  pub;
+		publisherMap[targetPositionTopic] =  pub2;
+		publisherMap[cmdVelTopic] =  pub3;
+		return true;
+	} else {
+		ROS_DEBUG("Could not create all publishers");
+		return false;
+	}
+}
+
+//Callback
+void MovimentationExecutor::receivedActualOdometryRobotPosition(
+		const nav_msgs::Odometry::ConstPtr& actualOdometryRobotPositionPointer) {
+	ROS_INFO("Received message of robot position");
+	pointerActualOdometryPosition = const_cast<nav_msgs::Odometry*>(actualOdometryRobotPositionPointer.get());
+	if(actualOdometryRobotPositionPointer->pose.pose.position.x
+		== pointerTargetPosition->x &&
+		actualOdometryRobotPositionPointer->pose.pose.position.y
+		== pointerTargetPosition->y) {
+		targetAchieved = true;
+		pointerTargetPosition = NULL;
+		ROS_INFO("target position achieved");
+	} else {
+		ROS_DEBUG("Robot did not arrived in the destination yet.");
+	}
+}
+
+void MovimentationExecutor::receivedTargetPosition(
+		const controlador_de_trajetoria::Move_robot::ConstPtr& targetPositionPointer) {
+	ROS_INFO("Received next target position");
+	targetAchieved = false;
+	pointerTargetPosition->x = targetPositionPointer->x;
+	pointerTargetPosition->y = targetPositionPointer->y;
+	velocity = targetPositionPointer->vel;
+}
+
+void MovimentationExecutor::receivedMotorState(
+		const std_msgs::Bool::ConstPtr& motorStatePointer) {
+	ROS_INFO("Received motor state message");
+	motorState = *motorStatePointer;
+}
+
+
+//Main
+int main(int argc,char **argv) {
+	try {
+		MovimentationExecutor movimentationExecutor(argc,argv,1,1,1);
+
+		if(movimentationExecutor.subscribeToTopics() &&
+				movimentationExecutor.createPublishers()) {
+			return movimentationExecutor.runNode();
+		} else {
+			ros::shutdown();
+			return 0;
+		}
+
+	} catch (std::exception &e) {
+		ros::shutdown();
+		return 0;
+	}
+}
