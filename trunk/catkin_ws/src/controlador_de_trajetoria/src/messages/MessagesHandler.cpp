@@ -7,7 +7,8 @@ MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesT
 	this->wakeUpTime = wakeUpTime;
 	this->freeCoordinatesDelay = freeCoordinatesDelay;
 	coordinatesList.resize(numberOfCoordinatesToStore);
-	arrivedInTargetPosition = false;
+	coordinatesList.clear();
+	arrivedInTargetPosition = true;
 }
 
 //Methods
@@ -20,7 +21,7 @@ int MessagesHandler::runNode() {
 				ROS_INFO("Sending position to position executor");
 				if(hasPublisher(targetPositionTopic)) {
 					arrivedInTargetPosition = false;
-					publisherMap[targetPositionAchievedTopic].publish(coordinatesList.front());
+					publisherMap[targetPositionTopic].publish(coordinatesList.front());
 					ROS_DEBUG("Coordinate was sent. Removing from vector");
 					coordinatesList.erase(coordinatesList.begin());
 				}
@@ -129,7 +130,7 @@ void MessagesHandler::publishFreeCoordinates(
 		const ros::TimerEvent& timerEvent) {
 	if(hasPublisher(freeCoordinatesTopic)) {
 		std_msgs::Int32 freeCoordinates;
-		freeCoordinates.data = coordinatesList.max_size() - coordinatesList.size();
+		freeCoordinates.data = coordinatesList.capacity() - coordinatesList.size();
 		publisherMap[freeCoordinatesTopic].publish(freeCoordinates);
 	}
 }

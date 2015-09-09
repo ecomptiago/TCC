@@ -1,5 +1,7 @@
 #include <controlador_de_trajetoria/movimentation/MovimentationExecutor.h>
 
+
+nav_msgs::Odometry actualPosition;
 //Constructors
 MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 	float nextTryInterval, double velocity, double wakeUpTime)
@@ -9,66 +11,68 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 	this->nextTryInterval = nextTryInterval;
 	this->velocity = velocity;
 	this->wakeUpTime = wakeUpTime;
-	this->targetAchieved = false;
+	this->targetAchieved = true;
 	this->angle = 0;
-
-	ros::Rate oneHundredMilisencondsSleep(10);
-	this->pointerTo100MilisencodsSleep = &oneHundredMilisencondsSleep;
-
 	pointerToStopMessage = createStopMessage();
 	pointerToRotateMessage = createRotateMessage();
 }
 
 //Methods
 int MovimentationExecutor::runNode() {
-	ros::Rate rate(1/wakeUpTime);
-	ROS_INFO("Running node");
-	while(ros::ok()) {
-		if(pointerTargetPosition != NULL &&
-				targetAchieved == true) {
-			ROS_INFO("Moving robot to position");
-			verifyMotorState();
-			rotateRobot();
-			moveRobot();
-		}
-		ros::spinOnce();
-		rate.sleep();
-	}
+	ros::spin();
+//	ros::Rate rate(100);
+//	ROS_INFO("Running node");
+//	while(ros::ok()) {
+//		if(pointerTargetPosition != NULL &&
+//			targetAchieved == true ){//){&&
+////			pointerActualOdometryPosition != NULL) {
+//				targetAchieved = false;
+//				ROS_INFO("Moving robot to position");
+//				verifyMotorState();
+//				rotateRobot();
+////				moveRobot();
+//		}
+//		ros::spinOnce();
+//		rate.sleep();
+//	}
 	return 0;
 }
 
 const geometry_msgs::Twist* MovimentationExecutor::createStopMessage() {
-	geometry_msgs::Twist* stopMessage;
-	stopMessage->angular.x = 0;
-	stopMessage->angular.y = 0;
-	stopMessage->angular.z = 0;
-	stopMessage->linear.x = 0;
-	stopMessage->linear.y = 0;
-	stopMessage->linear.z = 0;
-	return stopMessage;
+	geometry_msgs::Twist stopMessage;
+	stopMessage.angular.x = 0;
+	stopMessage.angular.y = 0;
+	stopMessage.angular.z = 0;
+	stopMessage.linear.x = 0;
+	stopMessage.linear.y = 0;
+	stopMessage.linear.z = 0;
+	geometry_msgs::Twist* pointerToStopMessage = &stopMessage;
+	return pointerToStopMessage;
 }
 
 const geometry_msgs::Twist* MovimentationExecutor::createRotateMessage() {
-	geometry_msgs::Twist* rotateMessage;
-	rotateMessage->angular.x = 0;
-	rotateMessage->angular.y = 0;
-	rotateMessage->angular.z = 0;
-	rotateMessage->linear.x = 0;
-	rotateMessage->linear.y = 0;
-	rotateMessage->linear.z = 0.1;
-	return rotateMessage;
+	geometry_msgs::Twist rotateMessage;
+	rotateMessage.angular.x = 0;
+	rotateMessage.angular.y = 0;
+	rotateMessage.angular.z = 0.1;
+	rotateMessage.linear.x = 0;
+	rotateMessage.linear.y = 0;
+	rotateMessage.linear.z = 0;
+	geometry_msgs::Twist* pointerToRotateMessage = &rotateMessage;
+	return pointerToRotateMessage;
 }
 
 boost::shared_ptr<geometry_msgs::Twist> MovimentationExecutor::createMoveMessage(
 		double velocity) {
-	boost::shared_ptr<geometry_msgs::Twist> moveMessage;
-	moveMessage->angular.x = velocity;
-	moveMessage->angular.y = 0;
-	moveMessage->angular.z = 0;
-	moveMessage->linear.x = 0;
-	moveMessage->linear.y = 0;
-	moveMessage->linear.z = 0;
-	return moveMessage;
+	geometry_msgs::Twist moveMessage;
+	moveMessage.angular.x = velocity;
+	moveMessage.angular.y = 0;
+	moveMessage.angular.z = 0;
+	moveMessage.linear.x = 0;
+	moveMessage.linear.y = 0;
+	moveMessage.linear.z = 0;
+	geometry_msgs::Twist *pointerToMoveMessage = &moveMessage;
+	return boost::shared_ptr<geometry_msgs::Twist>(pointerToMoveMessage);
 }
 
 void MovimentationExecutor::verifyMotorState() {
@@ -76,20 +80,43 @@ void MovimentationExecutor::verifyMotorState() {
 
 void MovimentationExecutor::rotateRobot() {
 	ROS_DEBUG("Calculating angle to target position");
-	geometry_msgs::Pose actualPosition =
-		pointerActualOdometryPosition->pose.pose;
+//	geometry_msgs::Pose actualPosition =
+//		pointerActualOdometryPosition->pose.pose;
 	double angleTargetPosition =
-		atan2(actualPosition.position.y,actualPosition.position.x) *
+		atan2(pointerTargetPosition->y,pointerTargetPosition->x) *
 		180/M_PI;
-	ROS_INFO("Rotating robot");
-	publisherMap[cmdVelTopic].publish(*pointerToRotateMessage);
-	pointerTo100MilisencodsSleep->reset();
-	while(actualPosition.orientation.z != angleTargetPosition) {
-		ros::spinOnce();
-		pointerTo100MilisencodsSleep->sleep();
-		ROS_DEBUG("Angle of %f not achieved",angleTargetPosition);
+	ROS_INFO("Rotating robot %f degrees",angleTargetPosition);
+//	publisherMap[cmdVelTopic].publish(pointerToRotateMessage);
+
+	geometry_msgs::Twist rotateMessage;
+	rotateMessage.angular.x = 0;
+	rotateMessage.angular.y = 0;
+	rotateMessage.angular.z = 0.01;
+	rotateMessage.linear.x = 0;
+	rotateMessage.linear.y = 0;
+	rotateMessage.linear.z = 0;
+	publisherMap[cmdVelTopic].publish(rotateMessage);
+
+	while(!(actualPosition.pose.pose.orientation.z * 100 >
+		angleTargetPosition - 0.5 &&
+		actualPosition.pose.pose.orientation.z * 100 <
+		angleTargetPosition + 0.5)) {
+			usleep(100000);
+			ros::spinOnce();
+//			ROS_DEBUG("Angle of %f not achieved",angleTargetPosition);
+			ROS_INFO("%f %f",actualPosition.pose.pose.orientation.z * 100, angleTargetPosition);
 	}
-	publisherMap[cmdVelTopic].publish(*pointerToStopMessage);
+//	publisherMap[cmdVelTopic].publish(*pointerToStopMessage);
+
+	geometry_msgs::Twist stopMessage;
+	stopMessage.angular.x = 0;
+	stopMessage.angular.y = 0;
+	stopMessage.angular.z = 0;
+	stopMessage.linear.x = 0;
+	stopMessage.linear.y = 0;
+	stopMessage.linear.z = 0;
+	publisherMap[cmdVelTopic].publish(stopMessage);
+
 	ROS_INFO("Stopping of rotate robot");
 }
 
@@ -97,16 +124,39 @@ void MovimentationExecutor::moveRobot() {
 	ROS_INFO("Moving robot");
 	geometry_msgs::Pose actualPosition =
 			pointerActualOdometryPosition->pose.pose;
-	pointerTo100MilisencodsSleep->reset();
-	publisherMap[cmdVelTopic].publish(createMoveMessage(velocity));
-	while(actualPosition.position.x != pointerTargetPosition->x &&
-		actualPosition.position.x != pointerTargetPosition->y) {
+//	publisherMap[cmdVelTopic].publish(createMoveMessage(velocity));
+
+	geometry_msgs::Twist moveMessage;
+	moveMessage.angular.x = 0;
+	moveMessage.angular.y = 0;
+	moveMessage.angular.z = 0;
+	moveMessage.linear.x = velocity;
+	moveMessage.linear.y = 0;
+	moveMessage.linear.z = 0;
+	publisherMap[cmdVelTopic].publish(moveMessage);
+
+//	while(actualPosition.position.x != pointerTargetPosition->x &&
+//		actualPosition.position.x != pointerTargetPosition->y) {
+	while((pointerActualOdometryPosition->pose.pose.position.x > pointerTargetPosition->x - 1 &&
+		   pointerActualOdometryPosition->pose.pose.position.x < pointerTargetPosition->x + 1) &&
+		   (pointerActualOdometryPosition->pose.pose.position.y > pointerTargetPosition->y - 1 &&
+			pointerActualOdometryPosition->pose.pose.position.y > pointerTargetPosition->y - 1)) {
+//			usleep(1000000);
 			ros::spinOnce();
-			pointerTo100MilisencodsSleep->sleep();
 			ROS_DEBUG("Position x: %f y: %f not achieved",
 				pointerTargetPosition->x,pointerTargetPosition->y);
 	}
-	publisherMap[cmdVelTopic].publish(*pointerToStopMessage);
+//	publisherMap[cmdVelTopic].publish(*pointerToStopMessage);
+
+	geometry_msgs::Twist stopMessage;
+	stopMessage.angular.x = 0;
+	stopMessage.angular.y = 0;
+	stopMessage.angular.z = 0;
+	stopMessage.linear.x = 0;
+	stopMessage.linear.y = 0;
+	stopMessage.linear.z = 0;
+	publisherMap[cmdVelTopic].publish(stopMessage);
+
 	ROS_INFO("Stopping of move robot");
 }
 
@@ -119,12 +169,12 @@ bool MovimentationExecutor::subscribeToTopics() {
 		nodeHandler.subscribe(targetPositionTopic,
 		1000,&MovimentationExecutor::receivedTargetPosition,this);
 	ros::Subscriber sub3 =
-		nodeHandler.subscribe(actualRobotPositionTopic,
-		1000,&MovimentationExecutor::receivedActualOdometryRobotPosition,this);
+		nodeHandler.subscribe(poseTopic,
+		10,&MovimentationExecutor::receivedActualOdometryRobotPosition,this);
 	if(sub && sub2 && sub3) {
 		subscriberMap[motorStateTopic] = sub;
-		subscriberMap[targetPositionTopic] = sub;
-		subscriberMap[actualRobotPositionTopic] = sub;
+		subscriberMap[targetPositionTopic] = sub2;
+		subscriberMap[actualRobotPositionTopic] = sub3;
 		return true;
 	} else {
 		ROS_DEBUG("Could not subscribe to all topics");
@@ -160,24 +210,30 @@ bool MovimentationExecutor::createPublishers() {
 //Callback
 void MovimentationExecutor::receivedActualOdometryRobotPosition(
 		const nav_msgs::Odometry::ConstPtr& actualOdometryRobotPositionPointer) {
-	ROS_INFO("Received message of robot position");
-	pointerActualOdometryPosition = const_cast<nav_msgs::Odometry*>(actualOdometryRobotPositionPointer.get());
-	if(actualOdometryRobotPositionPointer->pose.pose.position.x
-		== pointerTargetPosition->x &&
-		actualOdometryRobotPositionPointer->pose.pose.position.y
-		== pointerTargetPosition->y) {
-		targetAchieved = true;
-		pointerTargetPosition = NULL;
-		ROS_INFO("target position achieved");
-	} else {
-		ROS_DEBUG("Robot did not arrived in the destination yet.");
-	}
+	actualPosition = *actualOdometryRobotPositionPointer;
+	ROS_INFO("%f", actualPosition.pose.pose.orientation.z);
+//	ROS_INFO("Received message of robot position");
+//	pointerActualOdometryPosition = const_cast<nav_msgs::Odometry*>(actualOdometryRobotPositionPointer.get());
+//	if(pointerActualOdometryPosition != NULL &&
+//		pointerTargetPosition != NULL) {
+//		if(actualOdometryRobotPositionPointer->pose.pose.position.x
+//			== pointerTargetPosition->x &&
+//			actualOdometryRobotPositionPointer->pose.pose.position.y
+//			== pointerTargetPosition->y) {
+//			targetAchieved = true;
+//			pointerTargetPosition = NULL;
+//			ROS_INFO("target position achieved");
+//		} else {
+//			ROS_DEBUG("Robot did not arrived in the destination yet.");
+//		}
+//	}
 }
 
 void MovimentationExecutor::receivedTargetPosition(
 		const controlador_de_trajetoria::Move_robot::ConstPtr& targetPositionPointer) {
 	ROS_INFO("Received next target position");
-	targetAchieved = false;
+	controlador_de_trajetoria::Position targetPosition;
+	pointerTargetPosition = &targetPosition;
 	pointerTargetPosition->x = targetPositionPointer->x;
 	pointerTargetPosition->y = targetPositionPointer->y;
 	velocity = targetPositionPointer->vel;

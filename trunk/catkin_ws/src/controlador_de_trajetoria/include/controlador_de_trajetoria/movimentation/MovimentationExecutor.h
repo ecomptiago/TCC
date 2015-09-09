@@ -9,6 +9,7 @@
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 
 #include "math.h"
+#include "unistd.h"
 #include "std_msgs/Bool.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
@@ -44,7 +45,6 @@ class MovimentationExecutor :public BaseRosNode{
 		double wakeUpTime;
 		bool targetAchieved;
 		double angle; //angle in degree
-		ros::Rate* pointerTo100MilisencodsSleep;
 
 		//Methods
 		void verifyMotorState();
