@@ -35,6 +35,7 @@ class BaseRosNode : public RosNodeInterface{
 		BaseRosNode(int argc, char **argv, std::string nodeName);
 
 		//Destructor
+		//TODO - Delete all pointers to deallocate memory
 		virtual ~BaseRosNode() {};
 
 		//Methods

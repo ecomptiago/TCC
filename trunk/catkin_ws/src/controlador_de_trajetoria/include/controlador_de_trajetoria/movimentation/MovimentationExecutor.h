@@ -8,6 +8,7 @@
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 
+#include "math.h"
 #include "std_msgs/Bool.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
@@ -22,9 +23,11 @@ const char* poseTopic = "/RosAria/pose";
 const char* actualRobotPositionTopic = "Position_handler/actual_robot_position";
 const char* targetPositionAchievedTopic = "Message_handler/target_position_achieved";
 const char* targetPositionTopic = "Message_handler/target_position";
+const geometry_msgs::Twist* pointerToStopMessage;
+const geometry_msgs::Twist* pointerToRotateMessage;
 //const char* movimentNotPossibleTopic = "Movimentation_executor/moviment_not_possible_cause";
 
-
+//TODO - use only shared_ptr instead of raw pointer (*)
 class MovimentationExecutor :public BaseRosNode{
 	private:
 		//Attributes
@@ -41,11 +44,15 @@ class MovimentationExecutor :public BaseRosNode{
 		double wakeUpTime;
 		bool targetAchieved;
 		double angle; //angle in degree
+		ros::Rate* pointerTo100MilisencodsSleep;
 
 		//Methods
 		void verifyMotorState();
 		void rotateRobot();
 		void moveRobot();
+		const geometry_msgs::Twist* createStopMessage();
+		const geometry_msgs::Twist* createRotateMessage();
+		boost::shared_ptr<geometry_msgs::Twist> createMoveMessage(double velocity);
 
 	public:
 		//Constructors
@@ -54,6 +61,7 @@ class MovimentationExecutor :public BaseRosNode{
 			double wakeUpTime);
 
 		//Destructor
+		//TODO - Delete all pointers to deallocate memory
 		virtual ~MovimentationExecutor() {} ;
 
 		//Methods

@@ -25,6 +25,7 @@ const char* nextTargetsTopic = "Message_handler/next_targets";
 const char* timerFreeCoordinates = "freeCoordinatesTimer";
 const char* timerNextTargets = "nextTargetsTimer";
 
+//TODO - use only shared_ptr instead of raw pointer (*)
 class MessagesHandler :public BaseRosNode{
 	private:
 		//Attributes
@@ -44,6 +45,7 @@ class MessagesHandler :public BaseRosNode{
 				double wakeUpTime, float freeCoordinatesDelay);
 
 		//Destructor
+		//TODO - Delete all pointers to deallocate memory
 		virtual ~MessagesHandler() {} ;
 
 		//Methods
