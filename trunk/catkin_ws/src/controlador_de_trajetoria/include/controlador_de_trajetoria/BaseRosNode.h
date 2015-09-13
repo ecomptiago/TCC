@@ -26,6 +26,7 @@ class BaseRosNode : public RosNodeInterface{
 		//TODO - Take a look at TimerManager class, maybe
 		//we can remove this map
 		std::map<std::string,ros::Timer> timerMap;
+		std::map<std::string,ros::ServiceClient> servicesMap;
 		double angleErrorMargin;
 		double positionErrorMargin;
 
@@ -48,6 +49,7 @@ class BaseRosNode : public RosNodeInterface{
 		virtual bool subscribeToTopics();
 		virtual bool createPublishers();
 		virtual bool createTimers();
+		virtual bool createServices();
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_BASEROSNODE_H_ */

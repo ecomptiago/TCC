@@ -2,14 +2,16 @@
 
 //Constructors
 MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
-	float nextTryInterval, double velocity, double wakeUpTime)
+	float nextTryInterval, double velocity, double wakeUpTime,
+	double verifyRobotMovimentDelay)
 	: BaseRosNode(argc,argv,nodeName) {
 		this->pointerTargetPosition = NULL;
 		this->nextTryInterval = nextTryInterval;
 		this->velocity = velocity;
 		this->wakeUpTime = wakeUpTime;
 		this->targetAchieved = true;
-		this->angle = 0;
+		this->motorEnabled = false;
+		this->verifyRobotMovimentDelay = verifyRobotMovimentDelay;
 }
 
 //Methods
@@ -76,6 +78,10 @@ void MovimentationExecutor::publishPositionAchieved(
 }
 
 void MovimentationExecutor::verifyMotorState() {
+	if(motorEnabled == false) {
+		std_srvs::Empty empty;
+		servicesMap[enableMotorService].call(empty);
+	}
 }
 
 void MovimentationExecutor::rotateRobot() {
@@ -87,22 +93,19 @@ void MovimentationExecutor::rotateRobot() {
 		180/M_PI;
 	ROS_INFO("Rotating robot to %f degrees",angleTargetPosition);
 	publisherMap[cmdVelTopic].publish(createRotateMessage());
-
 	while(!(actualAngle > angleTargetPosition - angleErrorMargin &&
-			actualAngle < angleTargetPosition + angleErrorMargin)) {
+		actualAngle < angleTargetPosition + angleErrorMargin)) {
 			usleep(100000);
 			ros::spinOnce();
 			actualAngle =
 				tf::getYaw(actualOdometryPosition.pose.pose.orientation) *
 				180/M_PI;
 	}
-
 	publisherMap[cmdVelTopic].publish(createStopMessage());
 	ROS_INFO("Stopping of rotate robot");
 }
 
 void MovimentationExecutor::moveRobot() {
-
 	double initialXPosition = actualOdometryPosition.pose.pose.position.x;
 	double initialYPosition = actualOdometryPosition.pose.pose.position.y;
 	double targetXAdjusted;
@@ -120,7 +123,6 @@ void MovimentationExecutor::moveRobot() {
 	ROS_INFO("Moving robot to position x: %f y: %f from actual position",
 			pointerTargetPosition->x,pointerTargetPosition->y);
 	publisherMap[cmdVelTopic].publish(createMoveMessage(velocity));
-
 	while(!(actualOdometryPosition.pose.pose.position.x > targetXAdjusted - positionErrorMargin &&
 		actualOdometryPosition.pose.pose.position.x < targetXAdjusted + positionErrorMargin &&
 		actualOdometryPosition.pose.pose.position.y > targetYAdjusted - positionErrorMargin &&
@@ -130,9 +132,7 @@ void MovimentationExecutor::moveRobot() {
 	}
 	publisherMap[cmdVelTopic].publish(createStopMessage());
 	ROS_INFO("Stopping of move robot");
-
 	publishPositionAchieved(initialXPosition,initialYPosition);
-
 	pointerTargetPosition = NULL;
 	targetAchieved = true;
 }
@@ -151,14 +151,12 @@ bool MovimentationExecutor::subscribeToTopics() {
 	if(sub && sub2 && sub3) {
 		subscriberMap[motorStateTopic] = sub;
 		subscriberMap[targetPositionTopic] = sub2;
-		subscriberMap[actualRobotPositionTopic] = sub3;
+		subscriberMap[poseTopic] = sub3;
 		return true;
 	} else {
 		ROS_DEBUG("Could not subscribe to all topics");
 		return false;
 	}
-
-	return true;
 }
 
 bool MovimentationExecutor::createPublishers() {
@@ -179,6 +177,37 @@ bool MovimentationExecutor::createPublishers() {
 		return true;
 	} else {
 		ROS_DEBUG("Could not create all publishers");
+		return false;
+	}
+}
+
+bool MovimentationExecutor::createServices() {
+	ROS_INFO("Creating services");
+	ros::ServiceClient service =
+		nodeHandler.serviceClient<std_srvs::Empty>(enableMotorService);
+	ros::ServiceClient service2 =
+		nodeHandler.serviceClient<std_srvs::Empty>(disableMotorService);
+	if(service && service2) {
+		servicesMap[enableMotorService] = service;
+		servicesMap[disableMotorService] = service2;
+		return true;
+	} else {
+		ROS_DEBUG("Could not create all services");
+		return false;
+	}
+}
+
+bool MovimentationExecutor::createTimers() {
+	ROS_INFO("Creating timers");
+	ros::Timer timer =
+		nodeHandler.createTimer(ros::Duration(verifyRobotMovimentDelay),
+		&PositionHandler::publishPosition,
+		this,false);
+	if(timer) {
+		timerMap[actualRobotPositionTopic] = timer;
+		return true;
+	} else {
+		ROS_DEBUG("Could not create all timers");
 		return false;
 	}
 }
@@ -205,22 +234,30 @@ void MovimentationExecutor::receivedTargetPosition(
 
 void MovimentationExecutor::receivedMotorState(
 		const std_msgs::Bool::ConstPtr& motorStatePointer) {
-	motorState = *motorStatePointer;
+	motorEnabled = motorStatePointer->data;
+}
+
+void MovimentationExecutor::verifyRobotMovimentEvent(const ros::TimerEvent& timerEvent) {
+	if(pointerTargetPosition != NULL &&
+		actualOdometryPosition.pose.pose.position.x == lastPosition.x
+		&& actualOdometryPosition.pose.pose.position.y == lastPosition.y) {
+
+	}
 }
 
 //Main
 int main(int argc,char **argv) {
 	try {
-		MovimentationExecutor movimentationExecutor(argc,argv,1,1,0.1);
-
+		MovimentationExecutor movimentationExecutor(argc,argv,1,1,0.1,0.1);
 		if(movimentationExecutor.subscribeToTopics() &&
-				movimentationExecutor.createPublishers()) {
-			return movimentationExecutor.runNode();
+			movimentationExecutor.createPublishers() &&
+			movimentationExecutor.createServices() &&
+			movimentationExecutor.createTimers()) {
+				return movimentationExecutor.runNode();
 		} else {
 			ros::shutdown();
 			return 0;
 		}
-
 	} catch (std::exception &e) {
 		ros::shutdown();
 		return 0;

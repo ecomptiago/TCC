@@ -49,7 +49,7 @@ bool PositionHandler::createTimers() {
 				&PositionHandler::publishPosition,
 				this,false);
 	if(timer) {
-		timerMap[actualRobotPositionTopic] = timer;
+		timerMap[timerActualRobotPosition] = timer;
 		return true;
 	} else {
 		ROS_DEBUG("Could not create all timers");

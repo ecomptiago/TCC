@@ -63,7 +63,7 @@ bool MessagesHandler::createPublishers() {
 	ros::Publisher pub3 =
 		nodeHandler.advertise<controlador_de_trajetoria::Move_robot_multi_array>(
 		nextTargetsTopic, 1000);
-	if(pub && pub2) {// && pub3) {
+	if(pub && pub2 && pub3) {
 		publisherMap[targetPositionTopic] =  pub;
 		publisherMap[freeCoordinatesTopic] =  pub2;
 		publisherMap[nextTargetsTopic] =  pub3;

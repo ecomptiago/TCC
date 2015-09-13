@@ -11,6 +11,7 @@
 #include "math.h"
 #include "unistd.h"
 #include "std_msgs/Bool.h"
+#include "std_srvs/Empty.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
 #include "controlador_de_trajetoria/BaseRosNode.h"
@@ -22,10 +23,12 @@ const char* nodeName = "Movimentation_executor";
 const char* motorStateTopic = "/RosAria/motor_state";
 const char* cmdVelTopic = "/RosAria/cmd_vel";
 const char* poseTopic = "/RosAria/pose";
-const char* actualRobotPositionTopic = "Position_handler/actual_robot_position";
+const char* enableMotorService = "/RosAria/enable_motor";
+const char* disableMotorService = "/RosAria/disable_motor";
 const char* targetPositionAchievedTopic = "Message_handler/target_position_achieved";
 const char* targetPositionTopic = "Message_handler/target_position";
-//const char* movimentNotPossibleTopic = "Movimentation_executor/moviment_not_possible_cause";
+const char* movimentNotPossibleTopic = "Movimentation_executor/moviment_not_possible_cause";
+const char* verifyRobotMovimentTimer = "verifyRobotMovimentTimer";
 
 //TODO - use only shared_ptr instead of raw pointer (*)
 class MovimentationExecutor :public BaseRosNode{
@@ -41,10 +44,11 @@ class MovimentationExecutor :public BaseRosNode{
 		nav_msgs::Odometry actualOdometryPosition;
 		float nextTryInterval; // Time in seconds
 		double velocity; // Velocity in m/s
-		std_msgs::Bool motorState;
+		bool motorEnabled;
 		double wakeUpTime; // wakeUp in seconds
 		bool targetAchieved;
-		double angle; //angle in degree
+		bool verifyRobotMovimentDelay; // this is in seconds
+		controlador_de_trajetoria::Position lastPosition;
 
 		//Methods
 		void verifyMotorState();
@@ -60,7 +64,7 @@ class MovimentationExecutor :public BaseRosNode{
 		//Constructors
 		MovimentationExecutor(int argc,char **argv,
 			float nextTryInterval, double velocity,
-			double wakeUpTime);
+			double wakeUpTime,double verifyRobotMovimentDelay);
 
 		//Destructor
 		//TODO - Delete all pointers to deallocate memory
@@ -70,11 +74,14 @@ class MovimentationExecutor :public BaseRosNode{
 		virtual int runNode();
 		bool subscribeToTopics();
 		bool createPublishers();
+		bool createServices();
+		bool createTimers();
 		void receivedActualOdometryRobotPosition(const
 			nav_msgs::Odometry::ConstPtr& actualOdometryRobotPositionPointer);
 		void receivedTargetPosition(const
 			controlador_de_trajetoria::Move_robot::ConstPtr& targetPositionPointer);
 		void receivedMotorState(const std_msgs::Bool::ConstPtr& motorStatePointer);
+		void verifyRobotMovimentEvent(const ros::TimerEvent& timerEvent);
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_ */
