@@ -26,7 +26,8 @@ class BaseRosNode : public RosNodeInterface{
 		//TODO - Take a look at TimerManager class, maybe
 		//we can remove this map
 		std::map<std::string,ros::Timer> timerMap;
-		std::map<std::string,ros::ServiceClient> servicesMap;
+		std::map<std::string,ros::ServiceClient> serviceClientsMap;
+		std::map<std::string,ros::ServiceServer> serviceServersMap;
 		double angleErrorMargin;
 		double positionErrorMargin;
 

@@ -17,13 +17,13 @@ int PositionHandler::runNode() {
 bool PositionHandler::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
 	ros::Subscriber sub = nodeHandler.subscribe(poseTopic, 1000,
-			&PositionHandler::transformOdometryToPosition,
-			this);
+		&PositionHandler::transformOdometryToPosition,
+		this);
 	if(sub) {
 		subscriberMap[poseTopic] = sub;
 		return true;
 	} else {
-		ROS_DEBUG("Could not subscribe to all topics");
+		ROS_INFO("Could not subscribe to all topics");
 		return false;
 	}
 }
@@ -37,7 +37,7 @@ bool PositionHandler::createPublishers() {
 		publisherMap[actualRobotPositionTopic] =  pub;
 		return true;
 	} else {
-		ROS_DEBUG("Could not create all publishers");
+		ROS_INFO("Could not create all publishers");
 		return false;
 	}
 }
@@ -45,23 +45,25 @@ bool PositionHandler::createPublishers() {
 bool PositionHandler::createTimers() {
 	ROS_INFO("Creating timers");
 	ros::Timer timer =
-			nodeHandler.createTimer(ros::Duration(actualRobotPositionDelay),
-				&PositionHandler::publishPosition,
-				this,false);
+		nodeHandler.createTimer(ros::Duration(actualRobotPositionDelay),
+		&PositionHandler::publishPosition,
+		this,false);
 	if(timer) {
 		timerMap[timerActualRobotPosition] = timer;
 		return true;
 	} else {
-		ROS_DEBUG("Could not create all timers");
+		ROS_INFO("Could not create all timers");
 		return false;
 	}
 }
 
 //Callbacks
 void PositionHandler::transformOdometryToPosition(
-		const nav_msgs::Odometry::ConstPtr& odometryPosition) {
-	position.x = odometryPosition->pose.pose.position.x;
-	position.y = odometryPosition->pose.pose.position.y;
+	const nav_msgs::Odometry::ConstPtr& odometryPosition) {
+		ROS_DEBUG("Received position x:%f y:%f",odometryPosition->pose.pose.position.x,
+			odometryPosition->pose.pose.position.y);
+		position.x = odometryPosition->pose.pose.position.x;
+		position.y = odometryPosition->pose.pose.position.y;
 }
 
 
@@ -76,7 +78,6 @@ void PositionHandler::publishPosition(const ros::TimerEvent& timerEvent) {
 int main(int argc,char **argv) {
 	try {
 		PositionHandler positionHandler(argc,argv,1);
-
 		if(positionHandler.subscribeToTopics() &&
 				positionHandler.createPublishers() &&
 				positionHandler.createTimers()) {
@@ -85,7 +86,6 @@ int main(int argc,char **argv) {
 			ros::shutdown();
 			return 0;
 		}
-
 	} catch (std::exception &e) {
 		ros::shutdown();
 		return 0;

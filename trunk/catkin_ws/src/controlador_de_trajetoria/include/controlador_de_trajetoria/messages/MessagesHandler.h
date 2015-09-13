@@ -9,12 +9,16 @@
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MESSAGES_MESSAGESHANDLER_H_
 
 #include "vector"
+#include "memory"
+#include "unistd.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int32.h"
 #include "controlador_de_trajetoria/BaseRosNode.h"
 #include "controlador_de_trajetoria/Move_robot.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot_multi_array.h"
+#include "controlador_de_trajetoria/Move_robot_service.h"
+
 
 const char* nodeName = "Message_handler";
 const char* moveRobotAssyncTopic = "Message_handler/move_robot_assync";
@@ -22,6 +26,7 @@ const char* targetPositionTopic = "Message_handler/target_position";
 const char* targetPositionAchievedTopic = "Message_handler/target_position_achieved";
 const char* freeCoordinatesTopic = "Message_handler/free_coordinates";
 const char* nextTargetsTopic = "Message_handler/next_targets";
+const char* moveRobotSyncService = "Message_handler/move_robot_sync";
 const char* timerFreeCoordinates = "freeCoordinatesTimer";
 const char* timerNextTargets = "nextTargetsTimer";
 
@@ -38,6 +43,7 @@ class MessagesHandler :public BaseRosNode{
 		double wakeUpTime;
 		bool arrivedInTargetPosition;
 		float freeCoordinatesDelay; //This is in seconds
+		bool isFinalPositionCorrect;
 
 	public:
 		//Constructors
@@ -53,10 +59,14 @@ class MessagesHandler :public BaseRosNode{
 		bool subscribeToTopics();
 		bool createPublishers();
 		bool createTimers();
+		bool createServices();
 		void proccessPositionToMoveRobot(
-				const controlador_de_trajetoria::Move_robot::ConstPtr& moveRobotPosition);
+			const controlador_de_trajetoria::Move_robot::ConstPtr& moveRobotPosition);
 		void positionAchieved(
-				const controlador_de_trajetoria::Position::ConstPtr& positionAchieved);
+			const controlador_de_trajetoria::Position::ConstPtr& positionAchieved);
+		bool moveRobotSync(
+			controlador_de_trajetoria::Move_robot_service::Request& request,
+			controlador_de_trajetoria::Move_robot_service::Response& response);
 		void publishFreeCoordinates(const ros::TimerEvent& timerEvent);
 		void nextTargets(const ros::TimerEvent& timerEvent);
 
