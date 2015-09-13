@@ -17,6 +17,8 @@
 #include "controlador_de_trajetoria/BaseRosNode.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot.h"
+#include "controlador_de_trajetoria/Movimentation_error.h"
+#include "controlador_de_trajetoria/movimentation/MovimentationErrorEnum.h"
 #include "tf/transform_datatypes.h"
 
 const char* nodeName = "Movimentation_executor";
@@ -48,7 +50,7 @@ class MovimentationExecutor :public BaseRosNode{
 		double wakeUpTime; // wakeUp in seconds
 		bool targetAchieved;
 		bool verifyRobotMovimentDelay; // this is in seconds
-		controlador_de_trajetoria::Position lastPosition;
+		nav_msgs::Odometry lastPosition;
 
 		//Methods
 		void verifyMotorState();

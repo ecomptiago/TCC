@@ -1,0 +1,2 @@
+Position coordinateToMove
+string whyCantMove

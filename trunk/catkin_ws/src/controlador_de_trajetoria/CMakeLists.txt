@@ -46,25 +46,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate messages in the 'msg' folder
 add_message_files(
-#  DIRECTORY
-#    msg/pos_msgs
   FILES
     Position.msg
-)
-
-add_message_files(
-#  DIRECTORY
-#    msg/mov_msgs
-  FILES
     Move_robot.msg
+    Move_robot_multi_array.msg
+    Movimentation_error.msg
 )
 
-add_message_files(
-#  DIRECTORY
-#    msg/mov_msgs
-  FILES
-    Move_robot_multi_array.msg
-)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -157,7 +145,8 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-set (SOURCEFILES src/BaseRosNode.cpp src/error/MethodNotImplemented.cpp)
+set (SOURCEFILES src/BaseRosNode.cpp src/error/MethodNotImplemented.cpp 
+	src/movimentation/MovimentationErrorEnum.cpp)
 set (MSG_GENERATION controlador_de_trajetoria_generate_messages_cpp)
 
 add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)

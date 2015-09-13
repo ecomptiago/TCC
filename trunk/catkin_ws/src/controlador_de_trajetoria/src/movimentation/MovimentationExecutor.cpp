@@ -147,7 +147,7 @@ bool MovimentationExecutor::subscribeToTopics() {
 		1000,&MovimentationExecutor::receivedTargetPosition,this);
 	ros::Subscriber sub3 =
 		nodeHandler.subscribe(poseTopic,
-		10,&MovimentationExecutor::receivedActualOdometryRobotPosition,this);
+		1000,&MovimentationExecutor::receivedActualOdometryRobotPosition,this);
 	if(sub && sub2 && sub3) {
 		subscriberMap[motorStateTopic] = sub;
 		subscriberMap[targetPositionTopic] = sub2;
@@ -201,10 +201,10 @@ bool MovimentationExecutor::createTimers() {
 	ROS_INFO("Creating timers");
 	ros::Timer timer =
 		nodeHandler.createTimer(ros::Duration(verifyRobotMovimentDelay),
-		&PositionHandler::publishPosition,
+		&MovimentationExecutor::verifyRobotMovimentEvent,
 		this,false);
 	if(timer) {
-		timerMap[actualRobotPositionTopic] = timer;
+		timerMap[verifyRobotMovimentTimer] = timer;
 		return true;
 	} else {
 		ROS_DEBUG("Could not create all timers");
@@ -216,6 +216,7 @@ bool MovimentationExecutor::createTimers() {
 void MovimentationExecutor::receivedActualOdometryRobotPosition(
 		const nav_msgs::Odometry::ConstPtr& actualOdometryRobotPositionPointer) {
 	actualOdometryPosition = *actualOdometryRobotPositionPointer;
+	lastPosition = actualOdometryPosition;
 }
 
 void MovimentationExecutor::receivedTargetPosition(
@@ -239,9 +240,22 @@ void MovimentationExecutor::receivedMotorState(
 
 void MovimentationExecutor::verifyRobotMovimentEvent(const ros::TimerEvent& timerEvent) {
 	if(pointerTargetPosition != NULL &&
-		actualOdometryPosition.pose.pose.position.x == lastPosition.x
-		&& actualOdometryPosition.pose.pose.position.y == lastPosition.y) {
-
+		actualOdometryPosition.pose.pose.position.x == lastPosition.pose.pose.position.x &&
+		actualOdometryPosition.pose.pose.position.y == lastPosition.pose.pose.position.y &&
+		actualOdometryPosition.pose.pose.orientation.z == lastPosition.pose.pose.orientation.z &&
+		actualOdometryPosition.pose.pose.orientation.w == lastPosition.pose.pose.orientation.w) {
+			controlador_de_trajetoria::Movimentation_error movimentationError;
+			movimentationError.coordinateToMove = targetPosition;
+			MovimentationErrorEnum error;
+			if(motorEnabled == false) {
+				movimentationError.whyCantMove =
+					error.getStringFromEnum(MovimentationErrorEnum::MOTOR_DISABLED);
+				verifyMotorState();
+			} else {
+				movimentationError.whyCantMove =
+					error.getStringFromEnum(MovimentationErrorEnum::UNKNOW);
+			}
+			publisherMap[movimentNotPossibleTopic].publish(movimentationError);
 	}
 }
 
