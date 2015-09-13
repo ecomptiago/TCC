@@ -11,6 +11,8 @@
 BaseRosNode::BaseRosNode(int argc, char **argv, std::string nodeName) {
 	ROS_INFO("Initializing ROS node %s",nodeName.c_str());
 	ros::init(argc, argv, nodeName);
+	this->angleErrorMargin = 0.5;
+	this->positionErrorMargin = 0.25;
 }
 
 //Methods

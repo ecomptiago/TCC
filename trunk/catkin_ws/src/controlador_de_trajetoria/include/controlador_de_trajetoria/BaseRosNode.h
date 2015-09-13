@@ -26,6 +26,8 @@ class BaseRosNode : public RosNodeInterface{
 		//TODO - Take a look at TimerManager class, maybe
 		//we can remove this map
 		std::map<std::string,ros::Timer> timerMap;
+		double angleErrorMargin;
+		double positionErrorMargin;
 
 		//Methods
 		bool hasPublisher(const char* topicName);

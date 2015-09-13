@@ -60,16 +60,12 @@ bool PositionHandler::createTimers() {
 //Callbacks
 void PositionHandler::transformOdometryToPosition(
 		const nav_msgs::Odometry::ConstPtr& odometryPosition) {
-	ROS_INFO("Received a message from pose topic");
-
-	ROS_DEBUG("Processing odometry message");
 	position.x = odometryPosition->pose.pose.position.x;
 	position.y = odometryPosition->pose.pose.position.y;
 }
 
 
 void PositionHandler::publishPosition(const ros::TimerEvent& timerEvent) {
-	ROS_DEBUG("Publishing position message");
 	if(hasPublisher(actualRobotPositionTopic)) {
 		publisherMap[actualRobotPositionTopic].publish(position);
 	}

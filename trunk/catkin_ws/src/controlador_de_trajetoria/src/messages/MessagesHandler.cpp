@@ -22,14 +22,8 @@ int MessagesHandler::runNode() {
 				if(hasPublisher(targetPositionTopic)) {
 					arrivedInTargetPosition = false;
 					publisherMap[targetPositionTopic].publish(coordinatesList.front());
-					ROS_DEBUG("Coordinate was sent. Removing from vector");
-					coordinatesList.erase(coordinatesList.begin());
 				}
-			} else {
-				ROS_DEBUG("Did not arrived in position yet");
 			}
-		} else {
-			ROS_DEBUG("Have none position to send robot");
 		}
 		ros::spinOnce();
 		rate.sleep();
@@ -89,7 +83,7 @@ bool MessagesHandler::createTimers() {
 		this,false);
 	ros::Timer timer2 =
 		nodeHandler.createTimer(ros::Duration(freeCoordinatesDelay),
-		&MessagesHandler::publishFreeCoordinates,
+		&MessagesHandler::nextTargets,
 		this,false);
 	if(timer && timer2) {
 		timerMap[timerFreeCoordinates] = timer;
@@ -116,14 +110,18 @@ void MessagesHandler::positionAchieved(
 		const controlador_de_trajetoria::Position::ConstPtr& positionAchieved) {
 	ROS_INFO("Check if the position was achieved");
 
-	if(positionAchieved->x == coordinatesList.front().x &&
-			positionAchieved->y == coordinatesList.front().y) {
-		ROS_INFO("Position achieved");
-		arrivedInTargetPosition = true;
+	if(positionAchieved->x > coordinatesList.front().x - positionErrorMargin &&
+	    positionAchieved->x < coordinatesList.front().x + positionErrorMargin &&
+	    positionAchieved->y > coordinatesList.front().y - positionErrorMargin &&
+	    positionAchieved->y < coordinatesList.front().y + positionErrorMargin) {
+			ROS_INFO("Position achieved");
+			coordinatesList.erase(coordinatesList.begin());
 	} else {
-		ROS_DEBUG("Position received is not the first in the"
-				"vector");
+		ROS_WARN("Position received is not the first in the"
+			"vector.Erasing vector");
+		coordinatesList.clear();
 	}
+	arrivedInTargetPosition = true;
 }
 
 void MessagesHandler::publishFreeCoordinates(
