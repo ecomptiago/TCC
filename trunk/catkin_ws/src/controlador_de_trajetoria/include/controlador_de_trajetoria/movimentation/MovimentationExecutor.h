@@ -22,7 +22,7 @@
 #include "tf/transform_datatypes.h"
 
 const char* nodeName = "Movimentation_executor";
-const char* motorStateTopic = "/RosAria/motor_state";
+const char* motorStateTopic = "/RosAria/motors_state";
 const char* cmdVelTopic = "/RosAria/cmd_vel";
 const char* poseTopic = "/RosAria/pose";
 const char* enableMotorService = "/RosAria/enable_motors";
@@ -61,6 +61,7 @@ class MovimentationExecutor :public BaseRosNode{
 		geometry_msgs::Twist createStopMessage();
 		geometry_msgs::Twist createRotateMessage();
 		geometry_msgs::Twist createMoveMessage(double velocity);
+		double actualizingAngle(double actualAngle);
 
 	public:
 		//Constructors

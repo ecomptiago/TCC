@@ -178,11 +178,11 @@ bool MessagesHandler::moveRobotSync(
 			request.moveRobotPosition.vel);
 		proccessPositionToMoveRobot(
 			boost::make_shared<controlador_de_trajetoria::Move_robot>(request.moveRobotPosition));
-//		while(arrivedInTargetPosition == false &&
-//			!MovimentationUtils::isMoveRobotEqual(*request.moveRobotPosition)) {
-//			usleep(100000);
-//			ros::spinOnce();
-//		}
+		while(arrivedInTargetPosition == false &&
+			!MovimentationUtils::isMoveRobotEqual(request.moveRobotPosition,coordinatesList.front())) {
+				usleep(100000);
+				ros::spinOnce();
+		}
 		ROS_INFO("Sending response to service caller");
 		response.status = isFinalPositionCorrect;
 		return true;

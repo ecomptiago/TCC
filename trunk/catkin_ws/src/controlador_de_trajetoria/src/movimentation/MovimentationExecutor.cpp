@@ -87,6 +87,15 @@ void MovimentationExecutor::verifyMotorState() {
 	}
 }
 
+double MovimentationExecutor::actualizingAngle(double actualAngle) {
+	usleep(100000);
+	ros::spinOnce();
+	actualAngle = tf::getYaw(actualOdometryPosition.pose.pose.orientation)
+			* 180/M_PI;
+	ROS_DEBUG("Actual angle:%f", actualAngle);
+	return actualAngle;
+}
+
 void MovimentationExecutor::rotateRobot() {
 	double angleTargetPosition =
 		atan2(pointerTargetPosition->y,pointerTargetPosition->x) *
@@ -94,20 +103,28 @@ void MovimentationExecutor::rotateRobot() {
 	double actualAngle =
 		tf::getYaw(actualOdometryPosition.pose.pose.orientation) *
 		180/M_PI;
+	double minAngleWithErrorMargin = angleTargetPosition - angleErrorMargin;
+	double maxAngleWithErrorMargin = angleTargetPosition + angleErrorMargin;
 	ROS_DEBUG("target position x:%f y:%f . Actual angle: %f "
 		"angle to achieve:%f",pointerTargetPosition->x,
 		pointerTargetPosition->y,actualAngle,angleTargetPosition);
 	if(hasPublisher(cmdVelTopic)) {
 		publisherMap[cmdVelTopic].publish(createRotateMessage());
 	}
-	while(!(actualAngle > angleTargetPosition - angleErrorMargin &&
-		actualAngle < angleTargetPosition + angleErrorMargin)) {
-			usleep(100000);
-			ros::spinOnce();
-			actualAngle =
-				tf::getYaw(actualOdometryPosition.pose.pose.orientation) *
-				180/M_PI;
-			ROS_DEBUG("Actual angle:%f",actualAngle);
+	if(minAngleWithErrorMargin < -180){
+		double adjustedAngleMin = 180 + (minAngleWithErrorMargin + 180);
+		while(!(actualAngle > adjustedAngleMin || actualAngle < maxAngleWithErrorMargin)) {
+			actualAngle = actualizingAngle(actualAngle);
+		}
+	} else if(maxAngleWithErrorMargin > 180) {
+		double adjustedAngleMax = (maxAngleWithErrorMargin - 180) - 180;
+		while(!(actualAngle > minAngleWithErrorMargin || actualAngle < adjustedAngleMax)) {
+			actualAngle = actualizingAngle(actualAngle);
+		}
+	} else {
+		while(!(actualAngle > minAngleWithErrorMargin && actualAngle < maxAngleWithErrorMargin)) {
+			actualAngle = actualizingAngle(actualAngle);
+		}
 	}
 	if(hasPublisher(cmdVelTopic)) {
 		publisherMap[cmdVelTopic].publish(createStopMessage());
@@ -239,7 +256,6 @@ bool MovimentationExecutor::createTimers() {
 void MovimentationExecutor::receivedActualOdometryRobotPosition(
 		const nav_msgs::Odometry::ConstPtr& actualOdometryRobotPositionPointer) {
 	actualOdometryPosition = *actualOdometryRobotPositionPointer;
-	lastPosition = actualOdometryPosition;
 }
 
 void MovimentationExecutor::receivedTargetPosition(
@@ -265,32 +281,34 @@ void MovimentationExecutor::receivedMotorState(
 }
 
 void MovimentationExecutor::verifyRobotMovimentEvent(const ros::TimerEvent& timerEvent) {
-	if(pointerTargetPosition != NULL &&
-		actualOdometryPosition.pose.pose.position.x == lastPosition.pose.pose.position.x &&
-		actualOdometryPosition.pose.pose.position.y == lastPosition.pose.pose.position.y &&
-		actualOdometryPosition.pose.pose.orientation.z == lastPosition.pose.pose.orientation.z &&
-		actualOdometryPosition.pose.pose.orientation.w == lastPosition.pose.pose.orientation.w) {
-			ROS_DEBUG("Robot not moving.Actual positions x:%f y:%f z:%f w:%f ."
-				"Last positions x:%f y:%f z:%f w:%f",actualOdometryPosition.pose.pose.position.x,
-				actualOdometryPosition.pose.pose.position.y,
-				actualOdometryPosition.pose.pose.orientation.z,
-				actualOdometryPosition.pose.pose.orientation.w,lastPosition.pose.pose.position.x,
-				lastPosition.pose.pose.position.y,lastPosition.pose.pose.orientation.z,
-				lastPosition.pose.pose.orientation.w);
-			controlador_de_trajetoria::Movimentation_error movimentationError;
-			movimentationError.coordinateToMove = targetPosition;
-			MovimentationErrorEnum error;
-			if(motorEnabled == false) {
-				movimentationError.whyCantMove =
-					error.getStringFromEnum(MovimentationErrorEnum::MOTOR_DISABLED);
-				verifyMotorState();
-			} else {
-				movimentationError.whyCantMove =
-					error.getStringFromEnum(MovimentationErrorEnum::UNKNOW);
-			}
-			if(hasPublisher(movimentNotPossibleTopic)) {
-				publisherMap[movimentNotPossibleTopic].publish(movimentationError);
-			}
+	if(pointerTargetPosition != NULL) {
+		if(actualOdometryPosition.pose.pose.position.x == lastPosition.pose.pose.position.x &&
+			actualOdometryPosition.pose.pose.position.y == lastPosition.pose.pose.position.y &&
+			actualOdometryPosition.pose.pose.orientation.z == lastPosition.pose.pose.orientation.z &&
+			actualOdometryPosition.pose.pose.orientation.w == lastPosition.pose.pose.orientation.w) {
+				ROS_DEBUG("Robot not moving.Actual positions x:%f y:%f z:%f w:%f ."
+					"Last positions x:%f y:%f z:%f w:%f",actualOdometryPosition.pose.pose.position.x,
+					actualOdometryPosition.pose.pose.position.y,
+					actualOdometryPosition.pose.pose.orientation.z,
+					actualOdometryPosition.pose.pose.orientation.w,lastPosition.pose.pose.position.x,
+					lastPosition.pose.pose.position.y,lastPosition.pose.pose.orientation.z,
+					lastPosition.pose.pose.orientation.w);
+				controlador_de_trajetoria::Movimentation_error movimentationError;
+				movimentationError.coordinateToMove = targetPosition;
+				MovimentationErrorEnum error;
+				if(motorEnabled == false) {
+					movimentationError.whyCantMove =
+						error.getStringFromEnum(MovimentationErrorEnum::MOTOR_DISABLED);
+					verifyMotorState();
+				} else {
+					movimentationError.whyCantMove =
+						error.getStringFromEnum(MovimentationErrorEnum::UNKNOW);
+				}
+				if(hasPublisher(movimentNotPossibleTopic)) {
+					publisherMap[movimentNotPossibleTopic].publish(movimentationError);
+				}
+				lastPosition = actualOdometryPosition;
+		}
 	}
 }
 
