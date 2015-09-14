@@ -21,6 +21,7 @@ int MessagesHandler::runNode() {
 				ROS_INFO("Sending position to position executor");
 				if(hasPublisher(targetPositionTopic)) {
 					arrivedInTargetPosition = false;
+					isFinalPositionCorrect = false;
 					publisherMap[targetPositionTopic].publish(coordinatesList.front());
 				} else {
 					ROS_DEBUG("Could not find topic %s to publish",targetPositionTopic);
@@ -135,13 +136,12 @@ void MessagesHandler::positionAchieved(
 			positionAchieved->y > coordinatesList.front().y - positionErrorMargin &&
 			positionAchieved->y < coordinatesList.front().y + positionErrorMargin) {
 				ROS_INFO("Position achieved");
-				isFinalPositionCorrect = true;
 				coordinatesList.erase(coordinatesList.begin());
-				ROS_INFO("Position achieved.");
+				isFinalPositionCorrect = true;
 		} else {
-			isFinalPositionCorrect = false;
 			ROS_WARN("Position not achieved .Erasing vector");
 			coordinatesList.clear();
+			isFinalPositionCorrect = false;
 		}
 		arrivedInTargetPosition = true;
 }
@@ -178,11 +178,11 @@ bool MessagesHandler::moveRobotSync(
 			request.moveRobotPosition.vel);
 		proccessPositionToMoveRobot(
 			boost::make_shared<controlador_de_trajetoria::Move_robot>(request.moveRobotPosition));
-		isFinalPositionCorrect = false;
-		while(arrivedInTargetPosition == false) {
-			usleep(100000);
-			ros::spinOnce();
-		}
+//		while(arrivedInTargetPosition == false &&
+//			!MovimentationUtils::isMoveRobotEqual(*request.moveRobotPosition)) {
+//			usleep(100000);
+//			ros::spinOnce();
+//		}
 		ROS_INFO("Sending response to service caller");
 		response.status = isFinalPositionCorrect;
 		return true;

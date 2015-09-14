@@ -18,7 +18,7 @@
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot_multi_array.h"
 #include "controlador_de_trajetoria/Move_robot_service.h"
-
+#include "controlador_de_trajetoria/utils/MovimentationUtils.h"
 
 const char* nodeName = "Message_handler";
 const char* moveRobotAssyncTopic = "Message_handler/move_robot_assync";
