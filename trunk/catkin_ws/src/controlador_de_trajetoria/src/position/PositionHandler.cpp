@@ -5,6 +5,7 @@
 PositionHandler::PositionHandler(int argc, char **argv, float actualRobotPositionDelay) :
 	BaseRosNode(argc,argv,nodeName) {
 	this->actualRobotPositionDelay = actualRobotPositionDelay;
+	int demo2 = 100;
 }
 
 //Methods
