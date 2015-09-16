@@ -145,7 +145,8 @@ include_directories(
 # )
 
 set (SOURCEFILES src/BaseRosNode.cpp src/error/MethodNotImplemented.cpp 
-	src/movimentation/MovimentationErrorEnum.cpp src/utils/MovimentationUtils.cpp)
+	src/movimentation/MovimentationErrorEnum.cpp src/utils/MovimentationUtils.cpp
+	src/messages/MoveRobotWrapper.cpp)
 set (MSG_GENERATION controlador_de_trajetoria_generate_messages_cpp)
 
 add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)

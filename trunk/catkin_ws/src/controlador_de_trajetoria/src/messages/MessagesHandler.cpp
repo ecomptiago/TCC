@@ -7,12 +7,20 @@ MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesT
 		this->freeCoordinatesDelay = freeCoordinatesDelay;
 		coordinatesList.resize(numberOfCoordinatesToStore);
 		coordinatesList.clear();
+		nextTargetsList.resize(numberOfCoordinatesToStore);
+		nextTargetsList.clear();
 		arrivedInTargetPosition = true;
 		isFinalPositionCorrect = true;
+		idMoveRobotExecuted = -1;
+//		TODO- Implementation to service move_robot_sync
+//		lockMutex = false;
 }
 
 //Methods
 int MessagesHandler::runNode() {
+//	TODO- Implementation to service move_robot_sync
+//	ros::AsyncSpinner spinner(4);
+//	spinner.start();
 	ros::Rate rate(1/wakeUpTime);
 	ROS_INFO("Running node");
 	while(ros::ok()) {
@@ -21,15 +29,14 @@ int MessagesHandler::runNode() {
 				ROS_INFO("Sending position to position executor");
 				if(hasPublisher(targetPositionTopic)) {
 					arrivedInTargetPosition = false;
-					isFinalPositionCorrect = false;
-					publisherMap[targetPositionTopic].publish(coordinatesList.front());
+					publisherMap[targetPositionTopic].
+						publish(coordinatesList.front().getMoveRobotObj());
 				} else {
 					ROS_DEBUG("Could not find topic %s to publish",targetPositionTopic);
 				}
 			}
 		}
-		ros::spinOnce();
-		rate.sleep();
+		sleepAndSpin(rate);
 	}
 	return 0;
 }
@@ -97,20 +104,20 @@ bool MessagesHandler::createTimers() {
 		return false;
 	}
 }
-
-bool MessagesHandler::createServices() {
-	ROS_INFO("Creating services");
-	ros::ServiceServer service =
-		nodeHandler.advertiseService(moveRobotSyncService,
-		&MessagesHandler::moveRobotSync,this);
-	if(service) {
-		serviceServersMap[moveRobotSyncService] = service;
-		return true;
-	} else {
-		ROS_INFO("Could not create all services");
-		return false;
-	}
-}
+//	TODO- Implementation to service move_robot_sync
+//bool MessagesHandler::createServices() {
+//	ROS_INFO("Creating services");
+//	ros::ServiceServer service =
+//		nodeHandler.advertiseService(moveRobotSyncService,
+//		&MessagesHandler::moveRobotSync,this);
+//	if(service) {
+//		serviceServersMap[moveRobotSyncService] = service;
+//		return true;
+//	} else {
+//		ROS_INFO("Could not create all services");
+//		return false;
+//	}
+//}
 
 //Callback
 void MessagesHandler::proccessPositionToMoveRobot(
@@ -120,7 +127,8 @@ void MessagesHandler::proccessPositionToMoveRobot(
 			ROS_DEBUG("Adding position x:%f y:%f vel:%f to vector",
 				moveRobotPosition->x, moveRobotPosition->y,
 				moveRobotPosition->vel);
-			coordinatesList.push_back(*moveRobotPosition);
+			coordinatesList.push_back(MoveRobotWrapper(moveRobotPosition));
+			nextTargetsList.push_back(*moveRobotPosition);
 		} else {
 			ROS_DEBUG("Vector is full position will be discarded");
 		}
@@ -131,19 +139,21 @@ void MessagesHandler::positionAchieved(
 		ROS_INFO("Checking if the position was achieved");
 		ROS_DEBUG("Position achieved is x:%f y:%f",positionAchieved->x,
 			positionAchieved->y);
-		if(positionAchieved->x > coordinatesList.front().x - positionErrorMargin &&
-			positionAchieved->x < coordinatesList.front().x + positionErrorMargin &&
-			positionAchieved->y > coordinatesList.front().y - positionErrorMargin &&
-			positionAchieved->y < coordinatesList.front().y + positionErrorMargin) {
+		if(positionAchieved->x > coordinatesList.front().getMoveRobotObj().x - positionErrorMargin &&
+			positionAchieved->x < coordinatesList.front().getMoveRobotObj().x + positionErrorMargin &&
+			positionAchieved->y > coordinatesList.front().getMoveRobotObj().y - positionErrorMargin &&
+			positionAchieved->y < coordinatesList.front().getMoveRobotObj().y + positionErrorMargin) {
 				ROS_INFO("Position achieved");
-				coordinatesList.erase(coordinatesList.begin());
 				isFinalPositionCorrect = true;
+				idMoveRobotExecuted = coordinatesList.front().getId();
+				nextTargetsList.erase(nextTargetsList.begin());
+				coordinatesList.erase(coordinatesList.begin());
 		} else {
 			ROS_WARN("Position not achieved .Erasing vector");
 			coordinatesList.clear();
-			isFinalPositionCorrect = false;
 		}
 		arrivedInTargetPosition = true;
+
 }
 
 void MessagesHandler::publishFreeCoordinates(
@@ -162,31 +172,42 @@ void MessagesHandler::nextTargets(
 	const ros::TimerEvent& timerEvent) {
 		if(hasPublisher(nextTargetsTopic)) {
 			controlador_de_trajetoria::Move_robot_multi_array nextMoviments;
-			nextMoviments.positionsToMoveRobot = coordinatesList;
+			nextMoviments.positionsToMoveRobot = nextTargetsList;
 			if(hasPublisher(nextTargetsTopic)) {
 				publisherMap[nextTargetsTopic].publish(nextMoviments);
 			}
 		}
 }
-
-bool MessagesHandler::moveRobotSync(
-	controlador_de_trajetoria::Move_robot_service::Request& request,
-	controlador_de_trajetoria::Move_robot_service::Response& response) {
-		ROS_INFO("Received position to move robot");
-		ROS_DEBUG("Calling proccessPositionToMoveRobot with position "
-			"x:%f y:%f vel:%f",request.moveRobotPosition.x, request.moveRobotPosition.y,
-			request.moveRobotPosition.vel);
-		proccessPositionToMoveRobot(
-			boost::make_shared<controlador_de_trajetoria::Move_robot>(request.moveRobotPosition));
-		while(arrivedInTargetPosition == false &&
-			!MovimentationUtils::isMoveRobotEqual(request.moveRobotPosition,coordinatesList.front())) {
-				usleep(100000);
-				ros::spinOnce();
-		}
-		ROS_INFO("Sending response to service caller");
-		response.status = isFinalPositionCorrect;
-		return true;
-}
+//	TODO- Implementation to service move_robot_sync here we need to create a MUTEX
+//  make this service works
+//bool MessagesHandler::moveRobotSync(
+//	controlador_de_trajetoria::Move_robot_service::Request& request,
+//	controlador_de_trajetoria::Move_robot_service::Response& response) {
+//		if(lockMutex) {
+//			response.status = false;
+//			return true;
+//		}
+//		ROS_INFO("Received position to move robot");
+//		ROS_DEBUG("Calling proccessPositionToMoveRobot with position "
+//			"x:%f y:%f vel:%f",request.moveRobotPosition.x, request.moveRobotPosition.y,
+//			request.moveRobotPosition.vel);
+//		MoveRobotWrapper move(request.moveRobotPosition);
+//		isFinalPositionCorrect = false;
+//		coordinatesList.push_back(move);
+//		nextTargetsList.push_back(request.moveRobotPosition);
+//		lockMutex = true;
+//		int moveId = move.getId();
+//		while(idMoveRobotExecuted != moveId) {
+//			if(coordinatesList.size() == 0) {
+//				break;
+//			}
+//			sleepAndSpin(100);
+//		}
+//		lockMutex = false;
+//		ROS_INFO("Sending response to service caller");
+//		response.status = isFinalPositionCorrect;
+//		return true;
+//}
 
 //Main
 int main(int argc,char **argv) {
@@ -194,15 +215,12 @@ int main(int argc,char **argv) {
 		MessagesHandler messagesHandler(argc,argv,100,1,1);
 		if(messagesHandler.subscribeToTopics() &&
 			messagesHandler.createPublishers() &&
-			messagesHandler.createTimers() &&
-			messagesHandler.createServices()) {
+			messagesHandler.createTimers()) {
 				return messagesHandler.runNode();
 		} else {
-			ros::shutdown();
-			return 0;
+			BaseRosNode::shutdownAndExit(nodeName);
 		}
 	} catch (std::exception &e) {
-		ros::shutdown();
-		return 0;
+		BaseRosNode::shutdownAndExit(nodeName);
 	}
 }

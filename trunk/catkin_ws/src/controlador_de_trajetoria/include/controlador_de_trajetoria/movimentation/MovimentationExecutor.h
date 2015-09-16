@@ -9,7 +9,6 @@
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 
 #include "math.h"
-#include "unistd.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/Empty.h"
 #include "geometry_msgs/Twist.h"

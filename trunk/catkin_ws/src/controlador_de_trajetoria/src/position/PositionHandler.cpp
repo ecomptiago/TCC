@@ -83,11 +83,9 @@ int main(int argc,char **argv) {
 				positionHandler.createTimers()) {
 			return positionHandler.runNode();
 		} else {
-			ros::shutdown();
-			return 0;
+			BaseRosNode::shutdownAndExit(nodeName);
 		}
 	} catch (std::exception &e) {
-		ros::shutdown();
-		return 0;
+		BaseRosNode::shutdownAndExit(nodeName);
 	}
 }

@@ -46,3 +46,18 @@ bool BaseRosNode::hasPublisher(const char* topicName) {
 	}
 }
 
+void BaseRosNode::sleepAndSpin(double miliSeconds) {
+	usleep(miliSeconds * 1000);
+	ros::spinOnce();
+}
+
+void BaseRosNode::sleepAndSpin(ros::Rate& rate) {
+	rate.sleep();
+	ros::spinOnce();
+}
+
+int BaseRosNode::shutdownAndExit(const char* nodeName) {
+	ros::shutdown();
+	ROS_INFO("ROS node %s is being shuttled down",nodeName);
+	return 0;
+}

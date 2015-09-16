@@ -10,6 +10,7 @@
 
 #include "stdexcept"
 #include "map"
+#include "unistd.h"
 #include "string"
 #include "ros/ros.h"
 #include "ros/exceptions.h"
@@ -33,6 +34,8 @@ class BaseRosNode : public RosNodeInterface{
 
 		//Methods
 		bool hasPublisher(const char* topicName);
+		void sleepAndSpin(double miliSeconds);
+		void sleepAndSpin(ros::Rate& rate);
 
 	public:
 		//Constructors
@@ -43,6 +46,7 @@ class BaseRosNode : public RosNodeInterface{
 		virtual ~BaseRosNode() {};
 
 		//Methods
+		static 	int shutdownAndExit(const char* nodeName);
 		virtual int runNode();
 
 		//This methods can be generic and implemented by the

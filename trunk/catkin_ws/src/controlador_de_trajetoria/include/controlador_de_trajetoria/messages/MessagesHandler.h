@@ -10,15 +10,15 @@
 
 #include "vector"
 #include "memory"
-#include "unistd.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int32.h"
 #include "controlador_de_trajetoria/BaseRosNode.h"
-#include "controlador_de_trajetoria/Move_robot.h"
+#include "controlador_de_trajetoria/messages/MessagesHandler.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot_multi_array.h"
 #include "controlador_de_trajetoria/Move_robot_service.h"
 #include "controlador_de_trajetoria/utils/MovimentationUtils.h"
+#include "controlador_de_trajetoria/messages/MoveRobotWrapper.h"
 
 const char* nodeName = "Message_handler";
 const char* moveRobotAssyncTopic = "Message_handler/move_robot_assync";
@@ -39,13 +39,18 @@ class MessagesHandler :public BaseRosNode{
 		problem is that it can not be instantied before
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
-		std::vector<controlador_de_trajetoria::Move_robot> coordinatesList;
+		std::vector<MoveRobotWrapper> coordinatesList;
+		std::vector<controlador_de_trajetoria::Move_robot> nextTargetsList;
 		double wakeUpTime;
 		bool arrivedInTargetPosition;
 		float freeCoordinatesDelay; //This is in seconds
 		bool isFinalPositionCorrect;
+		int idMoveRobotExecuted;
+//      TODO- Implementation to service move_robot_sync
+//		bool lockMutex;
 
 	public:
+
 		//Constructors
 		MessagesHandler(int argc,char **argv, int numberOfCoordinatesToStore,
 				double wakeUpTime, float freeCoordinatesDelay);
@@ -59,17 +64,17 @@ class MessagesHandler :public BaseRosNode{
 		bool subscribeToTopics();
 		bool createPublishers();
 		bool createTimers();
-		bool createServices();
+//		bool createServices();
 		void proccessPositionToMoveRobot(
 			const controlador_de_trajetoria::Move_robot::ConstPtr& moveRobotPosition);
 		void positionAchieved(
 			const controlador_de_trajetoria::Position::ConstPtr& positionAchieved);
-		bool moveRobotSync(
-			controlador_de_trajetoria::Move_robot_service::Request& request,
-			controlador_de_trajetoria::Move_robot_service::Response& response);
+//		TODO- Implementation to service move_robot_sync
+//		bool moveRobotSync(
+//			controlador_de_trajetoria::Move_robot_service::Request& request,
+//			controlador_de_trajetoria::Move_robot_service::Response& response);
 		void publishFreeCoordinates(const ros::TimerEvent& timerEvent);
 		void nextTargets(const ros::TimerEvent& timerEvent);
-
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_MESSAGES_MESSAGESHANDLER_H_ */

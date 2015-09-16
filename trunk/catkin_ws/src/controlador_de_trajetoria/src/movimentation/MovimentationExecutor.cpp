@@ -28,8 +28,7 @@ int MovimentationExecutor::runNode() {
 				ROS_INFO("Moving robot to position");
 				moveRobot();
 		}
-		ros::spinOnce();
-		rate.sleep();
+		sleepAndSpin(rate);
 	}
 	return 0;
 }
@@ -88,8 +87,7 @@ void MovimentationExecutor::verifyMotorState() {
 }
 
 double MovimentationExecutor::actualizingAngle(double actualAngle) {
-	usleep(100000);
-	ros::spinOnce();
+	sleepAndSpin(100);
 	actualAngle = tf::getYaw(actualOdometryPosition.pose.pose.orientation)
 			* 180/M_PI;
 	ROS_DEBUG("Actual angle:%f", actualAngle);
@@ -159,8 +157,7 @@ void MovimentationExecutor::moveRobot() {
 		actualOdometryPosition.pose.pose.position.x < targetXAdjusted + positionErrorMargin &&
 		actualOdometryPosition.pose.pose.position.y > targetYAdjusted - positionErrorMargin &&
 		actualOdometryPosition.pose.pose.position.y < targetYAdjusted + positionErrorMargin)) {
-			usleep(100000);
-			ros::spinOnce();
+			sleepAndSpin(100);
 			ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.pose.position.x,
 				actualOdometryPosition.pose.pose.position.y);
 	}
@@ -322,11 +319,9 @@ int main(int argc,char **argv) {
 			movimentationExecutor.createTimers()) {
 				return movimentationExecutor.runNode();
 		} else {
-			ros::shutdown();
-			return 0;
+			BaseRosNode::shutdownAndExit(nodeName);
 		}
 	} catch (std::exception &e) {
-		ros::shutdown();
-		return 0;
+		BaseRosNode::shutdownAndExit(nodeName);
 	}
 }
