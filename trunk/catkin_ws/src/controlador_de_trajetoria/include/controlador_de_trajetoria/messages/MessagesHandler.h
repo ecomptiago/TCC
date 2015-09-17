@@ -46,8 +46,7 @@ class MessagesHandler :public BaseRosNode{
 		float freeCoordinatesDelay; //This is in seconds
 		bool isFinalPositionCorrect;
 		int idMoveRobotExecuted;
-//      TODO- Implementation to service move_robot_sync
-//		bool lockMutex;
+		bool lockMutex;
 
 	public:
 
@@ -64,15 +63,14 @@ class MessagesHandler :public BaseRosNode{
 		bool subscribeToTopics();
 		bool createPublishers();
 		bool createTimers();
-//		bool createServices();
+		bool createServices();
 		void proccessPositionToMoveRobot(
 			const controlador_de_trajetoria::Move_robot::ConstPtr& moveRobotPosition);
 		void positionAchieved(
 			const controlador_de_trajetoria::Position::ConstPtr& positionAchieved);
-//		TODO- Implementation to service move_robot_sync
-//		bool moveRobotSync(
-//			controlador_de_trajetoria::Move_robot_service::Request& request,
-//			controlador_de_trajetoria::Move_robot_service::Response& response);
+		bool moveRobotSync(
+			controlador_de_trajetoria::Move_robot_service::Request& request,
+			controlador_de_trajetoria::Move_robot_service::Response& response);
 		void publishFreeCoordinates(const ros::TimerEvent& timerEvent);
 		void nextTargets(const ros::TimerEvent& timerEvent);
 };

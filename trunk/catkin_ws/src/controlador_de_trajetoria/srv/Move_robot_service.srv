@@ -1,3 +1,4 @@
 Move_robot moveRobotPosition
 ---
-bool status
+bool serviceIsLocked
+bool arrivedInPosition

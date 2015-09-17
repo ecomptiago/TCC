@@ -12,15 +12,13 @@ MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesT
 		arrivedInTargetPosition = true;
 		isFinalPositionCorrect = true;
 		idMoveRobotExecuted = -1;
-//		TODO- Implementation to service move_robot_sync
-//		lockMutex = false;
+		lockMutex = false;
 }
 
 //Methods
 int MessagesHandler::runNode() {
-//	TODO- Implementation to service move_robot_sync
-//	ros::AsyncSpinner spinner(4);
-//	spinner.start();
+	ros::AsyncSpinner spinner(4);
+	spinner.start();
 	ros::Rate rate(1/wakeUpTime);
 	ROS_INFO("Running node");
 	while(ros::ok()) {
@@ -104,20 +102,20 @@ bool MessagesHandler::createTimers() {
 		return false;
 	}
 }
-//	TODO- Implementation to service move_robot_sync
-//bool MessagesHandler::createServices() {
-//	ROS_INFO("Creating services");
-//	ros::ServiceServer service =
-//		nodeHandler.advertiseService(moveRobotSyncService,
-//		&MessagesHandler::moveRobotSync,this);
-//	if(service) {
-//		serviceServersMap[moveRobotSyncService] = service;
-//		return true;
-//	} else {
-//		ROS_INFO("Could not create all services");
-//		return false;
-//	}
-//}
+
+bool MessagesHandler::createServices() {
+	ROS_INFO("Creating services");
+	ros::ServiceServer service =
+		nodeHandler.advertiseService(moveRobotSyncService,
+		&MessagesHandler::moveRobotSync,this);
+	if(service) {
+		serviceServersMap[moveRobotSyncService] = service;
+		return true;
+	} else {
+		ROS_INFO("Could not create all services");
+		return false;
+	}
+}
 
 //Callback
 void MessagesHandler::proccessPositionToMoveRobot(
@@ -178,36 +176,42 @@ void MessagesHandler::nextTargets(
 			}
 		}
 }
-//	TODO- Implementation to service move_robot_sync here we need to create a MUTEX
-//  make this service works
-//bool MessagesHandler::moveRobotSync(
-//	controlador_de_trajetoria::Move_robot_service::Request& request,
-//	controlador_de_trajetoria::Move_robot_service::Response& response) {
-//		if(lockMutex) {
-//			response.status = false;
-//			return true;
-//		}
-//		ROS_INFO("Received position to move robot");
-//		ROS_DEBUG("Calling proccessPositionToMoveRobot with position "
-//			"x:%f y:%f vel:%f",request.moveRobotPosition.x, request.moveRobotPosition.y,
-//			request.moveRobotPosition.vel);
-//		MoveRobotWrapper move(request.moveRobotPosition);
-//		isFinalPositionCorrect = false;
-//		coordinatesList.push_back(move);
-//		nextTargetsList.push_back(request.moveRobotPosition);
-//		lockMutex = true;
-//		int moveId = move.getId();
-//		while(idMoveRobotExecuted != moveId) {
-//			if(coordinatesList.size() == 0) {
-//				break;
-//			}
-//			sleepAndSpin(100);
-//		}
-//		lockMutex = false;
-//		ROS_INFO("Sending response to service caller");
-//		response.status = isFinalPositionCorrect;
-//		return true;
-//}
+//	TODO- Implementation to service move_robot_sync here we need to create a
+//  real MUTEX make this service works.Actually only one client can call the service
+//  because there is no way to block others threads from enter at this method.
+//  The correct way is all the others threads stayed blocked until the thread that
+//  is using this code exit.
+bool MessagesHandler::moveRobotSync(
+	controlador_de_trajetoria::Move_robot_service::Request& request,
+	controlador_de_trajetoria::Move_robot_service::Response& response) {
+		if(lockMutex) {
+			response.serviceIsLocked = true;
+			response.arrivedInPosition = false;
+			return true;
+		}
+		ROS_INFO("Received position to move robot");
+		ROS_DEBUG("Calling proccessPositionToMoveRobot with position "
+			"x:%f y:%f vel:%f",request.moveRobotPosition.x, request.moveRobotPosition.y,
+			request.moveRobotPosition.vel);
+		MoveRobotWrapper move(request.moveRobotPosition);
+		isFinalPositionCorrect = false;
+		coordinatesList.push_back(move);
+		nextTargetsList.push_back(request.moveRobotPosition);
+		lockMutex = true;
+		int moveId = move.getId();
+		while(idMoveRobotExecuted != moveId) {
+			if(coordinatesList.size() == 0) {
+				break;
+			}
+			sleepAndSpin(100);
+		}
+		lockMutex = false;
+		ROS_INFO("Sending response to service caller");
+		response.arrivedInPosition = isFinalPositionCorrect;
+		response.serviceIsLocked = false;
+		idMoveRobotExecuted = -1;
+		return true;
+}
 
 //Main
 int main(int argc,char **argv) {
@@ -215,7 +219,8 @@ int main(int argc,char **argv) {
 		MessagesHandler messagesHandler(argc,argv,100,1,1);
 		if(messagesHandler.subscribeToTopics() &&
 			messagesHandler.createPublishers() &&
-			messagesHandler.createTimers()) {
+			messagesHandler.createTimers() &&
+			messagesHandler.createServices()) {
 				return messagesHandler.runNode();
 		} else {
 			BaseRosNode::shutdownAndExit(nodeName);
