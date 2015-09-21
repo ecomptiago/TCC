@@ -17,38 +17,28 @@ int RosAriaVRep::runNode() {
 	ROS_INFO("Running node");
 	if(getObjectHandleInt(motorEsquerdoObjectHandleName) && getObjectHandleInt(motorDireitoObjectHandleName) &&
 		getObjectHandleInt(pionnerLxObjectHandleName) && getObjectHandleInt(laserObjectHandleName)) {
-			rosaria_v_rep::simRosEnableSubscriber simRosEnableSubscriber;
-			simRosEnableSubscriber.request.topicName = cmdVelTopic;
-			simRosEnableSubscriber.request.queueSize = defaultQueueSize;
-			simRosEnableSubscriber.request.streamCmd = simros_strmcmd_set_twist_command;
-			simRosEnableSubscriber.request.auxInt1 = -1;
-			simRosEnableSubscriber.request.auxInt2 = -1;
+
+			rosaria_v_rep::simRosEnableSubscriber simRosEnableSubscriber =
+				createEnableSubscriber(cmdVelTopic,simros_strmcmd_set_twist_command, -1, -1);
 			serviceClientsMap[enableSubscriberService].call(simRosEnableSubscriber);
 			if(simRosEnableSubscriber.response.subscriberID == -1) {
-				return 0;
+				infoFailAndExit(cmdVelTopic);
 			}
 
-			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher;
-			simRosEnablePublisher.request.topicName = poseTopic;
-			simRosEnablePublisher.request.queueSize = defaultQueueSize;
-			simRosEnablePublisher.request.streamCmd = simros_strmcmd_get_object_pose;
-			simRosEnablePublisher.request.auxInt1 = signalObjectMap[pionnerLxObjectHandleName];
-			simRosEnablePublisher.request.auxInt2 = sim_handle_parent;
+			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher =
+				createEnablePublisher(poseTopic, simros_strmcmd_get_object_pose,
+				signalObjectMap[pionnerLxObjectHandleName],sim_handle_parent,"");
 			serviceClientsMap[enablePublisherService].call(simRosEnablePublisher);
 			if(simRosEnablePublisher.response.effectiveTopicName.length() == 0) {
-				return 0;
+				infoFailAndExit(poseTopic);
 			}
 
-			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher2;
-			simRosEnablePublisher2.request.topicName = laserTopic;
-			simRosEnablePublisher2.request.queueSize = 1;
-			simRosEnablePublisher2.request.streamCmd = simros_strmcmd_get_laser_scanner_data;
-			simRosEnablePublisher2.request.auxInt1 = signalObjectMap[laserObjectHandleName];
-			simRosEnablePublisher2.request.auxInt2 = -1;
-			simRosEnablePublisher2.request.auxString = "pointsPackedX";
+			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher2 =
+				createEnablePublisher(laserTopic, simros_strmcmd_get_laser_scanner_data,
+				signalObjectMap[laserObjectHandleName], -1, "pointsPackedX");
 			serviceClientsMap[enablePublisherService].call(simRosEnablePublisher2);
 			if(simRosEnablePublisher2.response.effectiveTopicName.length() == 0) {
-				return 0;
+				infoFailAndExit(laserTopic);
 			}
 
 			std_msgs::Bool boolean;
@@ -56,16 +46,17 @@ int RosAriaVRep::runNode() {
 			if(hasPublisher(motorStateTopic)) {
 				publisherMap[motorStateTopic].publish(boolean);
 			} else {
-				return 0;
+				infoFailAndExit(motorStateTopic);
 			}
 
-
 	} else {
-		return 0;
+		ROS_INFO("Failed to get objects from V-Rep simulation. Be sure"
+			" that the simulation is running.");
+		BaseRosNode::shutdownAndExit(nodeName);
 	}
 
 	ros::spin();
-	return 0;
+	BaseRosNode::shutdownAndExit(nodeName);
 }
 
 bool RosAriaVRep::getObjectHandleInt(const char* objectHandleName) {
@@ -73,6 +64,8 @@ bool RosAriaVRep::getObjectHandleInt(const char* objectHandleName) {
 	simRosGetObjectHandle.request.objectName = objectHandleName;
 	serviceClientsMap[getObjectHandleService].call(simRosGetObjectHandle);
 	if(simRosGetObjectHandle.response.handle != -1) {
+		ROS_DEBUG("Got %d int handle for %s", simRosGetObjectHandle.response.handle,
+			objectHandleName);
 		signalObjectMap[objectHandleName] = simRosGetObjectHandle.response.handle;
 		return true;
 	} else {
@@ -135,9 +128,9 @@ bool RosAriaVRep::createServiceClients() {
 	ros::ServiceClient service3 =
 		nodeHandler.serviceClient<rosaria_v_rep::simRosEnableSubscriber>(enableSubscriberService);
 	ros::ServiceClient service4 =
-			nodeHandler.serviceClient<rosaria_v_rep::simRosSetJointState>(setJointStateService);
+		nodeHandler.serviceClient<rosaria_v_rep::simRosSetJointState>(setJointStateService);
 	ros::ServiceClient service5 =
-				nodeHandler.serviceClient<rosaria_v_rep::simRosGetObjectPose>(simRosGetObjectPoseService);
+		nodeHandler.serviceClient<rosaria_v_rep::simRosGetObjectPose>(simRosGetObjectPoseService);
 	if(service && service2 && service3 && service4 && service5) {
 		serviceClientsMap[enablePublisherService] = service;
 		serviceClientsMap[getObjectHandleService] = service2;
@@ -174,6 +167,36 @@ bool RosAriaVRep::enableMotorServiceCallback(std_srvs::Empty::Request& request,
 bool RosAriaVRep::disableMotorServiceCallback(std_srvs::Empty::Request& request,
 	std_srvs::Empty::Response& response) {
 		return true;
+}
+
+rosaria_v_rep::simRosEnableSubscriber RosAriaVRep::createEnableSubscriber(const char* topicName,
+	int streamCmd, int auxInt1, int auxInt2) {
+		rosaria_v_rep::simRosEnableSubscriber simRosEnableSubscriber;
+		simRosEnableSubscriber.request.topicName = topicName;
+		simRosEnableSubscriber.request.queueSize = defaultQueueSize;
+		simRosEnableSubscriber.request.streamCmd = streamCmd;
+		simRosEnableSubscriber.request.auxInt1 = auxInt1;
+		simRosEnableSubscriber.request.auxInt2 = auxInt2;
+		return simRosEnableSubscriber;
+}
+
+rosaria_v_rep::simRosEnablePublisher RosAriaVRep::createEnablePublisher(const char* topicName,
+	int streamCmd, int auxInt1, int auxInt2, std::string auxString) {
+	rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher;
+	simRosEnablePublisher.request.topicName = topicName;
+	simRosEnablePublisher.request.queueSize = defaultQueueSize;
+	simRosEnablePublisher.request.streamCmd = streamCmd;
+	simRosEnablePublisher.request.auxInt1 = auxInt1;
+	simRosEnablePublisher.request.auxInt2 = auxInt2;
+	if(!auxString.compare("")) {
+		simRosEnablePublisher.request.auxString = auxString;
+	}
+	return simRosEnablePublisher;
+}
+
+int RosAriaVRep::infoFailAndExit(const char* topicName) {
+	ROS_INFO("Failed to create %s topic",motorStateTopic);
+	return BaseRosNode::shutdownAndExit(nodeName);
 }
 
 bool RosAriaVRep::createPublishers() {
@@ -220,10 +243,11 @@ void RosAriaVRep::receivedTwist(
 	} else {
 		stop(simRosSetJointState);
 	}
-
+	ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
+		simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
 	serviceClientsMap[setJointStateService].call(simRosSetJointState);
 	if(simRosSetJointState.response.result == -1) {
-		ROS_INFO("Fodeu");
+		ROS_INFO("Could not set velocity to wheels");
 	}
 }
 

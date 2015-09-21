@@ -54,6 +54,11 @@ class RosAriaVRep : BaseRosNode {
 		void stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
 		bool createServiceClients();
 		bool createServiceServers();
+		rosaria_v_rep::simRosEnableSubscriber createEnableSubscriber(const char* topicName,
+			int streamCmd, int auxInt1, int auxInt2);
+		rosaria_v_rep::simRosEnablePublisher createEnablePublisher(const char* topicName,
+			int streamCmd, int auxInt1, int auxInt2, std::string auxString);
+		int infoFailAndExit(const char* topicName);
 
 	public:
 		//Constructor
