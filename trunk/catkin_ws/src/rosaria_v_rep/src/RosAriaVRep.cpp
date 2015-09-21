@@ -18,8 +18,8 @@ int RosAriaVRep::runNode() {
 	if(getObjectHandleInt(motorEsquerdoObjectHandleName) && getObjectHandleInt(motorDireitoObjectHandleName) &&
 		getObjectHandleInt(pionnerLxObjectHandleName) && getObjectHandleInt(laserObjectHandleName)) {
 			rosaria_v_rep::simRosEnableSubscriber simRosEnableSubscriber;
-			simRosEnableSubscriber.request.topicName = motorTopic;
-			simRosEnableSubscriber.request.queueSize = 1000;
+			simRosEnableSubscriber.request.topicName = cmdVelTopic;
+			simRosEnableSubscriber.request.queueSize = defaultQueueSize;
 			simRosEnableSubscriber.request.streamCmd = simros_strmcmd_set_twist_command;
 			simRosEnableSubscriber.request.auxInt1 = -1;
 			simRosEnableSubscriber.request.auxInt2 = -1;
@@ -30,7 +30,7 @@ int RosAriaVRep::runNode() {
 
 			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher;
 			simRosEnablePublisher.request.topicName = poseTopic;
-			simRosEnablePublisher.request.queueSize = 1000;
+			simRosEnablePublisher.request.queueSize = defaultQueueSize;
 			simRosEnablePublisher.request.streamCmd = simros_strmcmd_get_object_pose;
 			simRosEnablePublisher.request.auxInt1 = signalObjectMap[pionnerLxObjectHandleName];
 			simRosEnablePublisher.request.auxInt2 = sim_handle_parent;
@@ -50,6 +50,15 @@ int RosAriaVRep::runNode() {
 			if(simRosEnablePublisher2.response.effectiveTopicName.length() == 0) {
 				return 0;
 			}
+
+			std_msgs::Bool boolean;
+			boolean.data = true;
+			if(hasPublisher(motorStateTopic)) {
+				publisherMap[motorStateTopic].publish(boolean);
+			} else {
+				return 0;
+			}
+
 
 	} else {
 		return 0;
@@ -99,9 +108,9 @@ void RosAriaVRep::stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState) 
 bool RosAriaVRep::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
 	ros::Subscriber sub =
-		nodeHandler.subscribe("vrep/motor",1000,&RosAriaVRep::receivedTwist,this);
+		nodeHandler.subscribe(cmdVelTopic,defaultQueueSize,&RosAriaVRep::receivedTwist,this);
 	if(sub) {
-		subscriberMap[motorTopic] = sub;
+		subscriberMap[cmdVelTopic] = sub;
 		return true;
 	} else {
 		ROS_INFO("Could not subscribe to all topics");
@@ -111,6 +120,14 @@ bool RosAriaVRep::subscribeToTopics() {
 
 bool RosAriaVRep::createServices() {
 	ROS_INFO("Creating services");
+	if(createServiceClients()) {
+		return createServiceServers();
+	} else {
+		return false;
+	}
+}
+
+bool RosAriaVRep::createServiceClients() {
 	ros::ServiceClient service =
 		nodeHandler.serviceClient<rosaria_v_rep::simRosEnablePublisher>(enablePublisherService);
 	ros::ServiceClient service2 =
@@ -130,6 +147,44 @@ bool RosAriaVRep::createServices() {
 		return true;
 	} else {
 		ROS_INFO("Could not create all services");
+		return false;
+	}
+}
+
+bool RosAriaVRep::createServiceServers() {
+	ros::ServiceServer server =
+		nodeHandler.advertiseService(enableMotorService,&RosAriaVRep::enableMotorServiceCallback,this);
+	ros::ServiceServer server2 =
+		nodeHandler.advertiseService(disableMotorService,&RosAriaVRep::disableMotorServiceCallback,this);
+	if(server && server2) {
+		serviceServersMap[enableMotorService] = server;
+		serviceServersMap[disableMotorService] = server2;
+		return true;
+	} else {
+		ROS_INFO("Could not create all services");
+		return false;
+	}
+}
+
+bool RosAriaVRep::enableMotorServiceCallback(std_srvs::Empty::Request& request,
+	std_srvs::Empty::Response& response) {
+		return true;
+}
+
+bool RosAriaVRep::disableMotorServiceCallback(std_srvs::Empty::Request& request,
+	std_srvs::Empty::Response& response) {
+		return true;
+}
+
+bool RosAriaVRep::createPublishers() {
+	ROS_INFO("Creating publishers");
+	ros::Publisher pub =
+		nodeHandler.advertise<std_msgs::Bool>(motorStateTopic, defaultQueueSize,true);
+	if(pub) {
+		publisherMap[motorStateTopic] = pub;
+		return true;
+	} else {
+		ROS_INFO("Could not create all publishers");
 		return false;
 	}
 }
@@ -177,7 +232,8 @@ int main(int argc, char **argv) {
 	RosAriaVRep rosAriaVRep(argc,argv);
 	try{
 		if(rosAriaVRep.createServices() &&
-			rosAriaVRep.subscribeToTopics()) {
+			rosAriaVRep.subscribeToTopics() &&
+			rosAriaVRep.createPublishers()) {
 				return rosAriaVRep.runNode();
 		} else {
 			BaseRosNode::shutdownAndExit(nodeName);

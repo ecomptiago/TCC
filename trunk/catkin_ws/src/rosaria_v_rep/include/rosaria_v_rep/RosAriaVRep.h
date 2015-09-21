@@ -10,6 +10,8 @@
 
 #include "common/BaseRosNode.h"
 #include "geometry_msgs/Twist.h"
+#include "std_msgs/Bool.h"
+#include "std_srvs/Empty.h"
 #include "rosaria_v_rep/ProximitySensorData.h"
 #include "rosaria_v_rep/simRosEnablePublisher.h"
 #include "rosaria_v_rep/simRosEnableSubscriber.h"
@@ -24,8 +26,11 @@ const char* enableSubscriberService = "/vrep/simRosEnableSubscriber";
 const char* getObjectHandleService = "/vrep/simRosGetObjectHandle";
 const char* setJointStateService = "/vrep/simRosSetJointState";
 const char* simRosGetObjectPoseService = "/vrep/simRosGetObjectPose";
-const char* motorTopic = "motor";
-const char* poseTopic = "pose";
+const char* cmdVelTopic = "/RosAria/cmd_vel";
+const char* poseTopic = "/RosAria/pose";
+const char* motorStateTopic = "/RosAria/motors_state";
+const char* enableMotorService = "/RosAria/enable_motors";
+const char* disableMotorService = "/RosAria/disable_motors";
 const char* laserTopic = "laser";
 const char* motorDireitoObjectHandleName = "Motor_Direito";
 const char* motorEsquerdoObjectHandleName = "Motor_Esquerdo";
@@ -47,6 +52,8 @@ class RosAriaVRep : BaseRosNode {
 		void moveForward(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
 		void moveBackward(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
 		void stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
+		bool createServiceClients();
+		bool createServiceServers();
 
 	public:
 		//Constructor
@@ -58,9 +65,14 @@ class RosAriaVRep : BaseRosNode {
 		//Methods
 		void receivedTwist(
 			const geometry_msgs::Twist::ConstPtr& twist);
+		bool enableMotorServiceCallback(
+			std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
+		bool disableMotorServiceCallback(
+			std_srvs::Empty::Request& request, std_srvs::Empty::Response& response);
 		int runNode();
 		bool createServices();
 		bool subscribeToTopics();
+		bool createPublishers();
 };
 
 #endif /* SRC_ROSARIAVREP_H_ */
