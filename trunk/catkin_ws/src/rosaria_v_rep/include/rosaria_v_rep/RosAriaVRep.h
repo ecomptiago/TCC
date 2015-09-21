@@ -30,7 +30,7 @@ const char* laserTopic = "laser";
 const char* motorDireitoObjectHandleName = "Motor_Direito";
 const char* motorEsquerdoObjectHandleName = "Motor_Esquerdo";
 const char* pionnerLxObjectHandleName = "Pionner_LX";
-const char* laserObjectHandleName = "LaserScannerLaser_2D";
+const char* laserObjectHandleName = "LaserScanner_2D";
 
 class RosAriaVRep : BaseRosNode {
 

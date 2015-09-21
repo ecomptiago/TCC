@@ -41,11 +41,11 @@ int RosAriaVRep::runNode() {
 
 			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher2;
 			simRosEnablePublisher2.request.topicName = laserTopic;
-			simRosEnablePublisher2.request.queueSize = 1000;
+			simRosEnablePublisher2.request.queueSize = 1;
 			simRosEnablePublisher2.request.streamCmd = simros_strmcmd_get_laser_scanner_data;
 			simRosEnablePublisher2.request.auxInt1 = signalObjectMap[laserObjectHandleName];
 			simRosEnablePublisher2.request.auxInt2 = -1;
-			simRosEnablePublisher2.request.auxString = "mySignal";
+			simRosEnablePublisher2.request.auxString = "pointsPackedX";
 			serviceClientsMap[enablePublisherService].call(simRosEnablePublisher2);
 			if(simRosEnablePublisher2.response.effectiveTopicName.length() == 0) {
 				return 0;
