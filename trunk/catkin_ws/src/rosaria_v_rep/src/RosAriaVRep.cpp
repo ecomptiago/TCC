@@ -15,8 +15,9 @@ RosAriaVRep::RosAriaVRep(int argc, char **argv) :
 //Methods
 int RosAriaVRep::runNode() {
 	ROS_INFO("Running node");
-	if(getObjectHandleInt(motorEsquerdoObjectHandleName) && getObjectHandleInt(motorDireitoObjectHandleName) &&
-		getObjectHandleInt(pionnerLxObjectHandleName) && getObjectHandleInt(laserObjectHandleName)) {
+	if(getObjectHandle(motorEsquerdoObjectHandleName) && getObjectHandle(motorDireitoObjectHandleName) &&
+		getObjectHandle(pionnerLxObjectHandleName) && getObjectHandle(laserObjectHandleName) &&
+		getObjectHandle(laserBodyObjectHandleName)) {
 
 			rosaria_v_rep::simRosEnableSubscriber simRosEnableSubscriber =
 				createEnableSubscriber(cmdVelTopic,simros_strmcmd_set_twist_command, -1, -1);
@@ -35,7 +36,8 @@ int RosAriaVRep::runNode() {
 
 			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher2 =
 				createEnablePublisher(laserTopic, simros_strmcmd_get_laser_scanner_data,
-				signalObjectMap[laserObjectHandleName], -1, "pointsPackedX");
+				signalObjectMap[laserBodyObjectHandleName], -1, "pointsPackedX");
+
 			serviceClientsMap[enablePublisherService].call(simRosEnablePublisher2);
 			if(simRosEnablePublisher2.response.effectiveTopicName.length() == 0) {
 				infoFailAndExit(laserTopic);
@@ -59,7 +61,7 @@ int RosAriaVRep::runNode() {
 	BaseRosNode::shutdownAndExit(nodeName);
 }
 
-bool RosAriaVRep::getObjectHandleInt(const char* objectHandleName) {
+bool RosAriaVRep::getObjectHandle(const char* objectHandleName) {
 	rosaria_v_rep::simRosGetObjectHandle simRosGetObjectHandle;
 	simRosGetObjectHandle.request.objectName = objectHandleName;
 	serviceClientsMap[getObjectHandleService].call(simRosGetObjectHandle);
@@ -184,11 +186,11 @@ rosaria_v_rep::simRosEnablePublisher RosAriaVRep::createEnablePublisher(const ch
 	int streamCmd, int auxInt1, int auxInt2, std::string auxString) {
 	rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher;
 	simRosEnablePublisher.request.topicName = topicName;
-	simRosEnablePublisher.request.queueSize = defaultQueueSize;
+	simRosEnablePublisher.request.queueSize = 1;
 	simRosEnablePublisher.request.streamCmd = streamCmd;
 	simRosEnablePublisher.request.auxInt1 = auxInt1;
 	simRosEnablePublisher.request.auxInt2 = auxInt2;
-	if(!auxString.compare("")) {
+	if(auxString.compare("") != 0) {
 		simRosEnablePublisher.request.auxString = auxString;
 	}
 	return simRosEnablePublisher;

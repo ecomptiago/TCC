@@ -36,6 +36,7 @@ const char* motorDireitoObjectHandleName = "Motor_Direito";
 const char* motorEsquerdoObjectHandleName = "Motor_Esquerdo";
 const char* pionnerLxObjectHandleName = "Pionner_LX";
 const char* laserObjectHandleName = "LaserScanner_2D";
+const char* laserBodyObjectHandleName = "LaserScannerBody_2D";
 
 class RosAriaVRep : BaseRosNode {
 
@@ -45,7 +46,7 @@ class RosAriaVRep : BaseRosNode {
 		std::map<std::string,int32_t> signalObjectMap;
 
 		//Methods
-		bool getObjectHandleInt(const char* objectHandleName);
+		bool getObjectHandle(const char* objectHandleName);
 		rosaria_v_rep::simRosSetJointState createJointState();
 		void rotateLeft(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
 		void rotateRight(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
