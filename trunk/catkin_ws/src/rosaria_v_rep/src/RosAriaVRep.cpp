@@ -102,15 +102,8 @@ void RosAriaVRep::stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState) 
 
 bool RosAriaVRep::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
-	ros::Subscriber sub =
-		nodeHandler.subscribe(cmdVelTopic,defaultQueueSize,&RosAriaVRep::receivedTwist,this);
-	if(sub) {
-		subscriberMap[cmdVelTopic] = sub;
-		return true;
-	} else {
-		ROS_INFO("Could not subscribe to all topics");
-		return false;
-	}
+	return addSubscribedTopic<const geometry_msgs::Twist::ConstPtr&, RosAriaVRep>(nodeHandler,cmdVelTopic,
+		&RosAriaVRep::receivedTwist,this);
 }
 
 bool RosAriaVRep::createServices() {
@@ -123,42 +116,23 @@ bool RosAriaVRep::createServices() {
 }
 
 bool RosAriaVRep::createServiceClients() {
-	ros::ServiceClient service =
-		nodeHandler.serviceClient<rosaria_v_rep::simRosEnablePublisher>(enablePublisherService);
-	ros::ServiceClient service2 =
-		nodeHandler.serviceClient<rosaria_v_rep::simRosGetObjectHandle>(getObjectHandleService);
-	ros::ServiceClient service3 =
-		nodeHandler.serviceClient<rosaria_v_rep::simRosEnableSubscriber>(enableSubscriberService);
-	ros::ServiceClient service4 =
-		nodeHandler.serviceClient<rosaria_v_rep::simRosSetJointState>(setJointStateService);
-	ros::ServiceClient service5 =
-		nodeHandler.serviceClient<rosaria_v_rep::simRosGetObjectPose>(simRosGetObjectPoseService);
-	if(service && service2 && service3 && service4 && service5) {
-		serviceClientsMap[enablePublisherService] = service;
-		serviceClientsMap[getObjectHandleService] = service2;
-		serviceClientsMap[enableSubscriberService] = service3;
-		serviceClientsMap[setJointStateService] = service4;
-		serviceClientsMap[simRosGetObjectPoseService] = service5;
-		return true;
-	} else {
-		ROS_INFO("Could not create all services");
-		return false;
-	}
+	return addServiceClient<rosaria_v_rep::simRosEnablePublisher>(nodeHandler, enablePublisherService) &&
+
+		   addServiceClient<rosaria_v_rep::simRosGetObjectHandle>(nodeHandler, getObjectHandleService) &&
+
+		   addServiceClient<rosaria_v_rep::simRosEnableSubscriber>(nodeHandler, enableSubscriberService) &&
+
+		   addServiceClient<rosaria_v_rep::simRosSetJointState>(nodeHandler, setJointStateService) &&
+
+		   addServiceClient<rosaria_v_rep::simRosGetObjectPose>(nodeHandler, simRosGetObjectPoseService);
 }
 
 bool RosAriaVRep::createServiceServers() {
-	ros::ServiceServer server =
-		nodeHandler.advertiseService(enableMotorService,&RosAriaVRep::enableMotorServiceCallback,this);
-	ros::ServiceServer server2 =
-		nodeHandler.advertiseService(disableMotorService,&RosAriaVRep::disableMotorServiceCallback,this);
-	if(server && server2) {
-		serviceServersMap[enableMotorService] = server;
-		serviceServersMap[disableMotorService] = server2;
-		return true;
-	} else {
-		ROS_INFO("Could not create all services");
-		return false;
-	}
+	return addServiceServer<std_srvs::Empty::Request&, std_srvs::Empty::Response&, RosAriaVRep>(nodeHandler,enableMotorService,
+		&RosAriaVRep::enableMotorServiceCallback, this) &&
+
+		addServiceServer<std_srvs::Empty::Request&, std_srvs::Empty::Response&, RosAriaVRep>(nodeHandler,disableMotorService,
+		&RosAriaVRep::disableMotorServiceCallback, this);
 }
 
 bool RosAriaVRep::enableMotorServiceCallback(std_srvs::Empty::Request& request,
@@ -203,15 +177,7 @@ int RosAriaVRep::infoFailAndExit(const char* topicName) {
 
 bool RosAriaVRep::createPublishers() {
 	ROS_INFO("Creating publishers");
-	ros::Publisher pub =
-		nodeHandler.advertise<std_msgs::Bool>(motorStateTopic, defaultQueueSize,true);
-	if(pub) {
-		publisherMap[motorStateTopic] = pub;
-		return true;
-	} else {
-		ROS_INFO("Could not create all publishers");
-		return false;
-	}
+	return addPublisherClient<std_msgs::Bool>(nodeHandler, motorStateTopic, true);
 }
 
 rosaria_v_rep::simRosSetJointState RosAriaVRep::createJointState() {

@@ -38,7 +38,8 @@ const char* pionnerLxObjectHandleName = "Pionner_LX";
 const char* laserObjectHandleName = "LaserScanner_2D";
 const char* laserBodyObjectHandleName = "LaserScannerBody_2D";
 
-class RosAriaVRep : BaseRosNode {
+
+class RosAriaVRep : public BaseRosNode {
 
 	private:
 		//Atttributes
