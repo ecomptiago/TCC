@@ -16,45 +16,19 @@ int PositionHandler::runNode() {
 
 bool PositionHandler::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
-	ros::Subscriber sub = nodeHandler.subscribe(poseTopic, 1000,
-		&PositionHandler::transformOdometryToPosition,
-		this);
-	if(sub) {
-		subscriberMap[poseTopic] = sub;
-		return true;
-	} else {
-		ROS_INFO("Could not subscribe to all topics");
-		return false;
-	}
+	return addSubscribedTopic<const nav_msgs::Odometry::ConstPtr&, PositionHandler>(nodeHandler,poseTopic,
+			&PositionHandler::transformOdometryToPosition,this);
 }
 
 bool PositionHandler::createPublishers() {
 	ROS_INFO("Creating publishers");
-	ros::Publisher pub =
-		nodeHandler.advertise<controlador_de_trajetoria::Position>(
-		actualRobotPositionTopic, 1000);
-	if(pub) {
-		publisherMap[actualRobotPositionTopic] =  pub;
-		return true;
-	} else {
-		ROS_INFO("Could not create all publishers");
-		return false;
-	}
+	return addPublisherClient<controlador_de_trajetoria::Position>(nodeHandler, actualRobotPositionTopic, false);
 }
 
 bool PositionHandler::createTimers() {
 	ROS_INFO("Creating timers");
-	ros::Timer timer =
-		nodeHandler.createTimer(ros::Duration(actualRobotPositionDelay),
-		&PositionHandler::publishPosition,
-		this,false);
-	if(timer) {
-		timerMap[timerActualRobotPosition] = timer;
-		return true;
-	} else {
-		ROS_INFO("Could not create all timers");
-		return false;
-	}
+	return addTimer<const ros::TimerEvent&, PositionHandler>(nodeHandler, actualRobotPositionDelay,
+		   timerActualRobotPosition, &PositionHandler::publishPosition, this, false);
 }
 
 //Callbacks
@@ -66,13 +40,11 @@ void PositionHandler::transformOdometryToPosition(
 		position.y = odometryPosition->pose.pose.position.y;
 }
 
-
 void PositionHandler::publishPosition(const ros::TimerEvent& timerEvent) {
 	if(hasPublisher(actualRobotPositionTopic)) {
 		publisherMap[actualRobotPositionTopic].publish(position);
 	}
 }
-
 
 //Main
 int main(int argc,char **argv) {

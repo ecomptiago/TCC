@@ -10,7 +10,7 @@
 
 #include "nav_msgs/Odometry.h"
 #include "std_msgs/String.h"
-#include "controlador_de_trajetoria/BaseRosNode.h"
+#include "common/BaseRosNode.h"
 #include "controlador_de_trajetoria/Position.h"
 
 const char* actualRobotPositionTopic = "Position_handler/actual_robot_position";
@@ -18,7 +18,6 @@ const char* poseTopic = "/RosAria/pose";
 const char* nodeName = "Position_handler";
 const char* timerActualRobotPosition = "actualRobotPositionTimer";
 
-//TODO - use only shared_ptr instead of raw pointer (*)
 class PositionHandler :public BaseRosNode{
 	private:
 		//Attributes
@@ -35,7 +34,6 @@ class PositionHandler :public BaseRosNode{
 		PositionHandler(int argc,char **argv, float actualRobotPositionDelay);
 
 		//Destructor
-		//TODO - Delete all pointers to deallocate memory
 		virtual ~PositionHandler() {} ;
 
 		//Methods

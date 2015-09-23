@@ -2,9 +2,11 @@
 
 //Constructors
 MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesToStore,
-	double wakeUpTime, float freeCoordinatesDelay) : BaseRosNode(argc,argv,nodeName) {
+	double wakeUpTime, float freeCoordinatesDelay, float nextTargetsDelay) :
+	BaseRosNode(argc,argv,nodeName) {
 		this->wakeUpTime = wakeUpTime;
 		this->freeCoordinatesDelay = freeCoordinatesDelay;
+		this->nextTargetsDelay = nextTargetsDelay;
 		coordinatesList.resize(numberOfCoordinatesToStore);
 		coordinatesList.clear();
 		nextTargetsList.resize(numberOfCoordinatesToStore);
@@ -41,80 +43,36 @@ int MessagesHandler::runNode() {
 
 bool MessagesHandler::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
-	ros::Subscriber sub =
-		nodeHandler.subscribe(moveRobotAssyncTopic, 1000,
-		&MessagesHandler::proccessPositionToMoveRobot,
-		this);
-	ros::Subscriber sub2 =
-		nodeHandler.subscribe(targetPositionAchievedTopic, 1000,
-		&MessagesHandler::positionAchieved,
-		this);
-	if(sub && sub2) {
-		subscriberMap[moveRobotAssyncTopic] = sub;
-		subscriberMap[targetPositionAchievedTopic] = sub2;
-		return true;
-	} else {
-		ROS_INFO("Could not subscribe to all topics");
-		return false;
-	}
-}
+	return addSubscribedTopic<const controlador_de_trajetoria::Move_robot::ConstPtr&, MessagesHandler>(
+		   nodeHandler,moveRobotAssyncTopic, &MessagesHandler::proccessPositionToMoveRobot,this) &&
 
+		   addSubscribedTopic<const controlador_de_trajetoria::Position::ConstPtr&, MessagesHandler>(
+		   nodeHandler,targetPositionAchievedTopic, &MessagesHandler::positionAchieved,this);
+}
 
 bool MessagesHandler::createPublishers() {
 	ROS_INFO("Creating publishers");
-	ros::Publisher pub =
-		nodeHandler.advertise<controlador_de_trajetoria::Move_robot>(
-		targetPositionTopic, 1000);
-	ros::Publisher pub2 =
-		nodeHandler.advertise<std_msgs::Int32>(
-		freeCoordinatesTopic, 1000);
-	ros::Publisher pub3 =
-		nodeHandler.advertise<controlador_de_trajetoria::Move_robot_multi_array>(
-		nextTargetsTopic, 1000);
-	if(pub && pub2 && pub3) {
-		publisherMap[targetPositionTopic] =  pub;
-		publisherMap[freeCoordinatesTopic] =  pub2;
-		publisherMap[nextTargetsTopic] =  pub3;
-		return true;
-	} else {
-		ROS_INFO("Could not create all publishers");
-		return false;
-	}
-	return true;
+	return addPublisherClient<controlador_de_trajetoria::Move_robot>(nodeHandler, targetPositionTopic, false) &&
+
+		   addPublisherClient<std_msgs::Int32>(nodeHandler, freeCoordinatesTopic, false) &&
+
+		   addPublisherClient<controlador_de_trajetoria::Move_robot_multi_array>(nodeHandler, nextTargetsTopic, false);
 }
 
 bool MessagesHandler::createTimers() {
 	ROS_INFO("Creating timers");
-	ros::Timer timer =
-		nodeHandler.createTimer(ros::Duration(freeCoordinatesDelay),
-		&MessagesHandler::publishFreeCoordinates,
-		this,false);
-	ros::Timer timer2 =
-		nodeHandler.createTimer(ros::Duration(freeCoordinatesDelay),
-		&MessagesHandler::nextTargets,
-		this,false);
-	if(timer && timer2) {
-		timerMap[timerFreeCoordinates] = timer;
-		timerMap[timerNextTargets] = timer2;
-		return true;
-	} else {
-		ROS_INFO("Could not create all timers");
-		return false;
-	}
+	return addTimer<const ros::TimerEvent&, MessagesHandler>(nodeHandler,  freeCoordinatesDelay, timerFreeCoordinates,
+		   &MessagesHandler::publishFreeCoordinates, this, false) &&
+
+		   addTimer<const  ros::TimerEvent&, MessagesHandler>(nodeHandler, nextTargetsDelay, timerNextTargets,
+		   &MessagesHandler::nextTargets, this, false);
+
 }
 
 bool MessagesHandler::createServices() {
 	ROS_INFO("Creating services");
-	ros::ServiceServer service =
-		nodeHandler.advertiseService(moveRobotSyncService,
-		&MessagesHandler::moveRobotSync,this);
-	if(service) {
-		serviceServersMap[moveRobotSyncService] = service;
-		return true;
-	} else {
-		ROS_INFO("Could not create all services");
-		return false;
-	}
+	return addServiceServer<controlador_de_trajetoria::Move_robot_service::Request&, controlador_de_trajetoria::Move_robot_service::Response&,
+		   MessagesHandler>(nodeHandler,moveRobotSyncService, &MessagesHandler::moveRobotSync, this);
 }
 
 //Callback
@@ -165,7 +123,6 @@ void MessagesHandler::publishFreeCoordinates(
 		}
 }
 
-
 void MessagesHandler::nextTargets(
 	const ros::TimerEvent& timerEvent) {
 		if(hasPublisher(nextTargetsTopic)) {
@@ -176,6 +133,7 @@ void MessagesHandler::nextTargets(
 			}
 		}
 }
+
 //	TODO- Implementation to service move_robot_sync here we need to create a
 //  real MUTEX make this service works.Actually only one client can call the service
 //  because there is no way to block others threads from enter at this method.
@@ -216,7 +174,7 @@ bool MessagesHandler::moveRobotSync(
 //Main
 int main(int argc,char **argv) {
 	try {
-		MessagesHandler messagesHandler(argc,argv,100,1,1);
+		MessagesHandler messagesHandler(argc, argv, 100, 1, 1, 1);
 		if(messagesHandler.subscribeToTopics() &&
 			messagesHandler.createPublishers() &&
 			messagesHandler.createTimers() &&

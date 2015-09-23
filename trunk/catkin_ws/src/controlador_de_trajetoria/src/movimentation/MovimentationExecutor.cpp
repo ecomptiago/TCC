@@ -4,7 +4,6 @@
 MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 	float nextTryInterval, double velocity, double wakeUpTime,
 	double verifyRobotMovimentDelay) : BaseRosNode(argc,argv,nodeName) {
-		this->pointerTargetPosition = NULL;
 		this->nextTryInterval = nextTryInterval;
 		this->velocity = velocity;
 		this->wakeUpTime = wakeUpTime;
@@ -166,87 +165,48 @@ void MovimentationExecutor::moveRobot() {
 	}
 	ROS_INFO("Stopping of move robot");
 	publishPositionAchieved(initialXPosition,initialYPosition);
-	pointerTargetPosition = NULL;
+	pointerTargetPosition.reset();
 	targetAchieved = true;
 }
 
 bool MovimentationExecutor::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
-	ros::Subscriber sub =
-		nodeHandler.subscribe(motorStateTopic,
-		1000,&MovimentationExecutor::receivedMotorState,this);
-	ros::Subscriber sub2 =
-		nodeHandler.subscribe(targetPositionTopic,
-		1000,&MovimentationExecutor::receivedTargetPosition,this);
-	ros::Subscriber sub3 =
-		nodeHandler.subscribe(poseTopic,
-		1000,&MovimentationExecutor::receivedActualOdometryRobotPosition,this);
-	if(sub && sub2 && sub3) {
-		subscriberMap[motorStateTopic] = sub;
-		subscriberMap[targetPositionTopic] = sub2;
-		subscriberMap[poseTopic] = sub3;
-		return true;
-	} else {
-		ROS_INFO("Could not subscribe to all topics");
-		return false;
-	}
+	return addSubscribedTopic<const std_msgs::Bool::ConstPtr&, MovimentationExecutor>(nodeHandler,motorStateTopic,
+		   &MovimentationExecutor::receivedMotorState,this) &&
+
+		   addSubscribedTopic<const controlador_de_trajetoria::Move_robot::ConstPtr&,
+		   MovimentationExecutor>(nodeHandler,targetPositionTopic, &MovimentationExecutor::receivedTargetPosition,this) &&
+
+		   addSubscribedTopic<const nav_msgs::Odometry::ConstPtr&, MovimentationExecutor>(nodeHandler,poseTopic,
+		   &MovimentationExecutor::receivedActualOdometryRobotPosition,this);
 }
 
 bool MovimentationExecutor::createPublishers() {
 	ROS_INFO("Creating publishers");
-	ros::Publisher pub =
-		nodeHandler.advertise<controlador_de_trajetoria::Position>(
-		targetPositionAchievedTopic, 1000);
-	ros::Publisher pub2 =
-		nodeHandler.advertise<controlador_de_trajetoria::Move_robot>(
-		targetPositionTopic, 1000);
-	ros::Publisher pub3 =
-		nodeHandler.advertise<geometry_msgs::Twist>(
-		cmdVelTopic, 1000);
-	ros::Publisher pub4 =
-		nodeHandler.advertise<controlador_de_trajetoria::Movimentation_error>(
-		movimentNotPossibleTopic, 1000);
-	if(pub && pub2 && pub3 && pub4) {
-		publisherMap[targetPositionAchievedTopic] =  pub;
-		publisherMap[targetPositionTopic] =  pub2;
-		publisherMap[cmdVelTopic] =  pub3;
-		publisherMap[movimentNotPossibleTopic] =  pub4;
-		return true;
-	} else {
-		ROS_INFO("Could not create all publishers");
-		return false;
-	}
+	return addPublisherClient<controlador_de_trajetoria::Position>(
+		   nodeHandler, targetPositionAchievedTopic, false) &&
+
+		   addPublisherClient<controlador_de_trajetoria::Move_robot>(
+		   nodeHandler, targetPositionTopic, false) &&
+
+		   addPublisherClient<geometry_msgs::Twist>(
+		   nodeHandler, cmdVelTopic, false) &&
+
+		   addPublisherClient<controlador_de_trajetoria::Movimentation_error>(
+		   nodeHandler, movimentNotPossibleTopic, false);
 }
 
 bool MovimentationExecutor::createServices() {
 	ROS_INFO("Creating services");
-	ros::ServiceClient service =
-		nodeHandler.serviceClient<std_srvs::Empty>(enableMotorService);
-	ros::ServiceClient service2 =
-		nodeHandler.serviceClient<std_srvs::Empty>(disableMotorService);
-	if(service && service2) {
-		serviceClientsMap[enableMotorService] = service;
-		serviceClientsMap[disableMotorService] = service2;
-		return true;
-	} else {
-		ROS_INFO("Could not create all services");
-		return false;
-	}
+	return addServiceClient<std_srvs::Empty>(nodeHandler, enableMotorService)&&
+
+		   addServiceClient<std_srvs::Empty>(nodeHandler, disableMotorService);
 }
 
 bool MovimentationExecutor::createTimers() {
 	ROS_INFO("Creating timers");
-	ros::Timer timer =
-		nodeHandler.createTimer(ros::Duration(verifyRobotMovimentDelay),
-		&MovimentationExecutor::verifyRobotMovimentEvent,
-		this,false);
-	if(timer) {
-		timerMap[verifyRobotMovimentTimer] = timer;
-		return true;
-	} else {
-		ROS_INFO("Could not create all timers");
-		return false;
-	}
+	return addTimer<const ros::TimerEvent&, MovimentationExecutor>(nodeHandler, verifyRobotMovimentDelay,
+		   verifyRobotMovimentTimer, &MovimentationExecutor::verifyRobotMovimentEvent, this, false);
 }
 
 //Callback
@@ -266,7 +226,7 @@ void MovimentationExecutor::receivedTargetPosition(
 			if(targetPositionPointer-> vel !=0) {
 				velocity = targetPositionPointer->vel;
 			}
-			pointerTargetPosition = &targetPosition;
+			*pointerTargetPosition = targetPosition;
 		} else {
 			ROS_INFO("Already moving the robot to other position");
 		}

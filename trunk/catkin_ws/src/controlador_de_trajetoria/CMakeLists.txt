@@ -119,6 +119,7 @@ catkin_package(
 include_directories(
   include
   msg
+  ../common/include/
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -144,9 +145,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-set (SOURCEFILES src/BaseRosNode.cpp src/error/MethodNotImplemented.cpp 
-	src/movimentation/MovimentationErrorEnum.cpp src/utils/MovimentationUtils.cpp
-	src/messages/MoveRobotWrapper.cpp)
+set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp src/movimentation/MovimentationErrorEnum.cpp src/utils/MovimentationUtils.cpp src/messages/MoveRobotWrapper.cpp)
 set (MSG_GENERATION controlador_de_trajetoria_generate_messages_cpp)
 
 add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)
@@ -163,8 +162,7 @@ add_dependencies(PositionHandler ${MSG_GENERATION})
 
 
 #############
-## Install ##
-#############
+## Install ###############
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html

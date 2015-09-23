@@ -19,7 +19,6 @@ class MovimentationUtils {
 		virtual ~MovimentationUtils() {};
 
 		//Methods
-
 		static bool isMoveRobotEqual(
 			controlador_de_trajetoria::Move_robot move1,
 			controlador_de_trajetoria::Move_robot move2);

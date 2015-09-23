@@ -12,7 +12,7 @@
 #include "memory"
 #include "std_msgs/String.h"
 #include "std_msgs/Int32.h"
-#include "controlador_de_trajetoria/BaseRosNode.h"
+#include "common/BaseRosNode.h"
 #include "controlador_de_trajetoria/messages/MessagesHandler.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot_multi_array.h"
@@ -36,7 +36,7 @@ class MessagesHandler :public BaseRosNode{
 		//Attributes
 		/**TODO - Pass this attributed to base class
 		to be inherited by derivated class. The actual
-		problem is that it can not be instantied before
+		problem is that it can not be instantiated before
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
 		std::vector<MoveRobotWrapper> coordinatesList;
@@ -44,6 +44,7 @@ class MessagesHandler :public BaseRosNode{
 		double wakeUpTime;
 		bool arrivedInTargetPosition;
 		float freeCoordinatesDelay; //This is in seconds
+		float nextTargetsDelay;
 		bool isFinalPositionCorrect;
 		int idMoveRobotExecuted;
 		bool lockMutex;
@@ -52,10 +53,9 @@ class MessagesHandler :public BaseRosNode{
 
 		//Constructors
 		MessagesHandler(int argc,char **argv, int numberOfCoordinatesToStore,
-				double wakeUpTime, float freeCoordinatesDelay);
+				double wakeUpTime, float freeCoordinatesDelay, float nextTargetsDelay);
 
 		//Destructor
-		//TODO - Delete all pointers to deallocate memory
 		virtual ~MessagesHandler() {} ;
 
 		//Methods

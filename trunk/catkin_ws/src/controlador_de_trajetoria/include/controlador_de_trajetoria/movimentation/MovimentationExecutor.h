@@ -13,7 +13,7 @@
 #include "std_srvs/Empty.h"
 #include "geometry_msgs/Twist.h"
 #include "nav_msgs/Odometry.h"
-#include "controlador_de_trajetoria/BaseRosNode.h"
+#include "common/BaseRosNode.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot.h"
 #include "controlador_de_trajetoria/Movimentation_error.h"
@@ -31,7 +31,6 @@ const char* targetPositionTopic = "Message_handler/target_position";
 const char* movimentNotPossibleTopic = "Movimentation_executor/moviment_not_possible_cause";
 const char* verifyRobotMovimentTimer = "verifyRobotMovimentTimer";
 
-//TODO - use only shared_ptr instead of raw pointer (*)
 class MovimentationExecutor :public BaseRosNode{
 	private:
 		//Attributes
@@ -41,7 +40,7 @@ class MovimentationExecutor :public BaseRosNode{
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
 		controlador_de_trajetoria::Position targetPosition;
-		const controlador_de_trajetoria::Position* pointerTargetPosition;
+		boost::shared_ptr<controlador_de_trajetoria::Position> pointerTargetPosition;
 		nav_msgs::Odometry actualOdometryPosition;
 		float nextTryInterval; // Time in seconds
 		double velocity; // Velocity in m/s
@@ -69,8 +68,7 @@ class MovimentationExecutor :public BaseRosNode{
 			double wakeUpTime,double verifyRobotMovimentDelay);
 
 		//Destructor
-		//TODO - Delete all pointers to deallocate memory
-		virtual ~MovimentationExecutor() {} ;
+		virtual ~MovimentationExecutor() {};
 
 		//Methods
 		virtual int runNode();
