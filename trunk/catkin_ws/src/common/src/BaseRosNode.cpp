@@ -13,7 +13,7 @@ BaseRosNode::BaseRosNode(int argc, char **argv, std::string nodeName) {
 	ros::init(argc, argv, nodeName);
 	this->angleErrorMargin = 0.75;
 	this->positionErrorMargin = 0.25;
-	this->defaultQueueSize = 1000;
+	this->defaultQueueSize = 100;
 }
 
 //Methods
@@ -62,16 +62,3 @@ int BaseRosNode::shutdownAndExit(const char* nodeName) {
 	ROS_INFO("ROS node %s is being shuttled down",nodeName);
 	return 0;
 }
-
-//template <typename T>
-//bool BaseRosNode::addServiceClient(ros::NodeHandle nodeHandler,
-//	const char* serviceClientName,T serviceMessage) {
-//		ros::ServiceClient service =
-//			nodeHandler.serviceClient<serviceMessage>(serviceClientName);
-//		if(service) {
-//			serviceClientsMap[serviceClientName] = service;
-//			return true;
-//		} else {
-//			return false;
-//		}
-//}
