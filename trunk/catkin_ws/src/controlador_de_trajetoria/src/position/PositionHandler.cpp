@@ -16,8 +16,13 @@ int PositionHandler::runNode() {
 
 bool PositionHandler::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
-	return addSubscribedTopic<const nav_msgs::Odometry::ConstPtr&, PositionHandler>(nodeHandler,poseTopic,
-			&PositionHandler::transformOdometryToPosition,this);
+	#ifdef VREP_SIMULATION
+		return addSubscribedTopic<const geometry_msgs::PoseStamped::ConstPtr&, PositionHandler>(nodeHandler,poseTopic,
+				&PositionHandler::transformOdometryToPosition,this);
+	#else
+		return addSubscribedTopic<const nav_msgs::Odometry::ConstPtr&, PositionHandler>(nodeHandler,poseTopic,
+					&PositionHandler::transformOdometryToPosition,this);
+	#endif
 }
 
 bool PositionHandler::createPublishers() {
@@ -32,13 +37,23 @@ bool PositionHandler::createTimers() {
 }
 
 //Callbacks
-void PositionHandler::transformOdometryToPosition(
-	const nav_msgs::Odometry::ConstPtr& odometryPosition) {
-		ROS_DEBUG("Received position x:%f y:%f",odometryPosition->pose.pose.position.x,
-			odometryPosition->pose.pose.position.y);
-		position.x = odometryPosition->pose.pose.position.x;
-		position.y = odometryPosition->pose.pose.position.y;
-}
+#ifdef VREP_SIMULATION
+	void PositionHandler::transformOdometryToPosition(
+		const geometry_msgs::PoseStamped::ConstPtr& odometryPosition) {
+			ROS_DEBUG("Received position x:%f y:%f",odometryPosition->pose.position.x,
+				odometryPosition->pose.position.y);
+			position.x = odometryPosition->pose.position.x;
+			position.y = odometryPosition->pose.position.y;
+	}
+#else
+	void PositionHandler::transformOdometryToPosition(
+		const nav_msgs::Odometry::ConstPtr& odometryPosition) {
+			ROS_DEBUG("Received position x:%f y:%f",odometryPosition->pose.pose.position.x,
+				odometryPosition->pose.pose.position.y);
+			position.x = odometryPosition->pose.pose.position.x;
+			position.y = odometryPosition->pose.pose.position.y;
+	}
+#endif
 
 void PositionHandler::publishPosition(const ros::TimerEvent& timerEvent) {
 	if(hasPublisher(actualRobotPositionTopic)) {

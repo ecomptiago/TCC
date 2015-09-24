@@ -7,12 +7,20 @@
 
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
+#define VREP_SIMULATION
 
 #include "math.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/Empty.h"
 #include "geometry_msgs/Twist.h"
-#include "nav_msgs/Odometry.h"
+#include "geometry_msgs/Quaternion.h"
+
+#ifdef VREP_SIMULATION
+	#include "geometry_msgs/PoseStamped.h"
+#else
+	#include "nav_msgs/Odometry.h"
+#endif
+
 #include "common/BaseRosNode.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot.h"
@@ -34,21 +42,31 @@ const char* verifyRobotMovimentTimer = "verifyRobotMovimentTimer";
 class MovimentationExecutor :public BaseRosNode{
 	private:
 		//Attributes
+
 		/**TODO - Pass this attributed to base class
 		to be inherited by derivated class. The actual
 		problem is that it can not be instantied before
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
 		controlador_de_trajetoria::Position targetPosition;
-		boost::shared_ptr<controlador_de_trajetoria::Position> pointerTargetPosition;
-		nav_msgs::Odometry actualOdometryPosition;
+
+		//TODO - Use shared_ptr instead of raw pointer
+		controlador_de_trajetoria::Position *pointerTargetPosition;
+
+		#ifdef VREP_SIMULATION
+			geometry_msgs::PoseStamped actualOdometryPosition;
+			geometry_msgs::PoseStamped lastPosition;
+		#else
+			nav_msgs::Odometry actualOdometryPosition;
+			nav_msgs::Odometry lastPosition;
+		#endif
+
 		float nextTryInterval; // Time in seconds
 		double velocity; // Velocity in m/s
 		bool motorEnabled;
 		double wakeUpTime; // wakeUp in seconds
 		bool targetAchieved;
 		bool verifyRobotMovimentDelay; // this is in seconds
-		nav_msgs::Odometry lastPosition;
 
 		//Methods
 		void verifyMotorState();
@@ -59,7 +77,7 @@ class MovimentationExecutor :public BaseRosNode{
 		geometry_msgs::Twist createStopMessage();
 		geometry_msgs::Twist createRotateMessage();
 		geometry_msgs::Twist createMoveMessage(double velocity);
-		double actualizingAngle(double actualAngle);
+		double getActualAngle(int sleepBeforeActaulize);
 
 	public:
 		//Constructors
@@ -76,8 +94,15 @@ class MovimentationExecutor :public BaseRosNode{
 		bool createPublishers();
 		bool createServices();
 		bool createTimers();
-		void receivedActualOdometryRobotPosition(const
-			nav_msgs::Odometry::ConstPtr& actualOdometryRobotPositionPointer);
+
+		#ifdef VREP_SIMULATION
+			void receivedActualOdometryRobotPosition(
+					const geometry_msgs::PoseStamped::ConstPtr& actualOdometryRobotPositionPointer);
+		#else
+			void receivedActualOdometryRobotPosition(
+					const nav_msgs::Odometry::ConstPtr& actualOdometryRobotPositionPointer);
+		#endif
+
 		void receivedTargetPosition(const
 			controlador_de_trajetoria::Move_robot::ConstPtr& targetPositionPointer);
 		void receivedMotorState(const std_msgs::Bool::ConstPtr& motorStatePointer);

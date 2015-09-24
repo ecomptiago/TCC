@@ -7,8 +7,14 @@
 
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_POSITION_POSITIONHANDLER_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_POSITION_POSITIONHANDLER_H_
+#define VREP_SIMULATION
 
-#include "nav_msgs/Odometry.h"
+#ifdef VREP_SIMULATION
+	#include "geometry_msgs/PoseStamped.h"
+#else
+	#include "nav_msgs/Odometry.h"
+#endif
+
 #include "std_msgs/String.h"
 #include "common/BaseRosNode.h"
 #include "controlador_de_trajetoria/Position.h"
@@ -41,8 +47,15 @@ class PositionHandler :public BaseRosNode{
 		bool subscribeToTopics();
 		bool createPublishers();
 		bool createTimers();
-		void transformOdometryToPosition
-			(const nav_msgs::Odometry::ConstPtr& odometryPosition);
+
+		#ifdef VREP_SIMULATION
+			void transformOdometryToPosition
+				(const geometry_msgs::PoseStamped::ConstPtr& odometryPosition);
+		#else
+			void transformOdometryToPosition
+				(const nav_msgs::Odometry::ConstPtr& odometryPosition);
+		#endif
+
 		void publishPosition(const ros::TimerEvent& timerEvent);
 
 };
