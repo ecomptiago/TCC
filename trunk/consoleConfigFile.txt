@@ -1,5 +1,7 @@
 # Set the default ros output to warning and higher
 log4j.logger.ros=INFO
 # Override my package to output everything
-#log4j.logger.ros.rosaria=DEBUG
-#log4j.logger.ros.controlador_de_trajetoria=DEBUG
+log4j.logger.ros.rosaria=DEBUG
+log4j.logger.ros.controlador_de_trajetoria=DEBUG
+log4j.logger.ros.common=DEBUG
+log4j.logger.ros.rosaria_v_rep=DEBUG
