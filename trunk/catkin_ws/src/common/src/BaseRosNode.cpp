@@ -11,6 +11,7 @@
 BaseRosNode::BaseRosNode(int argc, char **argv, std::string nodeName) {
 	ROS_INFO("Initializing ROS node %s",nodeName.c_str());
 	ros::init(argc, argv, nodeName);
+	//TODO - Verify what parameters are good for vrep simulation
 	this->angleErrorMargin = 0.75;
 	this->positionErrorMargin = 0.25;
 	this->defaultQueueSize = 100;
