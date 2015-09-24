@@ -28,7 +28,7 @@ int RosAriaVRep::runNode() {
 
 			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher =
 				createEnablePublisher(poseTopic, simros_strmcmd_get_object_pose,
-				signalObjectMap[pionnerLxObjectHandleName],sim_handle_parent,"");
+				signalObjectMap[pionnerLxObjectHandleName], -1, "");
 			serviceClientsMap[enablePublisherService].call(simRosEnablePublisher);
 			if(simRosEnablePublisher.response.effectiveTopicName.length() == 0) {
 				infoFailAndExit(poseTopic);
@@ -76,23 +76,23 @@ bool RosAriaVRep::getObjectHandle(const char* objectHandleName) {
 }
 
 void RosAriaVRep::rotateLeft(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(1);
-	simRosSetJointState.request.values.push_back(1);
+	simRosSetJointState.request.values.push_back(0.1);
+	simRosSetJointState.request.values.push_back(0.1);
 }
 
 void RosAriaVRep::rotateRight(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(-1);
-	simRosSetJointState.request.values.push_back(-1);
+	simRosSetJointState.request.values.push_back(-0.1);
+	simRosSetJointState.request.values.push_back(-0.1);
 }
 
 void RosAriaVRep::moveForward(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(-1);
-	simRosSetJointState.request.values.push_back(1);
+	simRosSetJointState.request.values.push_back(-0.1);
+	simRosSetJointState.request.values.push_back(0.1);
 }
 
 void RosAriaVRep::moveBackward(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(1);
-	simRosSetJointState.request.values.push_back(-1);
+	simRosSetJointState.request.values.push_back(0.1);
+	simRosSetJointState.request.values.push_back(-0.1);
 }
 
 void RosAriaVRep::stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
