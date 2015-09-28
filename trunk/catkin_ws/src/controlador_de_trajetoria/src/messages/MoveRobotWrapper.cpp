@@ -16,7 +16,6 @@ MoveRobotWrapper::MoveRobotWrapper(
 		id = idCounter;
 		id++;
 		moveRobotObj = *moveRobotPosition;
-		std::cout << &moveRobotObj << "\n";
 }
 
 MoveRobotWrapper::MoveRobotWrapper(
