@@ -75,24 +75,10 @@ bool RosAriaVRep::getObjectHandle(const char* objectHandleName) {
 	}
 }
 
-void RosAriaVRep::rotateLeft(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(0.2);
-	simRosSetJointState.request.values.push_back(0.2);
-}
-
-void RosAriaVRep::rotateRight(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(-0.2);
-	simRosSetJointState.request.values.push_back(-0.2);
-}
-
-void RosAriaVRep::moveForward(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(-0.4);
-	simRosSetJointState.request.values.push_back(0.4);
-}
-
-void RosAriaVRep::moveBackward(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(0.4);
-	simRosSetJointState.request.values.push_back(-0.4);
+void RosAriaVRep::setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSetJointState,
+	float leftWheelVelocity, float rightWheelVelocity) {
+		simRosSetJointState.request.values.push_back(leftWheelVelocity);
+		simRosSetJointState.request.values.push_back(rightWheelVelocity);
 }
 
 void RosAriaVRep::stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
@@ -197,26 +183,89 @@ void RosAriaVRep::receivedTwist(
 	rosaria_v_rep::simRosSetJointState simRosSetJointState =
 		createJointState();
 
-	if(twist->angular.z != 0) {
-		if(twist->angular.z > 0) {
-			rotateLeft(simRosSetJointState);
-		} else{
-			rotateRight(simRosSetJointState);
-		}
-	} else if(twist->linear.x != 0) {
-		if(twist->linear.x > 0) {
-			moveForward(simRosSetJointState);
-		} else{
-			moveBackward(simRosSetJointState);
-		}
+	float rightWheelVelocity;
+	float leftWheelVelocity;
+	if(twist->linear.x != 0 || twist->angular.z) {
+		calculateWheelsVelocity(rightWheelVelocity, leftWheelVelocity, twist);
+		setWheelsVelocity(simRosSetJointState,leftWheelVelocity,
+			rightWheelVelocity);
 	} else {
 		stop(simRosSetJointState);
 	}
+
 	ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
 		simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
 	serviceClientsMap[setJointStateService].call(simRosSetJointState);
 	if(simRosSetJointState.response.result == -1) {
 		ROS_INFO("Could not set velocity to wheels");
+	}
+}
+
+void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
+		float leftWheelVelocity, const geometry_msgs::Twist::ConstPtr& twist) {
+
+	rightWheelVelocity = 0;
+	leftWheelVelocity = 0;
+
+	rosaria_v_rep::simRosGetObjectPose simRosGetObjectPose;
+	simRosGetObjectPose.request.handle = signalObjectMap[pionnerLxObjectHandleName];
+	simRosGetObjectPose.request.relativeToObjectHandle = -1;
+	serviceClientsMap[simRosGetObjectPoseService].call(simRosGetObjectPose);
+	if(simRosGetObjectPose.response.result != -1) {
+		double robotAngle =
+			OdometryUtils::getAngleFromQuaternation(simRosGetObjectPose.response.
+			pose.pose.orientation);
+		ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle);
+/**
+* For calculate the angle we use the transformation:
+*
+* [dx/dt] =  [cos(theta)  sin(theta) 0] * [(r*rightWheelVelocity/2)+(r*leftWheelVelocity/2)]
+*  dy/dt      -sin(theta) cos(theta) 0                             0
+*  dTheta/dt  0           0          1     (r*rightWheelVelocity/2*l)+(r*leftWheelVelocity/2*l)
+*
+* where dx/dt     = velocity in direction of global axis x
+*       dy/dt     = velocity in direction of global axis y
+*       dTheta/dt = velocity of rotation related (angular velocity)
+*       theta     = angle between x global axis and robot x axis
+*       r         = wheel diameter
+*       l         = distance between the center of the robot and wheels
+*
+* This transformation is in chapter 3 from book Introduction to Autonomous Mobile Robots
+* of Siegwart Nourbakhsh.
+*
+* Using this transformation and the additional equations
+*
+* dr/dt = dx/dt + dy/dt
+*
+* where dr/dt = linear velocity, we have the linear system:
+*
+* (((cos(theta) * r) / 2) * rightWheelVelocity) + (((cos(theta) * r) / 2) * leftWheelVelocity) - (dx/dt)           = 0
+* (((sin(theta) * r) / 2) * rightWheelVelocity) + (((sin(theta) * r) / 2) * leftWheelVelocity)           - (dy/dt) = 0
+* (( r * (2 * l)) * rightWheelVelocity)         - (( r * (2 * l)) * leftWheelVelocity)                             = dTheta/dt
+* 																							   + (dx/dt) + (dy/dt) = dr/dt
+*/
+		float response [4];
+		float equationMatrixElementCos   = ( (cos(robotAngle) * diameterOfWheels) / 2);
+		float equationMatrixElementSin   = ( (sin(robotAngle) * diameterOfWheels) / 2);
+		float equationMatrixElementConst = diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels);
+		float linearEquationMatrix [4] [5] = {
+			{equationMatrixElementCos,    equationMatrixElementCos,   -1,  0, 0},
+			{equationMatrixElementSin,    equationMatrixElementSin,    0, -1, 0},
+			{equationMatrixElementConst, -equationMatrixElementConst,  0,  0, twist->angular.z},
+			{0                         ,  0                         ,  1,  1, twist->linear.x}
+		};
+		if(MatrixUtils::applyGaussJordanAlgorithm(linearEquationMatrix[0], 4, 4, response)) {
+			ROS_DEBUG("Values from solution are rightWheelVelocity: %f leftWheelVelocity:%f "
+				"dx/dt:%f dy/dt:%f", response[0], response[1], response[2], response[3]);
+			rightWheelVelocity = response[0];
+			leftWheelVelocity = response[1] * -1; /*Here we need to multiply by -1 because the
+			*wheels does not have the same rotation reference ( left wheel with a positive velocity
+			*rotates to left and right wheel with a positive velocity rotates to left)*/
+		} else {
+			ROS_WARN("Could not resolve linear system");
+		}
+	} else {
+		ROS_WARN("Could not get pose from object %s", pionnerLxObjectHandleName);
 	}
 }
 

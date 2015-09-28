@@ -150,7 +150,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp)
+set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/utils/OdometryUtils.cpp ../common/src/utils/MatrixUtils.cpp ../common/src/error/MethodNotImplemented.cpp)
 set (MSG_GENERATION rosaria_v_rep_generate_messages_cpp)
 
 add_executable(RosAriaVRep ${SOURCEFILES} src/RosAriaVRep.cpp)

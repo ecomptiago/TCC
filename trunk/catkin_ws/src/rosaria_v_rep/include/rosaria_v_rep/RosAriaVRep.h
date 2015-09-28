@@ -8,7 +8,10 @@
 #ifndef SRC_ROSARIAVREP_H_
 #define SRC_ROSARIAVREP_H_
 
+#include "math.h"
 #include "common/BaseRosNode.h"
+#include "common/utils/OdometryUtils.h"
+#include "common/utils/MatrixUtils.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/Empty.h"
@@ -37,7 +40,8 @@ const char* motorEsquerdoObjectHandleName = "Motor_Esquerdo";
 const char* pionnerLxObjectHandleName = "Pionner_LX";
 const char* laserObjectHandleName = "LaserScanner_2D";
 const char* laserBodyObjectHandleName = "LaserScannerBody_2D";
-
+const float distanceBetweenCenterOfRobotAndWheels = 0.49896 / 2; //This is the l of theory
+const float diameterOfWheels = 0.14273; // This is the r of theory
 
 class RosAriaVRep : public BaseRosNode {
 
@@ -49,10 +53,8 @@ class RosAriaVRep : public BaseRosNode {
 		//Methods
 		bool getObjectHandle(const char* objectHandleName);
 		rosaria_v_rep::simRosSetJointState createJointState();
-		void rotateLeft(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
-		void rotateRight(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
-		void moveForward(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
-		void moveBackward(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
+		void setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSetJointState,
+			float leftWheelVelocity, float rightWheelVelocity);
 		void stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
 		bool createServiceClients();
 		bool createServiceServers();
@@ -61,6 +63,8 @@ class RosAriaVRep : public BaseRosNode {
 		rosaria_v_rep::simRosEnablePublisher createEnablePublisher(const char* topicName,
 			int streamCmd, int auxInt1, int auxInt2, std::string auxString);
 		int infoFailAndExit(const char* topicName);
+		void calculateWheelsVelocity(float rightWheelVelocity, float leftWheelVelocity,
+			const geometry_msgs::Twist::ConstPtr& twist);
 
 	public:
 		//Constructor
