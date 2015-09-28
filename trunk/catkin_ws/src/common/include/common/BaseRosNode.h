@@ -24,8 +24,8 @@ class BaseRosNode : public RosNodeInterface{
 		//Attributes
 		std::map<std::string,ros::Subscriber> subscriberMap;
 		std::map<std::string,ros::Publisher> publisherMap;
-		//TODO - Take a look at TimerManager class, maybe
-		//we can remove this map
+		/*TODO - Take a look at TimerManager class, maybe
+		*we can remove this map */
 		std::map<std::string,ros::Timer> timerMap;
 		std::map<std::string,ros::ServiceClient> serviceClientsMap;
 		std::map<std::string,ros::ServiceServer> serviceServersMap;
@@ -38,9 +38,10 @@ class BaseRosNode : public RosNodeInterface{
 		void sleepAndSpin(double miliSeconds);
 		void sleepAndSpin(ros::Rate& rate);
 
-		//Methods that need to be implemented here, because of compiling
-		//issues. More information at
-		//http://stackoverflow.com/questions/8752837/undefined-reference-to-template-class-constructor
+		/*Methods that need to be implemented here, because of compiling
+		*issues. More information at
+		*http://stackoverflow.com/questions/8752837/undefined-reference-to-template-class-constructor
+		*/
 		template <class T>
 		bool addServiceClient(ros::NodeHandle nodeHandler,
 			char const* serviceClientName) {
