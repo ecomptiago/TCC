@@ -76,23 +76,23 @@ bool RosAriaVRep::getObjectHandle(const char* objectHandleName) {
 }
 
 void RosAriaVRep::rotateLeft(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(0.1);
-	simRosSetJointState.request.values.push_back(0.1);
+	simRosSetJointState.request.values.push_back(0.2);
+	simRosSetJointState.request.values.push_back(0.2);
 }
 
 void RosAriaVRep::rotateRight(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(-0.1);
-	simRosSetJointState.request.values.push_back(-0.1);
+	simRosSetJointState.request.values.push_back(-0.2);
+	simRosSetJointState.request.values.push_back(-0.2);
 }
 
 void RosAriaVRep::moveForward(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(-0.1);
-	simRosSetJointState.request.values.push_back(0.1);
+	simRosSetJointState.request.values.push_back(-0.4);
+	simRosSetJointState.request.values.push_back(0.4);
 }
 
 void RosAriaVRep::moveBackward(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
-	simRosSetJointState.request.values.push_back(0.1);
-	simRosSetJointState.request.values.push_back(-0.1);
+	simRosSetJointState.request.values.push_back(0.4);
+	simRosSetJointState.request.values.push_back(-0.4);
 }
 
 void RosAriaVRep::stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
@@ -192,7 +192,8 @@ rosaria_v_rep::simRosSetJointState RosAriaVRep::createJointState() {
 //Callback
 void RosAriaVRep::receivedTwist(
 	const geometry_msgs::Twist::ConstPtr& twist) {
-	ROS_INFO("Received message");
+	ROS_DEBUG("Received twist. Linear x:%f y:%f z:%f . Angular x:%f y:%f z:%f", twist->linear.x,
+		twist->linear.y, twist->linear.z, twist->angular.x, twist->angular.y, twist->angular.z);
 	rosaria_v_rep::simRosSetJointState simRosSetJointState =
 		createJointState();
 
