@@ -22,6 +22,7 @@
 #endif
 
 #include "common/BaseRosNode.h"
+#include "common/utils/OdometryUtils.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "controlador_de_trajetoria/Move_robot.h"
 #include "controlador_de_trajetoria/Movimentation_error.h"

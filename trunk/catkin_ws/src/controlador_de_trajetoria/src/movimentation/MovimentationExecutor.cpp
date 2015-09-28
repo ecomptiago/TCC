@@ -102,13 +102,12 @@ double MovimentationExecutor::getActualAngle(int sleepBeforeActaulize) {
 
 	#ifdef VREP_SIMULATION
 		tf::Quaternion quaternion(
-			0,
-			0,
-			actualOdometryPosition.pose.orientation.z,
+			0, 0, actualOdometryPosition.pose.orientation.z,
 			actualOdometryPosition.pose.orientation.w);
-		return tf::getYaw(quaternion.normalize()) * 180/M_PI;
+		return OdometryUtils::getAngleFromQuaternation(quaternion.normalize());
 	#else
-		return tf::getYaw(actualOdometryPosition.pose.pose.orientation) * 180/M_PI;
+		return OdometryUtils::getAngleFromQuaternation(
+			actualOdometryPosition.pose.pose.orientation);
 	#endif
 
 }

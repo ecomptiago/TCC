@@ -134,11 +134,12 @@ void MessagesHandler::nextTargets(
 		}
 }
 
-//	TODO- Implementation to service move_robot_sync here we need to create a
-//  real MUTEX make this service works.Actually only one client can call the service
-//  because there is no way to block others threads from enter at this method.
-//  The correct way is all the others threads stayed blocked until the thread that
-//  is using this code exit.
+/*	TODO- Implementation to service move_robot_sync here we need to create a
+*  real MUTEX make this service works.Actually only one client can call the service
+*  because there is no way to block others threads from enter at this method.
+*  The correct way is all the others threads stayed blocked until the thread that
+*  is using this code exit.
+*/
 bool MessagesHandler::moveRobotSync(
 	controlador_de_trajetoria::Move_robot_service::Request& request,
 	controlador_de_trajetoria::Move_robot_service::Response& response) {
