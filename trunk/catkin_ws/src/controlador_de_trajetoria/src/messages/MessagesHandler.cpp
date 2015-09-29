@@ -109,7 +109,6 @@ void MessagesHandler::positionAchieved(
 			coordinatesList.clear();
 		}
 		arrivedInTargetPosition = true;
-
 }
 
 void MessagesHandler::publishFreeCoordinates(
