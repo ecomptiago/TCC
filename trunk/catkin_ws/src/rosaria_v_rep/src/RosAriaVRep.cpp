@@ -144,16 +144,16 @@ rosaria_v_rep::simRosEnableSubscriber RosAriaVRep::createEnableSubscriber(const 
 
 rosaria_v_rep::simRosEnablePublisher RosAriaVRep::createEnablePublisher(const char* topicName,
 	int streamCmd, int auxInt1, int auxInt2, std::string auxString) {
-	rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher;
-	simRosEnablePublisher.request.topicName = topicName;
-	simRosEnablePublisher.request.queueSize = 1;
-	simRosEnablePublisher.request.streamCmd = streamCmd;
-	simRosEnablePublisher.request.auxInt1 = auxInt1;
-	simRosEnablePublisher.request.auxInt2 = auxInt2;
-	if(auxString.compare("") != 0) {
-		simRosEnablePublisher.request.auxString = auxString;
-	}
-	return simRosEnablePublisher;
+		rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher;
+		simRosEnablePublisher.request.topicName = topicName;
+		simRosEnablePublisher.request.queueSize = 1;
+		simRosEnablePublisher.request.streamCmd = streamCmd;
+		simRosEnablePublisher.request.auxInt1 = auxInt1;
+		simRosEnablePublisher.request.auxInt2 = auxInt2;
+		if(auxString.compare("") != 0) {
+			simRosEnablePublisher.request.auxString = auxString;
+		}
+		return simRosEnablePublisher;
 }
 
 int RosAriaVRep::infoFailAndExit(const char* topicName) {
@@ -178,44 +178,43 @@ rosaria_v_rep::simRosSetJointState RosAriaVRep::createJointState() {
 //Callback
 void RosAriaVRep::receivedTwist(
 	const geometry_msgs::Twist::ConstPtr& twist) {
-	ROS_DEBUG("Received twist. Linear x:%f y:%f z:%f . Angular x:%f y:%f z:%f", twist->linear.x,
-		twist->linear.y, twist->linear.z, twist->angular.x, twist->angular.y, twist->angular.z);
-	rosaria_v_rep::simRosSetJointState simRosSetJointState =
-		createJointState();
+		ROS_DEBUG("Received twist. Linear x:%f y:%f z:%f . Angular x:%f y:%f z:%f", twist->linear.x,
+			twist->linear.y, twist->linear.z, twist->angular.x, twist->angular.y, twist->angular.z);
+		float rightWheelVelocity;
+		float leftWheelVelocity;
+		rosaria_v_rep::simRosSetJointState simRosSetJointState =
+			createJointState();
+		if(twist->linear.x != 0 || twist->angular.z) {
+			calculateWheelsVelocity(rightWheelVelocity, leftWheelVelocity, twist);
+			setWheelsVelocity(simRosSetJointState,leftWheelVelocity,
+				rightWheelVelocity);
+		} else {
+			stop(simRosSetJointState);
+		}
 
-	float rightWheelVelocity;
-	float leftWheelVelocity;
-	if(twist->linear.x != 0 || twist->angular.z) {
-		calculateWheelsVelocity(rightWheelVelocity, leftWheelVelocity, twist);
-		setWheelsVelocity(simRosSetJointState,leftWheelVelocity,
-			rightWheelVelocity);
-	} else {
-		stop(simRosSetJointState);
-	}
-
-	ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
-		simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
-	serviceClientsMap[setJointStateService].call(simRosSetJointState);
-	if(simRosSetJointState.response.result == -1) {
-		ROS_INFO("Could not set velocity to wheels");
-	}
+		ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
+			simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
+		serviceClientsMap[setJointStateService].call(simRosSetJointState);
+		if(simRosSetJointState.response.result == -1) {
+			ROS_INFO("Could not set velocity to wheels");
+		} else {
+			ROS_INFO("Wheels velocity set");
+		}
 }
 
 void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
-		float leftWheelVelocity, const geometry_msgs::Twist::ConstPtr& twist) {
-
-	rightWheelVelocity = 0;
-	leftWheelVelocity = 0;
-
-	rosaria_v_rep::simRosGetObjectPose simRosGetObjectPose;
-	simRosGetObjectPose.request.handle = signalObjectMap[pionnerLxObjectHandleName];
-	simRosGetObjectPose.request.relativeToObjectHandle = -1;
-	serviceClientsMap[simRosGetObjectPoseService].call(simRosGetObjectPose);
-	if(simRosGetObjectPose.response.result != -1) {
-		double robotAngle =
-			OdometryUtils::getAngleFromQuaternation(simRosGetObjectPose.response.
-			pose.pose.orientation);
-		ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle);
+	float leftWheelVelocity, const geometry_msgs::Twist::ConstPtr& twist) {
+		rightWheelVelocity = 0;
+		leftWheelVelocity = 0;
+		rosaria_v_rep::simRosGetObjectPose simRosGetObjectPose;
+		simRosGetObjectPose.request.handle = signalObjectMap[pionnerLxObjectHandleName];
+		simRosGetObjectPose.request.relativeToObjectHandle = -1;
+		serviceClientsMap[simRosGetObjectPoseService].call(simRosGetObjectPose);
+		if(simRosGetObjectPose.response.result != -1) {
+			double robotAngle =
+				OdometryUtils::getAngleFromQuaternation(simRosGetObjectPose.response.
+				pose.pose.orientation);
+			ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle);
 /**
 * For calculate the angle we use the transformation:
 *
@@ -244,29 +243,39 @@ void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
 * (( r * (2 * l)) * rightWheelVelocity)         - (( r * (2 * l)) * leftWheelVelocity)                             = dTheta/dt
 * 																							   + (dx/dt) + (dy/dt) = dr/dt
 */
-		float response [4];
-		float equationMatrixElementCos   = ( (cos(robotAngle) * diameterOfWheels) / 2);
-		float equationMatrixElementSin   = ( (sin(robotAngle) * diameterOfWheels) / 2);
-		float equationMatrixElementConst = diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels);
-		float linearEquationMatrix [4] [5] = {
-			{equationMatrixElementCos,    equationMatrixElementCos,   -1,  0, 0},
-			{equationMatrixElementSin,    equationMatrixElementSin,    0, -1, 0},
-			{equationMatrixElementConst, -equationMatrixElementConst,  0,  0, twist->angular.z},
-			{0                         ,  0                         ,  1,  1, twist->linear.x}
-		};
-		if(MatrixUtils::applyGaussJordanAlgorithm(linearEquationMatrix[0], 4, 4, response)) {
-			ROS_DEBUG("Values from solution are rightWheelVelocity: %f leftWheelVelocity:%f "
-				"dx/dt:%f dy/dt:%f", response[0], response[1], response[2], response[3]);
-			rightWheelVelocity = response[0];
-			leftWheelVelocity = response[1] * -1; /*Here we need to multiply by -1 because the
-			*wheels does not have the same rotation reference ( left wheel with a positive velocity
-			*rotates to left and right wheel with a positive velocity rotates to left)*/
+			ROS_INFO("Calculating wheels velocity");
+			float response [4];
+			float equationMatrixElementCos   = ( (cos(robotAngle) * diameterOfWheels) / 2);
+			float equationMatrixElementSin   = ( (sin(robotAngle) * diameterOfWheels) / 2);
+			float equationMatrixElementConst = diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels);
+			float linearEquationMatrix [4] [5] = {
+				{equationMatrixElementCos,    equationMatrixElementCos,   -1,  0, 0},
+				{equationMatrixElementSin,    equationMatrixElementSin,    0, -1, 0},
+				{equationMatrixElementConst, -equationMatrixElementConst,  0,  0, twist->angular.z},
+				{0                         ,  0                         ,  1,  1, twist->linear.x}
+			};
+			ROS_DEBUG("Matrix of equations is: %f %f -1 0 0 \n"
+											  "%f %f 0 -1 0 \n"
+											  "%f %f 0 0 %f \n"
+											  "0 0 1 1 %f \n",
+				 equationMatrixElementCos, equationMatrixElementCos,
+				 equationMatrixElementSin, equationMatrixElementSin,
+				 equationMatrixElementConst, -equationMatrixElementConst,twist->angular.z,
+				 twist->linear.x);
+			if(MatrixUtils::applyGaussElimeliminationWithPartialPivotingAlgorithm(linearEquationMatrix[0],
+				4, response)) {
+					ROS_DEBUG("Values from solution are rightWheelVelocity: %f leftWheelVelocity:%f "
+						"dx/dt:%f dy/dt:%f", response[0], response[1], response[2], response[3]);
+					rightWheelVelocity = response[0];
+					leftWheelVelocity = response[1] * -1; /*Here we need to multiply by -1 because the
+					*wheels does not have the same rotation reference ( left wheel with a positive velocity
+					*rotates to left and right wheel with a positive velocity rotates to left)*/
+			} else {
+				ROS_WARN("Could not resolve linear system");
+			}
 		} else {
-			ROS_WARN("Could not resolve linear system");
+			ROS_WARN("Could not get pose from object %s", pionnerLxObjectHandleName);
 		}
-	} else {
-		ROS_WARN("Could not get pose from object %s", pionnerLxObjectHandleName);
-	}
 }
 
 //Main
