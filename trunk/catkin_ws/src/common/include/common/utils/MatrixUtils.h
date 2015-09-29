@@ -17,8 +17,8 @@ class MatrixUtils {
 		virtual ~MatrixUtils() {};
 
 		//Methods
-		static bool applyGaussJordanAlgorithm(float *linearEquationMatrix,
-			int numberOfVariables, int numberOfEquations, float *response);
+		static bool applyGaussElimeliminationWithPartialPivotingAlgorithm(
+			float *linearEquationMatrix, int numberOfEquations, float *response);
 
 };
 
