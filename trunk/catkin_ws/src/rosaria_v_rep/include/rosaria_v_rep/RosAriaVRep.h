@@ -13,6 +13,7 @@
 #include "common/utils/OdometryUtils.h"
 #include "common/utils/MatrixUtils.h"
 #include "geometry_msgs/Twist.h"
+#include "geometry_msgs/Quaternion.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/Empty.h"
 #include "rosaria_v_rep/ProximitySensorData.h"
@@ -40,8 +41,8 @@ const char* motorEsquerdoObjectHandleName = "Motor_Esquerdo";
 const char* pionnerLxObjectHandleName = "Pionner_LX";
 const char* laserObjectHandleName = "LaserScanner_2D";
 const char* laserBodyObjectHandleName = "LaserScannerBody_2D";
-const float distanceBetweenCenterOfRobotAndWheels = 0.49896 / 2; //This is the l of theory
-const float diameterOfWheels = 0.14273; // This is the r of theory
+const float distanceBetweenCenterOfRobotAndWheels = 1; //0.49896 / 2; //This is the l of theory
+const float diameterOfWheels = 1; //0.14273; // This is the r of theory
 
 class RosAriaVRep : public BaseRosNode {
 

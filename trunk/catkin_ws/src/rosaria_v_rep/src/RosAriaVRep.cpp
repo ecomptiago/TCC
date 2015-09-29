@@ -211,9 +211,10 @@ void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
 		simRosGetObjectPose.request.relativeToObjectHandle = -1;
 		serviceClientsMap[simRosGetObjectPoseService].call(simRosGetObjectPose);
 		if(simRosGetObjectPose.response.result != -1) {
-			double robotAngle =
-				OdometryUtils::getAngleFromQuaternation(simRosGetObjectPose.response.
-				pose.pose.orientation);
+			tf::Quaternion quaternion(
+				0, 0, simRosGetObjectPose.response.pose.pose.orientation.z,
+				simRosGetObjectPose.response.pose.pose.orientation.w);
+			double robotAngle = 90; //OdometryUtils::getAngleFromQuaternation(quaternion.normalize());
 			ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle);
 /**
 * For calculate the angle we use the transformation:
@@ -245,8 +246,8 @@ void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
 */
 			ROS_INFO("Calculating wheels velocity");
 			float response [4];
-			float equationMatrixElementCos   = ( (cos(robotAngle) * diameterOfWheels) / 2);
-			float equationMatrixElementSin   = ( (sin(robotAngle) * diameterOfWheels) / 2);
+			float equationMatrixElementCos   = ( (cos(robotAngle * M_PI /180) * diameterOfWheels) / 2);
+			float equationMatrixElementSin   = ( (sin(robotAngle * M_PI /180) * diameterOfWheels) / 2);
 			float equationMatrixElementConst = diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels);
 			float linearEquationMatrix [4] [5] = {
 				{equationMatrixElementCos,    equationMatrixElementCos,   -1,  0, 0},
@@ -254,10 +255,11 @@ void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
 				{equationMatrixElementConst, -equationMatrixElementConst,  0,  0, twist->angular.z},
 				{0                         ,  0                         ,  1,  1, twist->linear.x}
 			};
-			ROS_DEBUG("Matrix of equations is: %f %f -1 0 0 \n"
-											  "%f %f 0 -1 0 \n"
-											  "%f %f 0 0 %f \n"
-											  "0 0 1 1 %f \n",
+			ROS_DEBUG("Matrix of equations is: \n"
+				 "%f %f -1 0 0 \n"
+				 "%f %f 0 -1 0 \n"
+				 "%f %f 0 0 %f \n"
+				 "0 0 1 1 %f \n",
 				 equationMatrixElementCos, equationMatrixElementCos,
 				 equationMatrixElementSin, equationMatrixElementSin,
 				 equationMatrixElementConst, -equationMatrixElementConst,twist->angular.z,
