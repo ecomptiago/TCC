@@ -64,8 +64,9 @@ class RosAriaVRep : public BaseRosNode {
 		rosaria_v_rep::simRosEnablePublisher createEnablePublisher(const char* topicName,
 			int streamCmd, int auxInt1, int auxInt2, std::string auxString);
 		int infoFailAndExit(const char* topicName);
-		void calculateWheelsVelocity(float rightWheelVelocity, float leftWheelVelocity,
+		void calculateWheelsVelocity(float& rightWheelVelocity, float& leftWheelVelocity,
 			const geometry_msgs::Twist::ConstPtr& twist);
+		float round(float numberToRound);
 
 	public:
 		//Constructor

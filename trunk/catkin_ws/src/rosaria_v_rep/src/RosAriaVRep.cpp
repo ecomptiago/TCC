@@ -202,8 +202,8 @@ void RosAriaVRep::receivedTwist(
 		}
 }
 
-void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
-	float leftWheelVelocity, const geometry_msgs::Twist::ConstPtr& twist) {
+void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
+	float& leftWheelVelocity, const geometry_msgs::Twist::ConstPtr& twist) {
 		rightWheelVelocity = 0;
 		leftWheelVelocity = 0;
 		rosaria_v_rep::simRosGetObjectPose simRosGetObjectPose;
@@ -246,9 +246,9 @@ void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
 */
 			ROS_INFO("Calculating wheels velocity");
 			float response [4];
-			float equationMatrixElementCos   = ( (cos(robotAngle * M_PI /180) * diameterOfWheels) / 2);
-			float equationMatrixElementSin   = ( (sin(robotAngle * M_PI /180) * diameterOfWheels) / 2);
-			float equationMatrixElementConst = diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels);
+			float equationMatrixElementCos   = round(((cos(robotAngle * M_PI /180) * diameterOfWheels) / 2));
+			float equationMatrixElementSin   = round(((sin(robotAngle * M_PI /180) * diameterOfWheels) / 2));
+			float equationMatrixElementConst = round(diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels));
 			float linearEquationMatrix [4] [5] = {
 				{equationMatrixElementCos,    equationMatrixElementCos,   -1,  0, 0},
 				{equationMatrixElementSin,    equationMatrixElementSin,    0, -1, 0},
@@ -264,7 +264,7 @@ void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
 				 equationMatrixElementSin, equationMatrixElementSin,
 				 equationMatrixElementConst, -equationMatrixElementConst,twist->angular.z,
 				 twist->linear.x);
-			if(MatrixUtils::applyGaussElimeliminationWithPartialPivotingAlgorithm(linearEquationMatrix[0],
+			if(MatrixUtils::applyGaussElimeliminationWithPartialPivotingAlgorithm<float>(linearEquationMatrix[0],
 				4, response)) {
 					ROS_DEBUG("Values from solution are rightWheelVelocity: %f leftWheelVelocity:%f "
 						"dx/dt:%f dy/dt:%f", response[0], response[1], response[2], response[3]);
@@ -278,6 +278,14 @@ void RosAriaVRep::calculateWheelsVelocity(float rightWheelVelocity,
 		} else {
 			ROS_WARN("Could not get pose from object %s", pionnerLxObjectHandleName);
 		}
+}
+
+float RosAriaVRep::round(float numberToRound) {
+	if(-pow(10, -6) < numberToRound && numberToRound < pow(10, -6)) {
+		return 0;
+	} else {
+		return numberToRound;
+	}
 }
 
 //Main
