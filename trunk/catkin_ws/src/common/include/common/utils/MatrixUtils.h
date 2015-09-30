@@ -8,7 +8,6 @@
 #ifndef SRC_UTILS_MATRIXUTILS_H_
 #define SRC_UTILS_MATRIXUTILS_H_
 
-#include "iostream"
 #include "math.h"
 
 class MatrixUtils {
