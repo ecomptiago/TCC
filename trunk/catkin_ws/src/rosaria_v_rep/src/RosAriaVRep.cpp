@@ -77,8 +77,8 @@ bool RosAriaVRep::getObjectHandle(const char* objectHandleName) {
 
 void RosAriaVRep::setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSetJointState,
 	float leftWheelVelocity, float rightWheelVelocity) {
-		simRosSetJointState.request.values.push_back(leftWheelVelocity);
 		simRosSetJointState.request.values.push_back(rightWheelVelocity);
+		simRosSetJointState.request.values.push_back(leftWheelVelocity);
 }
 
 void RosAriaVRep::stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
@@ -186,6 +186,8 @@ void RosAriaVRep::receivedTwist(
 			createJointState();
 		if(twist->linear.x != 0 || twist->angular.z) {
 			calculateWheelsVelocity(rightWheelVelocity, leftWheelVelocity, twist);
+			stop(simRosSetJointState);
+			serviceClientsMap[setJointStateService].call(simRosSetJointState);
 			setWheelsVelocity(simRosSetJointState,leftWheelVelocity,
 				rightWheelVelocity);
 		} else {
@@ -214,7 +216,7 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 			tf::Quaternion quaternion(
 				0, 0, simRosGetObjectPose.response.pose.pose.orientation.z,
 				simRosGetObjectPose.response.pose.pose.orientation.w);
-			double robotAngle = 90; //OdometryUtils::getAngleFromQuaternation(quaternion.normalize());
+			double robotAngle = OdometryUtils::getAngleFromQuaternation(quaternion.normalize());
 			ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle);
 /**
 * For calculate the angle we use the transformation:
@@ -266,12 +268,12 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 				 twist->linear.x);
 			if(MatrixUtils::applyGaussElimeliminationWithPartialPivotingAlgorithm<float>(linearEquationMatrix[0],
 				4, response)) {
-					ROS_DEBUG("Values from solution are rightWheelVelocity: %f leftWheelVelocity:%f "
+					ROS_DEBUG("Values for solution are rightWheelVelocity: %f leftWheelVelocity:%f "
 						"dx/dt:%f dy/dt:%f", response[0], response[1], response[2], response[3]);
-					rightWheelVelocity = response[0];
-					leftWheelVelocity = response[1] * -1; /*Here we need to multiply by -1 because the
+					rightWheelVelocity = response[0] * -1; /*Here we need to multiply by -1 because the
 					*wheels does not have the same rotation reference ( left wheel with a positive velocity
 					*rotates to left and right wheel with a positive velocity rotates to left)*/
+					leftWheelVelocity = response[1];
 			} else {
 				ROS_WARN("Could not resolve linear system");
 			}
