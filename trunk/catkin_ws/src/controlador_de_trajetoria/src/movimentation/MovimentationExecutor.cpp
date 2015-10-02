@@ -2,15 +2,15 @@
 
 //Constructors
 MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
-	float nextTryInterval, double velocity, double wakeUpTime,
-	double verifyRobotMovimentDelay) : BaseRosNode(argc,argv,nodeName) {
+	float nextTryInterval, double wakeUpTime, double verifyRobotMovimentDelay) : BaseRosNode(argc,argv,nodeName) {
 		this->pointerTargetPosition = NULL;
 		this->nextTryInterval = nextTryInterval;
-		this->velocity = velocity;
 		this->wakeUpTime = wakeUpTime;
 		this->targetAchieved = true;
 		this->motorEnabled = false;
 		this->verifyRobotMovimentDelay = verifyRobotMovimentDelay;
+		this->pidController = PIDController(1,1,1);
+		this->pointerToController = &pidController;
 }
 
 //Methods
@@ -23,8 +23,6 @@ int MovimentationExecutor::runNode() {
 				targetAchieved = false;
 				ROS_INFO("Verifying motor state");
 				verifyMotorState();
-				ROS_INFO("Rotating robot");
-				rotateRobot();
 				ROS_INFO("Moving robot to position");
 				moveRobot();
 		}
@@ -42,29 +40,6 @@ geometry_msgs::Twist MovimentationExecutor::createStopMessage() {
 	stopMessage.linear.y = 0;
 	stopMessage.linear.z = 0;
 	return stopMessage;
-}
-
-geometry_msgs::Twist MovimentationExecutor::createRotateMessage() {
-	geometry_msgs::Twist rotateMessage;
-	rotateMessage.angular.x = 0;
-	rotateMessage.angular.y = 0;
-	rotateMessage.angular.z = 0.1;
-	rotateMessage.linear.x = 0;
-	rotateMessage.linear.y = 0;
-	rotateMessage.linear.z = 0;
-	return rotateMessage;
-}
-
-geometry_msgs::Twist MovimentationExecutor::createMoveMessage(
-	double velocity) {
-		geometry_msgs::Twist moveMessage;
-		moveMessage.angular.x = 0;
-		moveMessage.angular.y = 0;
-		moveMessage.angular.z = 0;
-		moveMessage.linear.x = velocity;
-		moveMessage.linear.y = 0;
-		moveMessage.linear.z = 0;
-		return moveMessage;
 }
 
 void MovimentationExecutor::publishPositionAchieved(
@@ -95,8 +70,8 @@ void MovimentationExecutor::verifyMotorState() {
 	}
 }
 
-double MovimentationExecutor::getActualAngle(int sleepBeforeActaulize) {
-	if(sleepBeforeActaulize) {
+double MovimentationExecutor::getActualAngle(int sleepBeforeActualize) {
+	if(sleepBeforeActualize) {
 		sleepAndSpin(100);
 	}
 
@@ -110,43 +85,6 @@ double MovimentationExecutor::getActualAngle(int sleepBeforeActaulize) {
 			actualOdometryPosition.pose.pose.orientation);
 	#endif
 
-}
-
-void MovimentationExecutor::rotateRobot() {
-	double angleTargetPosition =
-		atan2(pointerTargetPosition->y,pointerTargetPosition->x) *
-		180/M_PI;
-	double actualAngle = getActualAngle(false);
-	double minAngleWithErrorMargin = angleTargetPosition - angleErrorMargin;
-	double maxAngleWithErrorMargin = angleTargetPosition + angleErrorMargin;
-	ROS_DEBUG("target position x:%f y:%f . Actual angle: %f "
-		"angle to achieve:%f",pointerTargetPosition->x,
-		pointerTargetPosition->y,actualAngle,angleTargetPosition);
-	if(hasPublisher(cmdVelTopic)) {
-		publisherMap[cmdVelTopic].publish(createRotateMessage());
-	}
-	if(minAngleWithErrorMargin < -180){
-		double adjustedAngleMin = 180 + (minAngleWithErrorMargin + 180);
-		while(!(actualAngle > adjustedAngleMin || actualAngle < maxAngleWithErrorMargin)) {
-			actualAngle = getActualAngle(true);
-			ROS_DEBUG("Actual angle:%f", actualAngle);
-		}
-	} else if(maxAngleWithErrorMargin > 180) {
-		double adjustedAngleMax = (maxAngleWithErrorMargin - 180) - 180;
-		while(!(actualAngle > minAngleWithErrorMargin || actualAngle < adjustedAngleMax)) {
-			actualAngle = getActualAngle(true);
-			ROS_DEBUG("Actual angle:%f", actualAngle);
-		}
-	} else {
-		while(!(actualAngle > minAngleWithErrorMargin && actualAngle < maxAngleWithErrorMargin)) {
-			actualAngle = getActualAngle(true);
-			ROS_DEBUG("Actual angle:%f", actualAngle);
-		}
-	}
-	if(hasPublisher(cmdVelTopic)) {
-		publisherMap[cmdVelTopic].publish(createStopMessage());
-	}
-	ROS_INFO("Stopping of rotate robot");
 }
 
 void MovimentationExecutor::moveRobot() {
@@ -187,7 +125,7 @@ void MovimentationExecutor::moveRobot() {
 	#endif
 
 	if(hasPublisher(cmdVelTopic)) {
-		publisherMap[cmdVelTopic].publish(createMoveMessage(velocity));
+//		publisherMap[cmdVelTopic].publish(createMoveMessage(0.1));
 	}
 
 	#ifdef VREP_SIMULATION
@@ -195,6 +133,8 @@ void MovimentationExecutor::moveRobot() {
 			actualOdometryPosition.pose.position.x < targetXAdjusted + positionErrorMargin &&
 			actualOdometryPosition.pose.position.y > targetYAdjusted - positionErrorMargin &&
 			actualOdometryPosition.pose.position.y < targetYAdjusted + positionErrorMargin)) {
+//				pointerToController->calculateVelocities();
+				pointerToController->calculateError();
 				sleepAndSpin(100);
 				ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
 					actualOdometryPosition.pose.position.y);
@@ -280,15 +220,11 @@ bool MovimentationExecutor::createTimers() {
 
 void MovimentationExecutor::receivedTargetPosition(
 	const controlador_de_trajetoria::Move_robot::ConstPtr& targetPositionPointer) {
-		ROS_DEBUG("Received target position x:%f y:%f vel:%f",
-			targetPositionPointer->x,targetPositionPointer->y,
-			targetPositionPointer->vel);
+		ROS_DEBUG("Received target position x:%f y:%f ",
+			targetPositionPointer->x,targetPositionPointer->y);
 		if(pointerTargetPosition == NULL && targetAchieved == true) {
 			targetPosition.x = targetPositionPointer->x;
 			targetPosition.y = targetPositionPointer->y;
-			if(targetPositionPointer-> vel !=0) {
-				velocity = targetPositionPointer->vel;
-			}
 			pointerTargetPosition = &targetPosition;
 		} else {
 			ROS_INFO("Already moving the robot to other position");
@@ -351,7 +287,7 @@ void MovimentationExecutor::verifyRobotMovimentEvent(const ros::TimerEvent& time
 //Main
 int main(int argc,char **argv) {
 	try {
-		MovimentationExecutor movimentationExecutor(argc,argv,1,1,0.1,5);
+		MovimentationExecutor movimentationExecutor(argc, argv, 1, 1, 5);
 		if(movimentationExecutor.subscribeToTopics() &&
 			movimentationExecutor.createPublishers() &&
 			movimentationExecutor.createServices() &&

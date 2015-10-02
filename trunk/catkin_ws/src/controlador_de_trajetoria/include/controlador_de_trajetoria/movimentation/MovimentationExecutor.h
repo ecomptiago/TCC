@@ -27,6 +27,8 @@
 #include "controlador_de_trajetoria/Move_robot.h"
 #include "controlador_de_trajetoria/Movimentation_error.h"
 #include "controlador_de_trajetoria/movimentation/MovimentationErrorEnum.h"
+#include "controlador_de_trajetoria/movimentation/controller/ControllerInterface.h"
+#include "controlador_de_trajetoria/movimentation/controller/PIDController.h"
 #include "tf/transform_datatypes.h"
 
 const char* nodeName = "Movimentation_executor";
@@ -54,6 +56,11 @@ class MovimentationExecutor :public BaseRosNode{
 		//TODO - Use shared_ptr instead of raw pointer
 		controlador_de_trajetoria::Position *pointerTargetPosition;
 
+		PIDController pidController;
+
+		//TODO - Use shared_ptr instead of raw pointer
+		ControllerInterface *pointerToController;
+
 		#ifdef VREP_SIMULATION
 			geometry_msgs::PoseStamped actualOdometryPosition;
 			geometry_msgs::PoseStamped lastPosition;
@@ -63,7 +70,6 @@ class MovimentationExecutor :public BaseRosNode{
 		#endif
 
 		float nextTryInterval; // Time in seconds
-		double velocity; // Velocity in m/s
 		bool motorEnabled;
 		double wakeUpTime; // wakeUp in seconds
 		bool targetAchieved;
@@ -76,15 +82,13 @@ class MovimentationExecutor :public BaseRosNode{
 		void publishPositionAchieved(
 			double initialXPosition, double initialYPosition);
 		geometry_msgs::Twist createStopMessage();
-		geometry_msgs::Twist createRotateMessage();
-		geometry_msgs::Twist createMoveMessage(double velocity);
-		double getActualAngle(int sleepBeforeActaulize);
+		double getActualAngle(int sleepBeforeActualize);
 
 	public:
 		//Constructors
 		MovimentationExecutor(int argc,char **argv,
-			float nextTryInterval, double velocity,
-			double wakeUpTime,double verifyRobotMovimentDelay);
+			float nextTryInterval, double wakeUpTime,
+			double verifyRobotMovimentDelay);
 
 		//Destructor
 		virtual ~MovimentationExecutor() {};

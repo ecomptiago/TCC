@@ -80,9 +80,8 @@ void MessagesHandler::proccessPositionToMoveRobot(
 	const controlador_de_trajetoria::Move_robot::ConstPtr& moveRobotPosition) {
 		ROS_INFO("Received position to move robot");
 		if(coordinatesList.size() != coordinatesList.max_size()) {
-			ROS_DEBUG("Adding position x:%f y:%f vel:%f to vector",
-				moveRobotPosition->x, moveRobotPosition->y,
-				moveRobotPosition->vel);
+			ROS_DEBUG("Adding position x:%f y:%f to vector",
+				moveRobotPosition->x, moveRobotPosition->y);
 			coordinatesList.push_back(MoveRobotWrapper(moveRobotPosition));
 			nextTargetsList.push_back(*moveRobotPosition);
 		} else {
@@ -149,8 +148,7 @@ bool MessagesHandler::moveRobotSync(
 		}
 		ROS_INFO("Received position to move robot");
 		ROS_DEBUG("Calling proccessPositionToMoveRobot with position "
-			"x:%f y:%f vel:%f",request.moveRobotPosition.x, request.moveRobotPosition.y,
-			request.moveRobotPosition.vel);
+			"x:%f y:%f",request.moveRobotPosition.x, request.moveRobotPosition.y);
 		MoveRobotWrapper move(request.moveRobotPosition);
 		isFinalPositionCorrect = false;
 		coordinatesList.push_back(move);
