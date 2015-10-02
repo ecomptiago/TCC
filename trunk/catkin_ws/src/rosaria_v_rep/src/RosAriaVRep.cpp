@@ -186,8 +186,6 @@ void RosAriaVRep::receivedTwist(
 			createJointState();
 		if(twist->linear.x != 0 || twist->angular.z) {
 			calculateWheelsVelocity(rightWheelVelocity, leftWheelVelocity, twist);
-			stop(simRosSetJointState);
-			serviceClientsMap[setJointStateService].call(simRosSetJointState);
 			setWheelsVelocity(simRosSetJointState,leftWheelVelocity,
 				rightWheelVelocity);
 		} else {
