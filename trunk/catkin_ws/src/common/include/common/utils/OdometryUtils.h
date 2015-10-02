@@ -12,6 +12,7 @@
 #include "geometry_msgs/Quaternion.h"
 
 class OdometryUtils {
+
 	public:
 		//Constructor
 		OdometryUtils() {};
@@ -20,8 +21,10 @@ class OdometryUtils {
 		virtual ~OdometryUtils() {};
 
 		//Methods
-		static double getAngleFromQuaternation(geometry_msgs::Quaternion quaternion);
-		static double getAngleFromQuaternation(tf::Quaternion quaternion);
+		template<class T>
+		static double getAngleFromQuaternation(T quaternion) {
+			return tf::getYaw(quaternion) * 180/M_PI;
+		}
 
 };
 
