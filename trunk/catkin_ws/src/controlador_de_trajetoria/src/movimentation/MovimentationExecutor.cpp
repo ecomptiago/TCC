@@ -9,8 +9,7 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 		this->targetAchieved = true;
 		this->motorEnabled = false;
 		this->verifyRobotMovimentDelay = verifyRobotMovimentDelay;
-		this->pidController = PIDController(1,1,1);
-		this->pointerToController = &pidController;
+		this->pidController = PIDMovimentController(1,1,1);
 }
 
 //Methods
@@ -90,55 +89,33 @@ double MovimentationExecutor::getActualAngle(int sleepBeforeActualize) {
 void MovimentationExecutor::moveRobot() {
 
 	#ifdef VREP_SIMULATION
-		double initialXPosition = actualOdometryPosition.pose.position.x;
-		double initialYPosition = actualOdometryPosition.pose.position.y;
-	#else
-		double initialXPosition = actualOdometryPosition.pose.pose.position.x;
-		double initialYPosition = actualOdometryPosition.pose.pose.position.y;
-	#endif
-
-	double targetXAdjusted;
-	double targetYAdjusted;
-	if(pointerTargetPosition->x == 0) {
-		targetXAdjusted = initialXPosition;
-	} else {
-		targetXAdjusted = initialXPosition + pointerTargetPosition->x;
-	}
-	if(pointerTargetPosition->y == 0) {
-		targetYAdjusted = initialYPosition;
-	} else {
-		targetYAdjusted = initialYPosition + pointerTargetPosition->y;
-	}
-
-	#ifdef VREP_SIMULATION
 		ROS_DEBUG("Moving robot to position x: %f y: %f from actual position "
 			"x:%f y:%f and angle:%f",pointerTargetPosition->x,pointerTargetPosition->y,
 			actualOdometryPosition.pose.position.x,
 			actualOdometryPosition.pose.position.y,
 			getActualAngle(false));
+		double initialXPosition = actualOdometryPosition.pose.position.x;
+		double initialYPosition = actualOdometryPosition.pose.position.y;
 	#else
 		ROS_DEBUG("Moving robot to position x: %f y: %f from actual position "
 			"x:%f y:%f and angle:%f",pointerTargetPosition->x,pointerTargetPosition->y,
 			actualOdometryPosition.pose.pose.position.x,
 			actualOdometryPosition.pose.pose.position.y,
 			getActualAngle(false));
+		double initialXPosition = actualOdometryPosition.pose.pose.position.x;
+		double initialYPosition = actualOdometryPosition.pose.pose.position.y;
 	#endif
 
-	if(hasPublisher(cmdVelTopic)) {
-//		publisherMap[cmdVelTopic].publish(createMoveMessage(0.1));
-	}
-
 	#ifdef VREP_SIMULATION
-	while(!(actualOdometryPosition.pose.position.x > targetXAdjusted - positionErrorMargin &&
-			actualOdometryPosition.pose.position.x < targetXAdjusted + positionErrorMargin &&
-			actualOdometryPosition.pose.position.y > targetYAdjusted - positionErrorMargin &&
-			actualOdometryPosition.pose.position.y < targetYAdjusted + positionErrorMargin)) {
-//				pointerToController->calculateVelocities();
-				pointerToController->calculateError();
-				sleepAndSpin(100);
-				ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
-					actualOdometryPosition.pose.position.y);
+	while(pidController.calculateError() < 0.5) {
+		pidController.setRhoAlphaBeta(actualOdometryPosition);
+		if(hasPublisher(cmdVelTopic)) {
+			publisherMap[cmdVelTopic].publish(pidController.calculateVelocities());
 		}
+		sleepAndSpin(100);
+		ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
+			actualOdometryPosition.pose.position.y);
+	}
 	#else
 		while(!(actualOdometryPosition.pose.pose.position.x > targetXAdjusted - positionErrorMargin &&
 				actualOdometryPosition.pose.pose.position.x < targetXAdjusted + positionErrorMargin &&

@@ -214,7 +214,9 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 			tf::Quaternion quaternion(
 				0, 0, simRosGetObjectPose.response.pose.pose.orientation.z,
 				simRosGetObjectPose.response.pose.pose.orientation.w);
-			double robotAngle = OdometryUtils::getAngleFromQuaternation(quaternion.normalize());
+			double robotAngle =
+				OdometryUtils::getAngleFromQuaternation<tf::Quaternion>
+				(quaternion.normalize());
 			ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle);
 /**
 * For calculate the angle we use the transformation:

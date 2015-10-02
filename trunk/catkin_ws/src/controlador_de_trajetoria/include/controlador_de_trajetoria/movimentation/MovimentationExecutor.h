@@ -7,6 +7,7 @@
 
 #ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
 #define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_
+
 #define VREP_SIMULATION
 
 #include "math.h"
@@ -27,8 +28,8 @@
 #include "controlador_de_trajetoria/Move_robot.h"
 #include "controlador_de_trajetoria/Movimentation_error.h"
 #include "controlador_de_trajetoria/movimentation/MovimentationErrorEnum.h"
-#include "controlador_de_trajetoria/movimentation/controller/ControllerInterface.h"
-#include "controlador_de_trajetoria/movimentation/controller/PIDController.h"
+#include "controller/MovimentControllerInterface.h"
+#include "controller/PIDMovimentController.h"
 #include "tf/transform_datatypes.h"
 
 const char* nodeName = "Movimentation_executor";
@@ -56,10 +57,7 @@ class MovimentationExecutor :public BaseRosNode{
 		//TODO - Use shared_ptr instead of raw pointer
 		controlador_de_trajetoria::Position *pointerTargetPosition;
 
-		PIDController pidController;
-
-		//TODO - Use shared_ptr instead of raw pointer
-		ControllerInterface *pointerToController;
+		PIDMovimentController pidController;
 
 		#ifdef VREP_SIMULATION
 			geometry_msgs::PoseStamped actualOdometryPosition;
