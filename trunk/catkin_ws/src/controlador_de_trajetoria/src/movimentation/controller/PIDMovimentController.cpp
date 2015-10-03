@@ -36,7 +36,6 @@ void PIDMovimentController::setTargetPosition(
 }
 
 geometry_msgs::Twist PIDMovimentController::calculateVelocities() {
-	ROS_INFO("ABC");
 	double alpha = alpha * M_PI / 180;
 	float newRho =
 		-kRho * rho * cos(alpha);
@@ -44,22 +43,18 @@ geometry_msgs::Twist PIDMovimentController::calculateVelocities() {
 		(kRho * sin(alpha)) - (kAlpha * alpha) - (kBeta * beta);
 	float newBeta = -kRho * sin(alpha);
 	geometry_msgs::Twist twist;
-	twist.linear.x = kRho * rho;
+	twist.linear.x = kRho * newRho;
 	twist.angular.z =
-		(kAlpha * alpha) + (kBeta * beta);
+		(kAlpha * newAlpha) + (kBeta * newBeta);
 	return twist;
 }
 
 float PIDMovimentController::calculateError() {
-	if(pointerTargetPosition == NULL) {
-		return 9999999;
-	} else {
-		return 1;
-	}
+	return rho + alpha + beta;
 }
 
 #ifdef VREP_SIMULATION
-	void PIDMovimentController::setRhoAlphaBeta(
+	void PIDMovimentController::calculateRhoAlphaBeta(
 		geometry_msgs::PoseStamped actualOdometryPosition) {
 			double deltaX =
 				targetPosition.x - actualOdometryPosition.pose.position.x;
@@ -80,7 +75,7 @@ float PIDMovimentController::calculateError() {
 				beta);
 	}
 #else
-	void PIDMovimentController::setRhoAlphaBeta(
+	void PIDMovimentController::calculateRhoAlphaBeta(
 		nav_msgs::Odometry actualOdometryPosition) {
 			double deltaX =
 				targetPosition.x - actualOdometryPosition.pose.pose.position.x;

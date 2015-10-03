@@ -35,8 +35,7 @@ class PIDMovimentController : public MovimentControllerInterface {
 		controlador_de_trajetoria::Position targetPosition;
 
 		//TODO - Use shared_ptr instead of raw pointer
-		controlador_de_trajetoria::Position *pointerTargetPosition;
-
+		const controlador_de_trajetoria::Position *pointerTargetPosition;
 
 	public:
 		//Constructor
@@ -55,9 +54,9 @@ class PIDMovimentController : public MovimentControllerInterface {
 		virtual float calculateError();
 
 		#ifdef VREP_SIMULATION
-			void setRhoAlphaBeta(geometry_msgs::PoseStamped actualOdometryPosition);
+			void calculateRhoAlphaBeta(geometry_msgs::PoseStamped actualOdometryPosition);
 		#else
-			void setRhoAlphaBeta(nav_msgs::Odometry actualOdometryPosition);
+			void calculateRhoAlphaBeta(nav_msgs::Odometry actualOdometryPosition);
 		#endif
 
 };

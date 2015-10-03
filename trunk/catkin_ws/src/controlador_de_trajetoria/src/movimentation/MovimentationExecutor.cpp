@@ -108,7 +108,7 @@ void MovimentationExecutor::moveRobot() {
 
 	#ifdef VREP_SIMULATION
 	while(pidController.calculateError() < 0.5) {
-		pidController.setRhoAlphaBeta(actualOdometryPosition);
+		pidController.calculateRhoAlphaBeta(actualOdometryPosition);
 		if(hasPublisher(cmdVelTopic)) {
 			publisherMap[cmdVelTopic].publish(pidController.calculateVelocities());
 		}
