@@ -36,21 +36,19 @@ void PIDMovimentController::setTargetPosition(
 }
 
 geometry_msgs::Twist PIDMovimentController::calculateVelocities() {
-	double alpha = alpha * M_PI / 180;
-	float newRho =
-		-kRho * rho * cos(alpha);
-	float newAlpha =
-		(kRho * sin(alpha)) - (kAlpha * alpha) - (kBeta * beta);
-	float newBeta = -kRho * sin(alpha);
 	geometry_msgs::Twist twist;
-	twist.linear.x = kRho * newRho;
+	twist.linear.x = kRho * rho;
 	twist.angular.z =
-		(kAlpha * newAlpha) + (kBeta * newBeta);
+		(kAlpha * alpha) + (kBeta * beta);
+	ROS_DEBUG("Setting velocities linear:%f angular:%f", twist.linear.x,
+		twist.angular.z);
 	return twist;
 }
 
 float PIDMovimentController::calculateError() {
-	return rho + alpha + beta;
+	float error = rho + alpha + beta;
+	ROS_DEBUG("Error: %f",error);
+	return error;
 }
 
 #ifdef VREP_SIMULATION
@@ -68,9 +66,9 @@ float PIDMovimentController::calculateError() {
 				(quaternion.normalize());
 			ROS_DEBUG("Calculated deltaX:%f deltaY:%f theta:%f",
 				deltaX, deltaY, theta);
-			this->rho = sqrt(pow(deltaX , 2) + pow(deltaY, 2));
-			this->alpha = -theta + (atan2(deltaY, deltaX) * 180/M_PI);
-			this->beta = -theta - this->alpha;
+			rho = sqrt(pow(deltaX , 2) + pow(deltaY, 2));
+			alpha = -theta + (atan2(deltaY, deltaX) * 180/M_PI);
+			beta = -theta - alpha;
 			ROS_DEBUG("Calculated rho:%f alpha:%f beta:%f", rho, alpha,
 				beta);
 	}

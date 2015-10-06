@@ -11,6 +11,8 @@
 #define VREP_SIMULATION
 
 #include "math.h"
+#include "functional"
+#include "common/utils/MatrixUtils.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/Empty.h"
 #include "geometry_msgs/Twist.h"
@@ -81,6 +83,12 @@ class MovimentationExecutor :public BaseRosNode{
 			double initialXPosition, double initialYPosition);
 		geometry_msgs::Twist createStopMessage();
 		double getActualAngle(int sleepBeforeActualize);
+//		template <typename A, typename B, typename U = std::less<float> >
+//		bool f(A a, B b)
+//		{
+//			U u = U();
+//		    return u(a, b);
+//		}
 
 	public:
 		//Constructors

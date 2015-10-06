@@ -9,7 +9,7 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 		this->targetAchieved = true;
 		this->motorEnabled = false;
 		this->verifyRobotMovimentDelay = verifyRobotMovimentDelay;
-		this->pidController = PIDMovimentController(1,1,1);
+		this->pidController = PIDMovimentController(0.1,0.3,-0.15);
 }
 
 //Methods
@@ -106,13 +106,16 @@ void MovimentationExecutor::moveRobot() {
 		double initialYPosition = actualOdometryPosition.pose.pose.position.y;
 	#endif
 
+	pidController.setTargetPosition(*pointerTargetPosition);
+	pidController.calculateRhoAlphaBeta(actualOdometryPosition);
+
 	#ifdef VREP_SIMULATION
-	while(pidController.calculateError() < 0.5) {
-		pidController.calculateRhoAlphaBeta(actualOdometryPosition);
+	while(MatrixUtils::mod<float>(pidController.calculateError()) > 0.1) {
 		if(hasPublisher(cmdVelTopic)) {
 			publisherMap[cmdVelTopic].publish(pidController.calculateVelocities());
 		}
-		sleepAndSpin(100);
+		pidController.calculateRhoAlphaBeta(actualOdometryPosition);
+		sleepAndSpin(750);
 		ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
 			actualOdometryPosition.pose.position.y);
 	}
