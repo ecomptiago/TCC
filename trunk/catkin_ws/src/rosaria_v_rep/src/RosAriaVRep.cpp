@@ -81,9 +81,18 @@ void RosAriaVRep::setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSe
 		simRosSetJointState.request.values.push_back(leftWheelVelocity);
 }
 
-void RosAriaVRep::stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState) {
+void RosAriaVRep::stop() {
+	ROS_DEBUG("Stopping robot");
+	rosaria_v_rep::simRosSetJointState simRosSetJointState =
+			createJointState();
 	simRosSetJointState.request.values.push_back(0);
 	simRosSetJointState.request.values.push_back(0);
+	serviceClientsMap[setJointStateService].call(simRosSetJointState);
+	if(simRosSetJointState.response.result == -1) {
+		ROS_INFO("Could not set velocity to wheels");
+	} else {
+		ROS_INFO("Wheels velocity set");
+	}
 }
 
 bool RosAriaVRep::subscribeToTopics() {
@@ -182,23 +191,21 @@ void RosAriaVRep::receivedTwist(
 			twist->linear.y, twist->linear.z, twist->angular.x, twist->angular.y, twist->angular.z);
 		float rightWheelVelocity;
 		float leftWheelVelocity;
+		stop();
 		rosaria_v_rep::simRosSetJointState simRosSetJointState =
 			createJointState();
 		if(twist->linear.x != 0 || twist->angular.z) {
 			calculateWheelsVelocity(rightWheelVelocity, leftWheelVelocity, twist);
 			setWheelsVelocity(simRosSetJointState,leftWheelVelocity,
 				rightWheelVelocity);
-		} else {
-			stop(simRosSetJointState);
-		}
-
-		ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
-			simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
-		serviceClientsMap[setJointStateService].call(simRosSetJointState);
-		if(simRosSetJointState.response.result == -1) {
-			ROS_INFO("Could not set velocity to wheels");
-		} else {
-			ROS_INFO("Wheels velocity set");
+			ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
+				simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
+			serviceClientsMap[setJointStateService].call(simRosSetJointState);
+			if(simRosSetJointState.response.result == -1) {
+				ROS_INFO("Could not set velocity to wheels");
+			} else {
+				ROS_INFO("Wheels velocity set");
+			}
 		}
 }
 

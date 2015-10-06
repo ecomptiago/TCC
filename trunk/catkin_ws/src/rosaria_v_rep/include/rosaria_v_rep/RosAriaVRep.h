@@ -56,7 +56,7 @@ class RosAriaVRep : public BaseRosNode {
 		rosaria_v_rep::simRosSetJointState createJointState();
 		void setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSetJointState,
 			float leftWheelVelocity, float rightWheelVelocity);
-		void stop(rosaria_v_rep::simRosSetJointState& simRosSetJointState);
+		void stop();
 		bool createServiceClients();
 		bool createServiceServers();
 		rosaria_v_rep::simRosEnableSubscriber createEnableSubscriber(const char* topicName,
