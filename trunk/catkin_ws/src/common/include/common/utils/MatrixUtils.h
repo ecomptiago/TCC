@@ -66,7 +66,7 @@ class MatrixUtils {
 		}
 
 		template<class T>
-		static float mod(T number) {
+		static T mod(T number) {
 			if(number < 0) {
 				return number * -1;
 			} else {
