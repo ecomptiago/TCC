@@ -22,8 +22,12 @@ class OdometryUtils {
 
 		//Methods
 		template<class T>
-		static double getAngleFromQuaternation(T quaternion) {
-			return tf::getYaw(quaternion) * 180/M_PI;
+		static double getAngleFromQuaternation(T quaternion, bool inRadian) {
+			if(inRadian) {
+				return tf::getYaw(quaternion);
+			} else {
+				return tf::getYaw(quaternion) * 180/M_PI;
+			}
 		}
 
 };

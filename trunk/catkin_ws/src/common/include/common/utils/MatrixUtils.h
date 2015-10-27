@@ -9,6 +9,7 @@
 #define SRC_UTILS_MATRIXUTILS_H_
 
 #include "math.h"
+#include "NumericUtils.h"
 
 class MatrixUtils {
 
@@ -57,9 +58,10 @@ class MatrixUtils {
 						getMatrixElement<T>(lineIndex, lineIndex, linearEquationMatrix,
 						numberOfEquations + 1);
 					if(pivotingElement != 0) {
-						if(lineElement == 0 || mod(pivotingElement) > mod(lineElement)) {
-							swapLine(lineIndex, pivotingIndex, numberOfEquations,
-								linearEquationMatrix, numberOfEquations + 1);
+						if(lineElement == 0 ||
+							NumericUtils::mod(pivotingElement) > NumericUtils::mod(lineElement)) {
+								swapLine(lineIndex, pivotingIndex, numberOfEquations,
+									linearEquationMatrix, numberOfEquations + 1);
 						}
 					}
 				}
@@ -138,15 +140,6 @@ class MatrixUtils {
 				retroativeSubstitution<T>(linearEquationMatrix, response, numberOfEquations);
 				return true;
 		}
-
-		template<class T>
-				static T mod(T number) {
-					if(number < 0) {
-						return number * -1;
-					} else {
-						return number;
-					}
-				}
 
 };
 
