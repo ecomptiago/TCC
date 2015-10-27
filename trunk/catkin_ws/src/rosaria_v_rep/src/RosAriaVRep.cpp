@@ -191,10 +191,9 @@ void RosAriaVRep::receivedTwist(
 			twist->linear.y, twist->linear.z, twist->angular.x, twist->angular.y, twist->angular.z);
 		float rightWheelVelocity;
 		float leftWheelVelocity;
-		stop();
 		rosaria_v_rep::simRosSetJointState simRosSetJointState =
 			createJointState();
-		if(twist->linear.x != 0 || twist->angular.z) {
+		if(twist->linear.x != 0 || twist->angular.z != 0) {
 			calculateWheelsVelocity(rightWheelVelocity, leftWheelVelocity, twist);
 			setWheelsVelocity(simRosSetJointState,leftWheelVelocity,
 				rightWheelVelocity);
@@ -206,6 +205,8 @@ void RosAriaVRep::receivedTwist(
 			} else {
 				ROS_INFO("Wheels velocity set");
 			}
+		} else if(twist->linear.x == 0 && twist->angular.z == 0){
+			stop();
 		}
 }
 
@@ -223,8 +224,8 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 				simRosGetObjectPose.response.pose.pose.orientation.w);
 			double robotAngle =
 				OdometryUtils::getAngleFromQuaternation<tf::Quaternion>
-				(quaternion.normalize());
-			ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle);
+				(quaternion.normalize(), true);
+			ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle * (180 /M_PI));
 /**
 * For calculate the angle we use the transformation:
 *
@@ -255,8 +256,8 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 */
 			ROS_INFO("Calculating wheels velocity");
 			float response [4];
-			float equationMatrixElementCos   = round(((cos(robotAngle * M_PI /180) * diameterOfWheels) / 2));
-			float equationMatrixElementSin   = round(((sin(robotAngle * M_PI /180) * diameterOfWheels) / 2));
+			float equationMatrixElementCos   = round(((cos(robotAngle) * diameterOfWheels) / 2));
+			float equationMatrixElementSin   = round(((sin(robotAngle) * diameterOfWheels) / 2));
 			float equationMatrixElementConst = round(diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels));
 			float linearEquationMatrix [4] [5] = {
 				{equationMatrixElementCos,    equationMatrixElementCos,   -1,  0, 0},
