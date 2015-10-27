@@ -5,8 +5,8 @@
  *      Author: tiago
  */
 
-#ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_PIDCONTROLLER_H_
-#define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_PIDCONTROLLER_H_
+#ifndef INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_PROPORTIONALMOVIMENTCONTROLLER_H_
+#define INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_PROPORTIONALMOVIMENTCONTROLLER_H_
 #define VREP_SIMULATION
 
 #include "math.h"
@@ -21,11 +21,12 @@
 #include "ros/console.h"
 #include "controlador_de_trajetoria/Position.h"
 #include "common/utils/OdometryUtils.h"
+#include "common/utils/NumericUtils.h"
 
-class PIDMovimentController : public MovimentControllerInterface {
+class ProportionalMovimentController : public MovimentControllerInterface {
 
 	private:
-		//Attributes
+		//AttributesDougkla
 		float kRho;
 		float kAlpha;
 		float kBeta;
@@ -39,11 +40,11 @@ class PIDMovimentController : public MovimentControllerInterface {
 
 	public:
 		//Constructor
-		PIDMovimentController();
-		PIDMovimentController(float kRho, float kAlpha, float kBeta);
+		ProportionalMovimentController();
+		ProportionalMovimentController(float kRho, float kAlpha, float kBeta);
 
 		//Destructor
-		virtual ~PIDMovimentController() {};
+		virtual ~ProportionalMovimentController() {};
 
 		//Setters and getters
 		void setTargetPosition(
@@ -61,4 +62,4 @@ class PIDMovimentController : public MovimentControllerInterface {
 
 };
 
-#endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_PIDCONTROLLER_H_ */
+#endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_PROPORTIONALMOVIMENTCONTROLLER_H_ */

@@ -31,7 +31,7 @@
 #include "controlador_de_trajetoria/Movimentation_error.h"
 #include "controlador_de_trajetoria/movimentation/MovimentationErrorEnum.h"
 #include "controller/MovimentControllerInterface.h"
-#include "controller/PIDMovimentController.h"
+#include "controller/ProportionalMovimentController.h"
 #include "tf/transform_datatypes.h"
 
 const char* nodeName = "Movimentation_executor";
@@ -59,7 +59,7 @@ class MovimentationExecutor :public BaseRosNode{
 		//TODO - Use shared_ptr instead of raw pointer
 		controlador_de_trajetoria::Position *pointerTargetPosition;
 
-		PIDMovimentController pidController;
+		ProportionalMovimentController pidController;
 
 		#ifdef VREP_SIMULATION
 			geometry_msgs::PoseStamped actualOdometryPosition;

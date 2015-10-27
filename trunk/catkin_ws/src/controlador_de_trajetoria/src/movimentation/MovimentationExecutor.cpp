@@ -9,7 +9,7 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 		this->targetAchieved = true;
 		this->motorEnabled = false;
 		this->verifyRobotMovimentDelay = verifyRobotMovimentDelay;
-		this->pidController = PIDMovimentController(0.1,0.3,-0.15);
+		this->pidController = ProportionalMovimentController(0.2,-0.3,0.1);
 }
 
 //Methods
@@ -78,7 +78,7 @@ double MovimentationExecutor::getActualAngle(int sleepBeforeActualize) {
 		tf::Quaternion quaternion(
 			0, 0, actualOdometryPosition.pose.orientation.z,
 			actualOdometryPosition.pose.orientation.w);
-		return OdometryUtils::getAngleFromQuaternation(quaternion.normalize());
+		return OdometryUtils::getAngleFromQuaternation(quaternion.normalize(), false);
 	#else
 		return OdometryUtils::getAngleFromQuaternation(
 			actualOdometryPosition.pose.pose.orientation);
@@ -110,14 +110,15 @@ void MovimentationExecutor::moveRobot() {
 	pidController.calculateRhoAlphaBeta(actualOdometryPosition);
 
 	#ifdef VREP_SIMULATION
-	while(MatrixUtils::mod<float>(pidController.calculateError()) > 0.1) {
-		if(hasPublisher(cmdVelTopic)) {
-			publisherMap[cmdVelTopic].publish(pidController.calculateVelocities());
-		}
-		pidController.calculateRhoAlphaBeta(actualOdometryPosition);
-		sleepAndSpin(750);
-		ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
-			actualOdometryPosition.pose.position.y);
+	while(!(pidController.calculateError() > -0.3 &&
+		pidController.calculateError() < 0.3)) {
+			if(hasPublisher(cmdVelTopic)) {
+				publisherMap[cmdVelTopic].publish(pidController.calculateVelocities());
+			}
+			pidController.calculateRhoAlphaBeta(actualOdometryPosition);
+			sleepAndSpin(500);
+			ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
+				actualOdometryPosition.pose.position.y);
 	}
 	#else
 		while(!(actualOdometryPosition.pose.pose.position.x > targetXAdjusted - positionErrorMargin &&

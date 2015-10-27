@@ -1,14 +1,14 @@
 /*
- * PIDController.cpp
+ * ProportionalMovimentController.cpp
  *
  *  Created on: Oct 2, 2015
  *      Author: tiago
  */
 
-#include "../../../include/controlador_de_trajetoria/movimentation/controller/PIDMovimentController.h"
+#include "../../../include/controlador_de_trajetoria/movimentation/controller/ProportionalMovimentController.h"
 
 //Constructor
-PIDMovimentController::PIDMovimentController() {
+ProportionalMovimentController::ProportionalMovimentController() {
 	this->kRho = 0;
 	this->kAlpha = 0;
 	this->kBeta = 0;
@@ -18,7 +18,7 @@ PIDMovimentController::PIDMovimentController() {
 	this->pointerTargetPosition = NULL;
 }
 
-PIDMovimentController::PIDMovimentController(float kRho, float kAlpha, float kBeta) {
+ProportionalMovimentController::ProportionalMovimentController(float kRho, float kAlpha, float kBeta) {
 	this->kRho = kRho;
 	this->kAlpha = kAlpha;
 	this->kBeta = kBeta;
@@ -29,13 +29,13 @@ PIDMovimentController::PIDMovimentController(float kRho, float kAlpha, float kBe
 }
 
 //Setters and getters
-void PIDMovimentController::setTargetPosition(
+void ProportionalMovimentController::setTargetPosition(
 	const controlador_de_trajetoria::Position& targetPosition) {
 		this->targetPosition = targetPosition;
 		this->pointerTargetPosition = &targetPosition;
 }
 
-geometry_msgs::Twist PIDMovimentController::calculateVelocities() {
+geometry_msgs::Twist ProportionalMovimentController::calculateVelocities() {
 	geometry_msgs::Twist twist;
 	twist.linear.x = kRho * rho;
 	twist.angular.z =
@@ -45,14 +45,14 @@ geometry_msgs::Twist PIDMovimentController::calculateVelocities() {
 	return twist;
 }
 
-float PIDMovimentController::calculateError() {
-	float error = rho + alpha + beta;
+float ProportionalMovimentController::calculateError() {
+	float error = rho;
 	ROS_DEBUG("Error: %f",error);
 	return error;
 }
 
 #ifdef VREP_SIMULATION
-	void PIDMovimentController::calculateRhoAlphaBeta(
+	void ProportionalMovimentController::calculateRhoAlphaBeta(
 		geometry_msgs::PoseStamped actualOdometryPosition) {
 			double deltaX =
 				targetPosition.x - actualOdometryPosition.pose.position.x;
@@ -63,17 +63,17 @@ float PIDMovimentController::calculateError() {
 				actualOdometryPosition.pose.orientation.w);
 			double theta =
 				OdometryUtils::getAngleFromQuaternation<tf::Quaternion>
-				(quaternion.normalize());
+				(quaternion.normalize(),true);
 			ROS_DEBUG("Calculated deltaX:%f deltaY:%f theta:%f",
 				deltaX, deltaY, theta);
+			double angleToGoal = atan2(deltaY, deltaX);
 			rho = sqrt(pow(deltaX , 2) + pow(deltaY, 2));
-			alpha = -theta + (atan2(deltaY, deltaX) * 180/M_PI);
+			alpha = -theta + angleToGoal;
 			beta = -theta - alpha;
-			ROS_DEBUG("Calculated rho:%f alpha:%f beta:%f", rho, alpha,
-				beta);
+			ROS_DEBUG("Calculated rho:%f alpha:%f beta:%f", rho, alpha, beta);
 	}
 #else
-	void PIDMovimentController::calculateRhoAlphaBeta(
+	void ProportionalMovimentController::calculateRhoAlphaBeta(
 		nav_msgs::Odometry actualOdometryPosition) {
 			double deltaX =
 				targetPosition.x - actualOdometryPosition.pose.pose.position.x;
@@ -89,8 +89,6 @@ float PIDMovimentController::calculateError() {
 				deltaX, deltaY, theta);
 			this->rho = sqrt(pow(deltaX , 2) + pow(deltaY, 2));
 			this->alpha = -theta + (atan2(deltaY, deltaX) * 180/M_PI);
-			this->beta = -theta - this->alpha;
-			ROS_DEBUG("Calculated rho:%f alpha:%f beta:%f", rho, alpha,
-				beta);
+			ROS_DEBUG("Calculated rho:%f alpha:%f ", rho, alpha);
 	}
 #endif

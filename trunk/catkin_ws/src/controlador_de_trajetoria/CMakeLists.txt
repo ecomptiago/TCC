@@ -145,7 +145,7 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp ../common/src/utils/OdometryUtils.cpp src/movimentation/MovimentationErrorEnum.cpp src/movimentation/controller/PIDMovimentController.cpp src/utils/MovimentationUtils.cpp src/messages/MoveRobotWrapper.cpp)
+set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp ../common/src/utils/OdometryUtils.cpp ../common/src/utils/NumericUtils.cpp src/movimentation/MovimentationErrorEnum.cpp src/movimentation/controller/ProportionalMovimentController.cpp src/utils/MovimentationUtils.cpp src/messages/MoveRobotWrapper.cpp)
 set (MSG_GENERATION controlador_de_trajetoria_generate_messages_cpp)
 
 add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)
