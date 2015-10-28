@@ -50,46 +50,43 @@ class MatrixUtils {
 			T *linearEquationMatrix) {
 				int count;
 				for(count = 1; count < numberOfEquations; count++) {
-					int pivotingIndex = lineIndex + count;
-					T pivotingElement =
-						getMatrixElement<T>(pivotingIndex, lineIndex, linearEquationMatrix,
-						numberOfEquations + 1);
-					T lineElement =
+					int pivotingLineIndex = lineIndex + count;
+					T pivotElement =
 						getMatrixElement<T>(lineIndex, lineIndex, linearEquationMatrix,
 						numberOfEquations + 1);
-					if(pivotingElement != 0) {
-						if(lineElement == 0 ||
-							NumericUtils::mod(pivotingElement) > NumericUtils::mod(lineElement)) {
-								swapLine(lineIndex, pivotingIndex, numberOfEquations,
+					T lineElement =
+						getMatrixElement<T>(pivotingLineIndex, lineIndex, linearEquationMatrix,
+						numberOfEquations + 1);
+					if(lineElement != 0 && (pivotElement == 0 ||
+						NumericUtils::mod(lineElement) > NumericUtils::mod(pivotElement))) {
+							swapLine(lineIndex, pivotingLineIndex, numberOfEquations,
 									linearEquationMatrix, numberOfEquations + 1);
-						}
 					}
 				}
 		}
 
 		template<class T>
-		static void variablesElimination(int lineIndex, int numberOfEquations,
-			T *linearEquationMatrix) {
-				int substitutionLineIndex;
-				for(substitutionLineIndex = lineIndex + 1; substitutionLineIndex < numberOfEquations;
-					substitutionLineIndex++) {
-						float m =
-							getMatrixElement(substitutionLineIndex, lineIndex, linearEquationMatrix,
-							numberOfEquations + 1) / getMatrixElement(lineIndex, lineIndex,
-							linearEquationMatrix, numberOfEquations + 1);
-						multiplyByConstantAndSubtract<T>(substitutionLineIndex, lineIndex, m,
-							linearEquationMatrix, numberOfEquations + 1);
-				}
+		static void variablesElimination(int lineIndex, int numberOfEquations, T *linearEquationMatrix) {
+			int substitutionLineIndex;
+			for(substitutionLineIndex = lineIndex + 1; substitutionLineIndex < numberOfEquations;
+				substitutionLineIndex++) {
+					float pivoValue =
+						getMatrixElement(substitutionLineIndex, lineIndex, linearEquationMatrix,
+						numberOfEquations + 1) / getMatrixElement(lineIndex, lineIndex,
+						linearEquationMatrix, numberOfEquations + 1);
+					multiplyByConstantAndSubtract<T>(substitutionLineIndex, lineIndex, pivoValue,
+						linearEquationMatrix, numberOfEquations + 1);
+			}
 		}
 
 		template<class T>
-		static void multiplyByConstantAndSubtract(int substitutionLineIndex, int lineIndex, float m,
+		static void multiplyByConstantAndSubtract(int substitutionLineIndex, int lineIndex, float pivoValue,
 			T *linearEquationMatrix, int columnNumber) {
 			int count;
 			for(count = 0; count < columnNumber; count++) {
 				T result =
 					getMatrixElement(substitutionLineIndex, count, linearEquationMatrix, columnNumber)
-					 -  m * getMatrixElement(lineIndex, count, linearEquationMatrix, columnNumber);
+					 -  pivoValue * getMatrixElement(lineIndex, count, linearEquationMatrix, columnNumber);
 				setMatrixElement(substitutionLineIndex, count, linearEquationMatrix, columnNumber,
 					result);
 			}
@@ -133,8 +130,7 @@ class MatrixUtils {
 						numberOfEquations + 1) == 0) {
 							return false;
 					} else {
-						variablesElimination<T>(lineIndex, numberOfEquations,
-							linearEquationMatrix);
+						variablesElimination<T>(lineIndex, numberOfEquations, linearEquationMatrix);
 					}
 				}
 				retroativeSubstitution<T>(linearEquationMatrix, response, numberOfEquations);
