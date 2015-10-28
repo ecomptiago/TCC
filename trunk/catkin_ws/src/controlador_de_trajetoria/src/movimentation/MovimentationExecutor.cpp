@@ -9,7 +9,7 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 		this->targetAchieved = true;
 		this->motorEnabled = false;
 		this->verifyRobotMovimentDelay = verifyRobotMovimentDelay;
-		this->pidController = ProportionalMovimentController(0.2,-0.3,0.1);
+		this->proportionalController = ProportionalMovimentController(0.2,-0.3,0.1);
 }
 
 //Methods
@@ -106,19 +106,19 @@ void MovimentationExecutor::moveRobot() {
 		double initialYPosition = actualOdometryPosition.pose.pose.position.y;
 	#endif
 
-	pidController.setTargetPosition(*pointerTargetPosition);
-	pidController.calculateRhoAlphaBeta(actualOdometryPosition);
+	proportionalController.setTargetPosition(*pointerTargetPosition);
+	proportionalController.calculateRhoAlphaBeta(actualOdometryPosition);
 
 	#ifdef VREP_SIMULATION
-	while(!(pidController.calculateError() > -0.3 &&
-		pidController.calculateError() < 0.3)) {
-			if(hasPublisher(cmdVelTopic)) {
-				publisherMap[cmdVelTopic].publish(pidController.calculateVelocities());
-			}
-			pidController.calculateRhoAlphaBeta(actualOdometryPosition);
-			sleepAndSpin(500);
-			ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
-				actualOdometryPosition.pose.position.y);
+	while(!(proportionalController.calculateError() > -0.3 &&
+			proportionalController.calculateError() < 0.3)) {
+				if(hasPublisher(cmdVelTopic)) {
+					publisherMap[cmdVelTopic].publish(proportionalController.calculateVelocities());
+				}
+				proportionalController.calculateRhoAlphaBeta(actualOdometryPosition);
+				sleepAndSpin(500);
+				ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
+					actualOdometryPosition.pose.position.y);
 	}
 	#else
 		while(!(actualOdometryPosition.pose.pose.position.x > targetXAdjusted - positionErrorMargin &&

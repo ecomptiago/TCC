@@ -59,7 +59,7 @@ class MovimentationExecutor :public BaseRosNode{
 		//TODO - Use shared_ptr instead of raw pointer
 		controlador_de_trajetoria::Position *pointerTargetPosition;
 
-		ProportionalMovimentController pidController;
+		ProportionalMovimentController proportionalController;
 
 		#ifdef VREP_SIMULATION
 			geometry_msgs::PoseStamped actualOdometryPosition;
@@ -83,12 +83,6 @@ class MovimentationExecutor :public BaseRosNode{
 			double initialXPosition, double initialYPosition);
 		geometry_msgs::Twist createStopMessage();
 		double getActualAngle(int sleepBeforeActualize);
-//		template <typename A, typename B, typename U = std::less<float> >
-//		bool f(A a, B b)
-//		{
-//			U u = U();
-//		    return u(a, b);
-//		}
 
 	public:
 		//Constructors
