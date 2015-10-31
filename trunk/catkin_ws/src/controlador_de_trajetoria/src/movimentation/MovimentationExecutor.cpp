@@ -9,7 +9,7 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 		this->targetAchieved = true;
 		this->motorEnabled = false;
 		this->verifyRobotMovimentDelay = verifyRobotMovimentDelay;
-		this->proportionalController = ProportionalMovimentController(0.2,-0.3,0.1);
+		this->proportionalController = ProportionalMovimentController(0.2,0.6,-0.05);
 }
 
 //Methods
@@ -110,13 +110,13 @@ void MovimentationExecutor::moveRobot() {
 	proportionalController.calculateRhoAlphaBeta(actualOdometryPosition);
 
 	#ifdef VREP_SIMULATION
-	while(!(proportionalController.calculateError() > -0.3 &&
-			proportionalController.calculateError() < 0.3)) {
+	while(!(proportionalController.calculateError() > -0.2 &&
+			proportionalController.calculateError() < 0.2)) {
 				if(hasPublisher(cmdVelTopic)) {
 					publisherMap[cmdVelTopic].publish(proportionalController.calculateVelocities());
 				}
 				proportionalController.calculateRhoAlphaBeta(actualOdometryPosition);
-				sleepAndSpin(500);
+				sleepAndSpin(750);
 				ROS_DEBUG("Actual position x:%f y:%f",actualOdometryPosition.pose.position.x,
 					actualOdometryPosition.pose.position.y);
 	}

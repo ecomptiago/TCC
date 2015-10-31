@@ -18,14 +18,25 @@ ProportionalMovimentController::ProportionalMovimentController() {
 	this->pointerTargetPosition = NULL;
 }
 
-ProportionalMovimentController::ProportionalMovimentController(float kRho, float kAlpha, float kBeta) {
-	this->kRho = kRho;
-	this->kAlpha = kAlpha;
-	this->kBeta = kBeta;
-	this->rho = 0;
-	this->alpha = 0;
-	this->beta = 0;
-	this->pointerTargetPosition = NULL;
+ProportionalMovimentController::ProportionalMovimentController(float kRho, float kAlpha,
+	float kBeta) {
+		float kAlphaMinValue = ((5/3) *kBeta) - ((2/M_PI) * kRho);
+		if(kRho < 0 || kBeta > 0 || kAlpha < kAlphaMinValue) {
+			this->kRho = 0;
+			this->kAlpha = 0;
+			this->kBeta = 0;
+			ROS_ERROR("kRho needs to be > 0, kBeta needs to be < 0, "
+				"kAlpha need to be > %f", kAlphaMinValue);
+		} else {
+			this->kRho = kRho;
+			this->kAlpha = kAlpha;
+			this->kBeta = kBeta;
+		}
+		this->rho = 0;
+		this->alpha = 0;
+		this->beta = 0;
+		this->pointerTargetPosition = NULL;
+
 }
 
 //Setters and getters
@@ -37,9 +48,26 @@ void ProportionalMovimentController::setTargetPosition(
 
 geometry_msgs::Twist ProportionalMovimentController::calculateVelocities() {
 	geometry_msgs::Twist twist;
-	twist.linear.x = kRho * rho;
-	twist.angular.z =
-		(kAlpha * alpha) + (kBeta * beta);
+	if(NumericUtils::isFirstGreater<float>(alpha, -M_PI / 2) &&
+		NumericUtils::isFirstLessEqual<float>(alpha, M_PI / 2)) {
+			twist.linear.x = kRho * rho;
+			twist.angular.z =
+				(kAlpha * alpha) + (kBeta * beta);
+	} else if((NumericUtils::isFirstGreater<float>(alpha,-M_PI) &&
+		NumericUtils::isFirstLessEqual<float>(alpha, -M_PI/2)) ||
+		(NumericUtils::isFirstGreater<float>(alpha,M_PI/2) &&
+		NumericUtils::isFirstLessEqual<float>(alpha, M_PI))){
+			twist.linear.x = -kRho * rho;
+			twist.angular.z =
+				-(kAlpha * alpha) - (kBeta * beta);
+	} else {
+		twist.linear.x = 0;
+		if(alpha > 0) {
+			twist.angular.z = -0.2;
+		} else {
+			twist.angular.z = 0.2;
+		}
+	}
 	ROS_DEBUG("Setting velocities linear:%f angular:%f", twist.linear.x,
 		twist.angular.z);
 	return twist;
