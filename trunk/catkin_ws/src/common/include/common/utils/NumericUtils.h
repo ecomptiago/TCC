@@ -22,12 +22,29 @@ class NumericUtils {
 		//Methods
 		template<class T>
 		static bool isFirstGreater(T a, T b) {
-			std::greater<T>().operator()(a,b);
+			return std::greater<T>().operator()(a,b);
+		}
+
+		template<class T>
+		static bool isFirstSecondGreater(T a, T b, T c) {
+			return std::greater<T>().operator()(a,c) &&
+				std::greater<T>().operator()(b,c);
 		}
 
 		template<class T>
 		static bool isFirstLess(T a, T b) {
-			std::less<T>().operator()(a,b);
+			return std::less<T>().operator()(a,b);
+		}
+
+		template<class T>
+		static bool isFirstLessEqual(T a, T b) {
+			return std::less_equal<T>().operator()(a,b);
+		}
+
+		template<class T>
+		static bool isFirstSecondLessEqual(T a, T b, T c) {
+			return std::less_equal<T>().operator()(a,c) &&
+				std::less_equal<T>().operator()(b,c);
 		}
 
 		template<class T>
