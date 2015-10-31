@@ -187,8 +187,8 @@ rosaria_v_rep::simRosSetJointState RosAriaVRep::createJointState() {
 //Callback
 void RosAriaVRep::receivedTwist(
 	const geometry_msgs::Twist::ConstPtr& twist) {
-		ROS_DEBUG("Received twist. Linear x:%f y:%f z:%f . Angular x:%f y:%f z:%f", twist->linear.x,
-			twist->linear.y, twist->linear.z, twist->angular.x, twist->angular.y, twist->angular.z);
+		ROS_DEBUG("Received twist. Linear x:%f . Angular z:%f", twist->linear.x
+			, twist->angular.z);
 		float rightWheelVelocity;
 		float leftWheelVelocity;
 		rosaria_v_rep::simRosSetJointState simRosSetJointState =
@@ -219,71 +219,24 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 		simRosGetObjectPose.request.relativeToObjectHandle = -1;
 		serviceClientsMap[simRosGetObjectPoseService].call(simRosGetObjectPose);
 		if(simRosGetObjectPose.response.result != -1) {
-			tf::Quaternion quaternion(
-				0, 0, simRosGetObjectPose.response.pose.pose.orientation.z,
-				simRosGetObjectPose.response.pose.pose.orientation.w);
-			double robotAngle =
-				OdometryUtils::getAngleFromQuaternation<tf::Quaternion>
-				(quaternion.normalize(), true);
-			ROS_DEBUG("Robot actual angle is %f degrees ", robotAngle * (180 /M_PI));
-/**
-* For calculate the angle we use the transformation:
-*
-* [dx/dt] =  [cos(theta)  sin(theta) 0] * [(r*rightWheelVelocity/2)+(r*leftWheelVelocity/2)]
-*  dy/dt      -sin(theta) cos(theta) 0                             0
-*  dTheta/dt  0           0          1     (r*rightWheelVelocity/2*l)+(r*leftWheelVelocity/2*l)
-*
-* where dx/dt     = velocity in direction of global axis x
-*       dy/dt     = velocity in direction of global axis y
-*       dTheta/dt = velocity of rotation related (angular velocity)
-*       theta     = angle between x global axis and robot x axis
-*       r         = wheel diameter
-*       l         = distance between the center of the robot and wheels
-*
-* This transformation is in chapter 3 from book Introduction to Autonomous Mobile Robots
-* of Siegwart Nourbakhsh.
-*
-* Using this transformation and the additional equations
-*
-* dr/dt = dx/dt + dy/dt
-*
-* where dr/dt = linear velocity, we have the linear system:
-*
-* (((cos(theta) * r) / 2) * rightWheelVelocity) + (((cos(theta) * r) / 2) * leftWheelVelocity) - (dx/dt)           = 0
-* (((sin(theta) * r) / 2) * rightWheelVelocity) + (((sin(theta) * r) / 2) * leftWheelVelocity)           - (dy/dt) = 0
-* (( r * (2 * l)) * rightWheelVelocity)         - (( r * (2 * l)) * leftWheelVelocity)                             = dTheta/dt
-* 																							   + (dx/dt) + (dy/dt) = dr/dt
-*/
-			ROS_INFO("Calculating wheels velocity");
-			float response [4];
-			float equationMatrixElementCos   = round(((cos(robotAngle) * diameterOfWheels) / 2));
-			float equationMatrixElementSin   = round(((sin(robotAngle) * diameterOfWheels) / 2));
-			float equationMatrixElementConst = round(diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels));
-			float linearEquationMatrix [4] [5] = {
-				{equationMatrixElementCos,    equationMatrixElementCos,   -1,  0, 0},
-				{equationMatrixElementSin,    equationMatrixElementSin,    0, -1, 0},
-				{equationMatrixElementConst, -equationMatrixElementConst,  0,  0, twist->angular.z},
-				{0                         ,  0                         ,  1,  1, twist->linear.x}
+			float response[2];
+			float radiusOfWheel = diameterOfWheels / 2;
+			float radiusOfWheelDividedByLenght =
+				diameterOfWheels / ( 2 * distanceBetweenCenterOfRobotAndWheels);
+			float linearEquationMatrix [2] [3] = {
+				{radiusOfWheel, radiusOfWheel, twist->linear.x},
+				{radiusOfWheelDividedByLenght, -radiusOfWheelDividedByLenght, twist->angular.z}
 			};
 			ROS_DEBUG("Matrix of equations is: \n"
-				 "%f %f -1 0 0 \n"
-				 "%f %f 0 -1 0 \n"
-				 "%f %f 0 0 %f \n"
-				 "0 0 1 1 %f \n",
-				 equationMatrixElementCos, equationMatrixElementCos,
-				 equationMatrixElementSin, equationMatrixElementSin,
-				 equationMatrixElementConst, -equationMatrixElementConst,twist->angular.z,
-				 twist->linear.x);
+				"%f %f %f \n "
+				"%f %f %f",
+				radiusOfWheel, radiusOfWheel,twist->linear.x,
+				radiusOfWheelDividedByLenght, -radiusOfWheelDividedByLenght,
+				twist->angular.z);
 			if(MatrixUtils::applyGaussElimeliminationWithPartialPivotingAlgorithm<float>(linearEquationMatrix[0],
-				4, response)) {
-					ROS_DEBUG("Values for solution are rightWheelVelocity: %f leftWheelVelocity:%f "
-						"dx/dt:%f dy/dt:%f", response[0], response[1], response[2], response[3]);
-					rightWheelVelocity = response[0] * -1; /*Here we need to multiply by -1 because the
-					*wheels does not have the same rotation reference ( left wheel with a positive velocity
-					*rotates to left and right wheel with a positive velocity rotates to left)*/
-					leftWheelVelocity = response[1];
-			} else {
-				ROS_WARN("Could not resolve linear system");
+				2, response)) {
+				rightWheelVelocity = response[1] * -1;
+				leftWheelVelocity = response[0];
 			}
 		} else {
 			ROS_WARN("Could not get pose from object %s", pionnerLxObjectHandleName);
