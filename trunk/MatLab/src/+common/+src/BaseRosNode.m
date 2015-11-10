@@ -8,6 +8,7 @@ classdef BaseRosNode < robotics.ros.Node & common.src.RosNodeInterface
     end
     
     methods
+        %Constructor
         function baseRosNodeInstance = BaseRosNode(name)
             baseRosNodeInstance = ...
                 baseRosNodeInstance@robotics.ros.Node(name);
