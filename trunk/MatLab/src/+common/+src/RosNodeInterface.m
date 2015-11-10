@@ -1,13 +1,13 @@
 classdef RosNodeInterface < handle
+    
     properties
     end
     
-    methods(Abstract,Static)
-        runNode
-        subscribeToTopics
-        createPublishers
-        createServices
+    methods(Abstract)
+        subscribeToTopics(instance)
+        createPublishers(instance)
+        runNode(instance)
+        createServices(instance)
     end
-    
 end
 
