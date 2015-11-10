@@ -1,3 +1,6 @@
+%*********************************************************
+%   Usar average e resharp para calcular as medias!!!!!!!!!!
+%*********************************************************    
 classdef AvoidObstaclesController <  common.src.BaseRosNode 
     
     properties
@@ -9,9 +12,9 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         function avoidObstaclesInstance = AvoidObstaclesController 
             avoidObstaclesInstance = avoidObstaclesInstance@...
                 common.src.BaseRosNode...
-            (avoid_obstacles.src.constants.AvoidObstaclesConstants.nodeName);
+            (avoid_obstacles.src.constants.AvoidObstaclesConstants.nodeName...
+            );
         end
-        
         
         function subscribeToTopics(instance)
            addSubscribedTopic(instance, ...
@@ -27,12 +30,6 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
             addPublisherClient(instance, ...
                 avoid_obstacles.src.constants.AvoidObstaclesConstants.helloWorldTopic,...
                 avoid_obstacles.src.constants.AvoidObstaclesConstants.helloWorldTopicMsgType);
-            
-        end
-        
-        %Callback functions
-        function laserTopicCallbackFunction(instance,~,msg)
-            instance.laserValues = msg.Ranges;
         end
         
         function runNode(instance)
@@ -46,5 +43,11 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 disp(instance.laserValues);
             end
         end
+        
+        %Callback functions
+        function laserTopicCallbackFunction(instance,~,msg)
+            instance.laserValues = msg.Ranges;
+        end
+        
     end
 end

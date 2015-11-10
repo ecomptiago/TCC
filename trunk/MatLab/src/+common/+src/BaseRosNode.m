@@ -31,6 +31,20 @@ classdef BaseRosNode < robotics.ros.Node & common.src.RosNodeInterface
             instance.publisherMap(topicName) = publisher;
         end
         
+        function addServiceClient(instance,serviceName)
+            serviceClient = robotics.ros.ServiceClient...
+                (instance,serviceName);
+            instance.servicesClientMap(servicename) =  serviceClient;
+        end
+        
+        function addServiceServer(instance,serviceName,serviceType...
+                ,callBackFunction)
+                    serviceServer = robotics.ros.ServiceServer...
+                        (instance,serviceName,serviceType,callBackFunction);
+                    instance.servicesServersMap(serviceName) = ...
+                        serviceServer;
+        end
+        
         function subscribeToTopics(~)
             throw(common.src.excpetions.MethodNotImplementedException...
                 ('subscribeToTopics','BaseRosNode'));
