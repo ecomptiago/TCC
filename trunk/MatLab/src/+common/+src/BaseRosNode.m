@@ -1,4 +1,4 @@
-classdef BaseRosNode < RosNodeInterface & robotics.ros.Node
+classdef BaseRosNode < robotics.ros.Node & common.src.RosNodeInterface
     
     properties(SetAccess = protected)
         subscriberMap
@@ -31,19 +31,19 @@ classdef BaseRosNode < RosNodeInterface & robotics.ros.Node
     
     methods(Static)
         function runNode
-            throw(MethodNotImplementedException('runNode','BaseRosNode'));
+            throw(common.src.excpetions.MethodNotImplementedException('runNode','BaseRosNode'));
         end
         
         function subscribeToTopics
-            throw(MethodNotImplementedException('subscribeToTopics','BaseRosNode'));
+            throw(common.src.excpetions.MethodNotImplementedException('subscribeToTopics','BaseRosNode'));
         end
         
         function createPublishers
-            throw(MethodNotImplementedException('createPublishers','BaseRosNode'));
+            throw(common.src.excpetions.MethodNotImplementedException('createPublishers','BaseRosNode'));
         end
         
         function createServices
-            throw(MethodNotImplementedException('createServices','BaseRosNode'));
+            throw(common.src.excpetions.MethodNotImplementedException('createServices','BaseRosNode'));
         end
     end
     
