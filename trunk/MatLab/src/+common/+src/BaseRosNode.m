@@ -10,39 +10,34 @@ classdef BaseRosNode < robotics.ros.Node & common.src.RosNodeInterface
     methods
         %Constructor
         function baseRosNodeInstance = BaseRosNode(name)
-            baseRosNodeInstance = ...
-                baseRosNodeInstance@robotics.ros.Node(name);
+            baseRosNodeInstance = baseRosNodeInstance@robotics.ros.Node(name);
             baseRosNodeInstance.subscriberMap = containers.Map;
             baseRosNodeInstance.publisherMap = containers.Map;
             baseRosNodeInstance.servicesClientMap = containers.Map;
             baseRosNodeInstance.servicesServersMap = containers.Map;
         end
     
-        function addSubscribedTopic(instance,topicName,topicMsg,...
-                callBackFunction)
-                    subscriber = robotics.ros.Subscriber(instance,...
-                        topicName,topicMsg,callBackFunction);
-                    instance.subscriberMap(topicName) = subscriber;
+        function addSubscribedTopic(instance,topicName,topicMsg,callBackFunction)
+                subscriber = robotics.ros.Subscriber(instance,...
+                    topicName,topicMsg,callBackFunction);
+                instance.subscriberMap(topicName) = subscriber;
         end
         
         function addPublisherClient(instance,topicName,topicMsg)
-            publisher = robotics.ros.Publisher(instance,topicName,...
-                topicMsg);
+            publisher = robotics.ros.Publisher(instance,topicName,topicMsg);
             instance.publisherMap(topicName) = publisher;
         end
         
         function addServiceClient(instance,serviceName)
-            serviceClient = robotics.ros.ServiceClient...
-                (instance,serviceName);
-            instance.servicesClientMap(servicename) =  serviceClient;
+            serviceClient = robotics.ros.ServiceClient(instance,serviceName);
+            instance.servicesClientMap(serviceName) =  serviceClient;
         end
         
         function addServiceServer(instance,serviceName,serviceType...
-                ,callBackFunction)
-                    serviceServer = robotics.ros.ServiceServer...
-                        (instance,serviceName,serviceType,callBackFunction);
-                    instance.servicesServersMap(serviceName) = ...
-                        serviceServer;
+            ,callBackFunction)
+                serviceServer = robotics.ros.ServiceServer...
+                    (instance,serviceName,serviceType,callBackFunction);
+                instance.servicesServersMap(serviceName) = serviceServer;
         end
         
         function subscribeToTopics(~)
