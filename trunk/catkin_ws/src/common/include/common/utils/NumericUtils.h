@@ -26,6 +26,11 @@ class NumericUtils {
 		}
 
 		template<class T>
+		static bool isFirstGreaterEqual(T a, T b) {
+			return std::greater_equal<T>().operator()(a,b);
+		}
+
+		template<class T>
 		static bool isFirstSecondGreater(T a, T b, T c) {
 			return std::greater<T>().operator()(a,c) &&
 				std::greater<T>().operator()(b,c);
