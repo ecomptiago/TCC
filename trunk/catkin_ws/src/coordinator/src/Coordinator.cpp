@@ -10,6 +10,8 @@
 //Constructor
 Coordinator::Coordinator(int argc, char **argv) :
 	BaseRosNode(argc, argv, nodeName){
+		this->minLaserValue = 0;
+		this->maxLaserValue = 0;
 }
 
 //Methods
@@ -17,6 +19,11 @@ int Coordinator::runNode() {
 	ROS_INFO("Running node");
 	ros::spin();
 	BaseRosNode::shutdownAndExit(nodeName);
+}
+
+bool Coordinator::isInLaserRange(const float& laserValue) {
+	return !(NumericUtils::isFirstLessEqual<float>(laserValue,maxLaserValue) &&
+		NumericUtils::isFirstGreaterEqual<float>(laserValue,minLaserValue));
 }
 
 bool Coordinator::subscribeToTopics() {
@@ -28,8 +35,10 @@ bool Coordinator::subscribeToTopics() {
 //Callback
 void Coordinator::receivedLaserValues(
 	const sensor_msgs::LaserScan::ConstPtr& laserReading) {
-	ROS_INFO("%f",
-		std::max_element(laserReading->ranges.begin(), laserReading->ranges.end()));
+	maxLaserValue = laserReading->range_max;
+	minLaserValue = laserReading->range_min;
+	std::copy(laserReading->ranges.begin(),laserReading->ranges.end(),
+		laserValues.begin());
 }
 
 //Main

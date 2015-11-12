@@ -10,6 +10,7 @@
 
 #include "algorithm"
 #include "common/BaseRosNode.h"
+#include "common/utils/NumericUtils.h"
 #include "sensor_msgs/LaserScan.h"
 
 const char* nodeName = "Coordinator";
@@ -20,6 +21,12 @@ class Coordinator : public BaseRosNode{
 	private:
 		//Atttributes
 		ros::NodeHandle nodeHandler;
+		float minLaserValue;
+		float maxLaserValue;
+		std::vector<float> laserValues;
+
+		//Methods
+		bool isInLaserRange(const float& laserValue);
 
 	public:
 		//Constructor
