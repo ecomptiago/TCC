@@ -3,7 +3,7 @@ classdef AvoidObstaclesConstants
         nodeName = 'Avoid_obstacles_controller';
        
         %Topics
-        laserTopic =  'vrep/laser';
+        laserTopic =  'RosAria/laser';
         laserTopicMsgType = 'sensor_msgs/LaserScan';
         cmdVelTopic = 'RosAria/cmd_vel';
         cmdVelTopicMsgType = 'geometry_msgs/Twist';

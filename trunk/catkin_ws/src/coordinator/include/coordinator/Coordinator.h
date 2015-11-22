@@ -9,24 +9,22 @@
 #define SRC_COORDINATOR_H_
 
 #include "algorithm"
+#include "iostream"
 #include "common/BaseRosNode.h"
 #include "common/utils/NumericUtils.h"
 #include "sensor_msgs/LaserScan.h"
 
 const char* nodeName = "Coordinator";
-const char* laserTopic = "/vrep/laser";
+const char* laserTopic = "/RosAria/laser";
 
 class Coordinator : public BaseRosNode{
 
 	private:
 		//Atttributes
 		ros::NodeHandle nodeHandler;
-		float minLaserValue;
-		float maxLaserValue;
 		std::vector<float> laserValues;
 
 		//Methods
-		bool isInLaserRange(const float& laserValue);
 
 	public:
 		//Constructor

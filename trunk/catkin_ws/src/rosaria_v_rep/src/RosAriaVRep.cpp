@@ -36,7 +36,7 @@ int RosAriaVRep::runNode() {
 
 			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher2 =
 				createEnablePublisher(laserTopic, simros_strmcmd_get_laser_scanner_data,
-				signalObjectMap[laserBodyObjectHandleName], -1, "pointsPackedX");
+				signalObjectMap[laserBodyObjectHandleName], -1, laserVRepSignal);
 
 			serviceClientsMap[enablePublisherService].call(simRosEnablePublisher2);
 			if(simRosEnablePublisher2.response.effectiveTopicName.length() == 0) {

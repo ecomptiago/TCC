@@ -10,20 +10,24 @@
 //Constructor
 Coordinator::Coordinator(int argc, char **argv) :
 	BaseRosNode(argc, argv, nodeName){
-		this->minLaserValue = 0;
-		this->maxLaserValue = 0;
 }
 
 //Methods
 int Coordinator::runNode() {
 	ROS_INFO("Running node");
-	ros::spin();
+	ros::Rate rate(1);
+	while(ros::ok()) {
+		if(laserValues.capacity() != 0) {
+			float smallestLaserReading = *std::min_element(laserValues.begin(),
+				laserValues.end());
+			std::cout << "The smallest element is " << smallestLaserReading << '\n';
+			if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 3.5)) {
+				std::cout<<"Trigger fuzzy \n";
+			}
+		}
+		sleepAndSpin(rate);
+	}
 	BaseRosNode::shutdownAndExit(nodeName);
-}
-
-bool Coordinator::isInLaserRange(const float& laserValue) {
-	return !(NumericUtils::isFirstLessEqual<float>(laserValue,maxLaserValue) &&
-		NumericUtils::isFirstGreaterEqual<float>(laserValue,minLaserValue));
 }
 
 bool Coordinator::subscribeToTopics() {
@@ -35,8 +39,10 @@ bool Coordinator::subscribeToTopics() {
 //Callback
 void Coordinator::receivedLaserValues(
 	const sensor_msgs::LaserScan::ConstPtr& laserReading) {
-	maxLaserValue = laserReading->range_max;
-	minLaserValue = laserReading->range_min;
+	if(laserValues.capacity() == 0 ||
+		laserReading->ranges.capacity()	!= laserValues.capacity()) {
+		laserValues.resize(laserReading->ranges.capacity());
+	}
 	std::copy(laserReading->ranges.begin(),laserReading->ranges.end(),
 		laserValues.begin());
 }

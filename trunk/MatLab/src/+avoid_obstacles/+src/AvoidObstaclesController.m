@@ -1,11 +1,9 @@
-%*********************************************************
-%   Usar average e resharp para calcular as medias!!!!!!!!!!
-%*********************************************************    
 classdef AvoidObstaclesController <  common.src.BaseRosNode 
     
     properties
         laserValues
         constants
+        fuzzySystem
     end
     
     methods
@@ -16,6 +14,8 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 (avoid_obstacles.src.constants.AvoidObstaclesConstants.nodeName);
             avoidObstaclesInstance.constants = ...
                 avoid_obstacles.src.constants.AvoidObstaclesConstants;
+            avoidObstaclesInstance.fuzzySystem = ...
+                readfis('../fuzzy_desvio_objeto.fis');
         end
         
         function subscribeToTopics(instance)
@@ -29,8 +29,15 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 instance.constants.cmdVelTopicMsgType);
         end
         
-        function runNode(~)
+        function runNode(instance)
             while(1)
+                matrix30x6 = reshape(instance.laserValues,[],6);
+                meanValues =mean(matrix30x6,'double');
+                disp(meanValues);
+                meanValues(meanValues > 3.5) = 3.5;
+                disp(meanValues);
+                turnRate = evalfis(meanValues,instance.fuzzySystem);
+                disp(turnRate);
                 pause(1);
             end
         end

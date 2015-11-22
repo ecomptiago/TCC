@@ -50,7 +50,7 @@ classdef BaseRosNode < robotics.ros.Node & common.src.RosNodeInterface
             ('createPublishers','BaseRosNode'));
         end
         
-        function runNode(~)
+        function runNode(instance)
             throw(common.src.excpetions.MethodNotImplementedException...
                 ('runNode','BaseRosNode'));
         end

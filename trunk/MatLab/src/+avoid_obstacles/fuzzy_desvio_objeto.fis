@@ -1,0 +1,107 @@
+[System]
+Name='fuzzy_desvio_objeto'
+Type='mamdani'
+Version=2.0
+NumInputs=6
+NumOutputs=1
+NumRules=27
+AndMethod='min'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+
+[Input1]
+Name='setor-1'
+Range=[0 3.5]
+NumMFs=3
+MF1='muito-perto':'trimf',[-0.05 0 0.4]
+MF2='perto':'trimf',[0 0.4 1]
+MF3='longe':'trimf',[0.390740740740741 3.49074074074074 4.99074074074074]
+
+[Input2]
+Name='setor-2'
+Range=[0 3.5]
+NumMFs=3
+MF1='muito-perto':'trimf',[-0.05 0 0.4]
+MF2='perto':'trimf',[0 0.4 1]
+MF3='longe':'trimf',[0.391 3.49 4.99]
+
+[Input3]
+Name='setor-3'
+Range=[0 3.5]
+NumMFs=3
+MF1='muito-perto':'trimf',[-0.05 0 0.4]
+MF2='perto':'trimf',[0 0.4 1]
+MF3='longe':'trimf',[0.391 3.49 4.99]
+
+[Input4]
+Name='setor-4'
+Range=[0 3.5]
+NumMFs=3
+MF1='muito-perto':'trimf',[-0.05 0 0.4]
+MF2='perto':'trimf',[0 0.4 1]
+MF3='longe':'trimf',[0.381740740740741 3.48074074074074 4.98074074074074]
+
+[Input5]
+Name='setor-5'
+Range=[0 3.5]
+NumMFs=3
+MF1='muito-perto':'trimf',[-0.05 0 0.4]
+MF2='perto':'trimf',[0 0.4 1]
+MF3='longe':'trimf',[0.391 3.49 4.99]
+
+[Input6]
+Name='setor-6'
+Range=[0 3.5]
+NumMFs=3
+MF1='muito-perto':'trimf',[-0.05 0 0.4]
+MF2='perto':'trimf',[0 0.4 1]
+MF3='longe':'trimf',[0.391 3.49 4.99]
+
+[Output1]
+Name='angulo-curva'
+Range=[-60 60]
+NumMFs=13
+MF1='-60':'trimf',[-108 -60 -50]
+MF2='-50':'trimf',[-60 -50 -40]
+MF3='-40':'trimf',[-50 -40 -30]
+MF4='-30':'trimf',[-40 -30 -20]
+MF5='-20':'trimf',[-30 -20 -10]
+MF6='-10':'trimf',[-20 -10 0]
+MF7='0':'trimf',[-10 0 10]
+MF8='10':'trimf',[0 10 20]
+MF9='20':'trimf',[10 20 30]
+MF10='30':'trimf',[20 30 40]
+MF11='40':'trimf',[30 40 50]
+MF12='50':'trimf',[40 50 60]
+MF13='60':'trimf',[50 60 70]
+
+[Rules]
+1 0 0 0 0 1, 7 (1) : 1
+1 0 0 0 0 2, 8 (1) : 1
+1 0 0 0 0 3, 9 (1) : 1
+2 0 0 0 0 1, 6 (1) : 1
+2 0 0 0 0 2, 7 (1) : 1
+2 0 0 0 0 3, 8 (1) : 1
+3 0 0 0 0 1, 5 (1) : 1
+3 0 0 0 0 2, 6 (1) : 1
+3 0 0 0 0 3, 7 (1) : 1
+0 1 0 0 1 0, 7 (1) : 1
+0 1 0 0 2 0, 9 (1) : 1
+0 1 0 0 3 0, 11 (1) : 1
+0 2 0 0 1 0, 5 (1) : 1
+0 2 0 0 2 0, 7 (1) : 1
+0 2 0 0 3 0, 9 (1) : 1
+0 3 0 0 1 0, 3 (1) : 1
+0 3 0 0 2 0, 5 (1) : 1
+0 3 0 0 3 0, 7 (1) : 1
+0 0 1 1 0 0, 7 (1) : 1
+0 0 1 2 0 0, 10 (1) : 1
+0 0 1 3 0 0, 13 (1) : 1
+0 0 2 1 0 0, 4 (1) : 1
+0 0 2 2 0 0, 7 (1) : 1
+0 0 2 3 0 0, 10 (1) : 1
+0 0 3 1 0 0, 1 (1) : 1
+0 0 3 2 0 0, 4 (1) : 1
+0 0 3 3 0 0, 7 (1) : 1
