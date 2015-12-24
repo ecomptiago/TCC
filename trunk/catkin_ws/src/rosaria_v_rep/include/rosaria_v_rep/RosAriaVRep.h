@@ -10,8 +10,12 @@
 
 #include "math.h"
 #include "common/BaseRosNode.h"
+#include "common/v_repConst.h"
 #include "common/utils/OdometryUtils.h"
 #include "common/utils/MatrixUtils.h"
+#include "common/utils/VRepUtils.h"
+#include "common/simRosGetObjectHandle.h"
+#include "common/simRosGetObjectPose.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Quaternion.h"
 #include "std_msgs/Bool.h"
@@ -19,17 +23,12 @@
 #include "rosaria_v_rep/ProximitySensorData.h"
 #include "rosaria_v_rep/simRosEnablePublisher.h"
 #include "rosaria_v_rep/simRosEnableSubscriber.h"
-#include "rosaria_v_rep/simRosGetObjectHandle.h"
 #include "rosaria_v_rep/simRosSetJointState.h"
-#include "rosaria_v_rep/simRosGetObjectPose.h"
-#include "rosaria_v_rep/v_repConst.h"
 
 const char* nodeName = "Rosaria_v_rep";
 const char* enablePublisherService = "/vrep/simRosEnablePublisher";
 const char* enableSubscriberService = "/vrep/simRosEnableSubscriber";
-const char* getObjectHandleService = "/vrep/simRosGetObjectHandle";
 const char* setJointStateService = "/vrep/simRosSetJointState";
-const char* simRosGetObjectPoseService = "/vrep/simRosGetObjectPose";
 const char* cmdVelTopic = "/RosAria/cmd_vel";
 const char* poseTopic = "/RosAria/pose";
 const char* motorStateTopic = "/RosAria/motors_state";
@@ -40,7 +39,7 @@ const char* laserVRepSignal = "laserReadings";
 const char* motorDireitoObjectHandleName = "Motor_Direito";
 const char* motorEsquerdoObjectHandleName = "Motor_Esquerdo";
 const char* pionnerLxObjectHandleName = "Pionner_LX";
-const char* laserObjectHandleName = "LaserScanner_2D";
+const char* laserObjectHandleName = "LaserScannerGraph_2D";
 const char* laserBodyObjectHandleName = "LaserScannerBody_2D";
 const float distanceBetweenCenterOfRobotAndWheels = 0.49896 / 2; //This is the l of theory
 const float diameterOfWheels = 0.14273; // This is the r of theory
@@ -53,7 +52,6 @@ class RosAriaVRep : public BaseRosNode {
 		std::map<std::string,int32_t> signalObjectMap;
 
 		//Methods
-		bool getObjectHandle(const char* objectHandleName);
 		rosaria_v_rep::simRosSetJointState createJointState();
 		void setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSetJointState,
 			float leftWheelVelocity, float rightWheelVelocity);

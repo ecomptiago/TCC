@@ -15,10 +15,11 @@ RosAriaVRep::RosAriaVRep(int argc, char **argv) :
 //Methods
 int RosAriaVRep::runNode() {
 	ROS_INFO("Running node");
-	if(getObjectHandle(motorEsquerdoObjectHandleName) && getObjectHandle(motorDireitoObjectHandleName) &&
-		getObjectHandle(pionnerLxObjectHandleName) && getObjectHandle(laserObjectHandleName) &&
-		getObjectHandle(laserBodyObjectHandleName)) {
-
+	if(VRepUtils::getObjectHandle(motorEsquerdoObjectHandleName,nodeHandler,signalObjectMap) &&
+		VRepUtils::getObjectHandle(motorDireitoObjectHandleName,nodeHandler,signalObjectMap) &&
+		VRepUtils::getObjectHandle(pionnerLxObjectHandleName,nodeHandler,signalObjectMap) &&
+		VRepUtils::getObjectHandle(laserObjectHandleName,nodeHandler,signalObjectMap) &&
+		VRepUtils::getObjectHandle(laserBodyObjectHandleName,nodeHandler,signalObjectMap)) {
 			rosaria_v_rep::simRosEnableSubscriber simRosEnableSubscriber =
 				createEnableSubscriber(cmdVelTopic,simros_strmcmd_set_twist_command, -1, -1);
 			serviceClientsMap[enableSubscriberService].call(simRosEnableSubscriber);
@@ -61,20 +62,6 @@ int RosAriaVRep::runNode() {
 	BaseRosNode::shutdownAndExit(nodeName);
 }
 
-bool RosAriaVRep::getObjectHandle(const char* objectHandleName) {
-	rosaria_v_rep::simRosGetObjectHandle simRosGetObjectHandle;
-	simRosGetObjectHandle.request.objectName = objectHandleName;
-	serviceClientsMap[getObjectHandleService].call(simRosGetObjectHandle);
-	if(simRosGetObjectHandle.response.handle != -1) {
-		ROS_DEBUG("Got %d int handle for %s", simRosGetObjectHandle.response.handle,
-			objectHandleName);
-		signalObjectMap[objectHandleName] = simRosGetObjectHandle.response.handle;
-		return true;
-	} else {
-		return false;
-	}
-}
-
 void RosAriaVRep::setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSetJointState,
 	float leftWheelVelocity, float rightWheelVelocity) {
 		simRosSetJointState.request.values.push_back(rightWheelVelocity);
@@ -113,13 +100,10 @@ bool RosAriaVRep::createServices() {
 bool RosAriaVRep::createServiceClients() {
 	return addServiceClient<rosaria_v_rep::simRosEnablePublisher>(nodeHandler, enablePublisherService) &&
 
-		   addServiceClient<rosaria_v_rep::simRosGetObjectHandle>(nodeHandler, getObjectHandleService) &&
-
 		   addServiceClient<rosaria_v_rep::simRosEnableSubscriber>(nodeHandler, enableSubscriberService) &&
 
-		   addServiceClient<rosaria_v_rep::simRosSetJointState>(nodeHandler, setJointStateService) &&
+		   addServiceClient<rosaria_v_rep::simRosSetJointState>(nodeHandler, setJointStateService);
 
-		   addServiceClient<rosaria_v_rep::simRosGetObjectPose>(nodeHandler, simRosGetObjectPoseService);
 }
 
 bool RosAriaVRep::createServiceServers() {
@@ -166,7 +150,7 @@ rosaria_v_rep::simRosEnablePublisher RosAriaVRep::createEnablePublisher(const ch
 }
 
 int RosAriaVRep::infoFailAndExit(const char* topicName) {
-	ROS_INFO("Failed to create %s topic",motorStateTopic);
+	ROS_INFO("Failed to create %s topic",topicName);
 	return BaseRosNode::shutdownAndExit(nodeName);
 }
 
@@ -177,6 +161,7 @@ bool RosAriaVRep::createPublishers() {
 
 rosaria_v_rep::simRosSetJointState RosAriaVRep::createJointState() {
 	rosaria_v_rep::simRosSetJointState simRosSetJointState;
+
 	simRosSetJointState.request.handles.push_back(signalObjectMap[motorEsquerdoObjectHandleName]);
 	simRosSetJointState.request.handles.push_back(signalObjectMap[motorDireitoObjectHandleName]);
 	simRosSetJointState.request.setModes.push_back(2);
@@ -214,10 +199,9 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 	float& leftWheelVelocity, const geometry_msgs::Twist::ConstPtr& twist) {
 		rightWheelVelocity = 0;
 		leftWheelVelocity = 0;
-		rosaria_v_rep::simRosGetObjectPose simRosGetObjectPose;
-		simRosGetObjectPose.request.handle = signalObjectMap[pionnerLxObjectHandleName];
-		simRosGetObjectPose.request.relativeToObjectHandle = -1;
-		serviceClientsMap[simRosGetObjectPoseService].call(simRosGetObjectPose);
+		common::simRosGetObjectPose simRosGetObjectPose;
+		VRepUtils::getObjectPose(signalObjectMap[pionnerLxObjectHandleName],
+			nodeHandler,simRosGetObjectPose);
 		if(simRosGetObjectPose.response.result != -1) {
 			float response[2];
 			float radiusOfWheel = diameterOfWheels / 2;
