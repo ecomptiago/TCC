@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  geometry_msgs
+  message_generation
 )
 
 
@@ -45,18 +47,18 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
+ add_message_files(
+   FILES
 #   Message1.msg
 #   Message2.msg
-# )
+ )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(
+   FILES
+   simRosGetObjectPose.srv
+   simRosGetObjectHandle.srv
+ )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -66,10 +68,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# ) uncomment to generate messages
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+   geometry_msgs
+ ) 
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -101,7 +104,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include 
+  INCLUDE_DIRS include msg
 #  LIBRARIES common
   CATKIN_DEPENDS roscpp rospy std_msgs  
 #  DEPENDS system_lib
@@ -116,6 +119,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   include
+  msg
   ${catkin_INCLUDE_DIRS}
 )
 
