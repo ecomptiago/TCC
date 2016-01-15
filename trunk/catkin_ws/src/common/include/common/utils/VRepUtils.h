@@ -11,6 +11,7 @@
 #include "map"
 #include "iostream"
 #include "ros/ros.h"
+#include "../BaseRosNode.h"
 #include "common/simRosGetObjectHandle.h"
 #include "common/simRosGetObjectPose.h"
 
@@ -55,6 +56,12 @@ class VRepUtils {
 				} else {
 					return false;
 				}
+		}
+
+		static void infoFailgetObjectsAndExit(const char* nodeName) {
+			ROS_INFO("Failed to get objects from V-Rep simulation. Be sure"
+				" that the simulation is running.");
+			BaseRosNode::shutdownAndExit(nodeName);
 		}
 };
 
