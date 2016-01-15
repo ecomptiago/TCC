@@ -6,3 +6,17 @@
  */
 
 #include "../../include/common/utils/VRepUtils.h"
+
+bool VRepUtils::getObjectPose(int32_t objectHandle,ros::NodeHandle &nodeHandle,
+	common::simRosGetObjectPose &simRosGetObjectPose) {
+		simRosGetObjectPose.request.handle = objectHandle;
+		simRosGetObjectPose.request.relativeToObjectHandle = -1;
+		ros::ServiceClient client = nodeHandle.serviceClient
+			<common::simRosGetObjectPose>("/vrep/simRosGetObjectPose");
+		client.call(simRosGetObjectPose);
+		if(simRosGetObjectPose.response.result != -1) {
+			return true;
+		} else {
+			return false;
+		}
+}

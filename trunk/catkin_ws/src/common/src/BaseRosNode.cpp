@@ -19,6 +19,7 @@ BaseRosNode::BaseRosNode(int argc, char **argv, std::string nodeName) {
 		this->positionErrorMargin = 0.25;
 	#endif
 	this->defaultQueueSize = 100;
+	this->nodeName = nodeName;
 }
 
 //Methods
@@ -62,8 +63,18 @@ void BaseRosNode::sleepAndSpin(ros::Rate& rate) {
 	ros::spinOnce();
 }
 
-int BaseRosNode::shutdownAndExit(const char* nodeName) {
+int BaseRosNode::shutdownAndExit() {
 	ros::shutdown();
-	ROS_INFO("ROS node %s is being shuttled down",nodeName);
+	ROS_INFO("ROS node %s is being shuttled down",nodeName.c_str());
 	return 0;
+}
+
+int BaseRosNode::shutdownAndExit(std::exception &e){
+	ROS_ERROR("%s",e.what());
+	return this->shutdownAndExit();
+}
+
+int BaseRosNode::infoFailCreatingTopicAndExit(const char* topicName) {
+	ROS_ERROR("Failed to create %s topic",topicName);
+	return this->shutdownAndExit();
 }

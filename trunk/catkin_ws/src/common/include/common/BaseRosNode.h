@@ -24,19 +24,21 @@ class BaseRosNode : public RosNodeInterface{
 		//Attributes
 		std::map<std::string,ros::Subscriber> subscriberMap;
 		std::map<std::string,ros::Publisher> publisherMap;
+		std::map<std::string,ros::ServiceClient> serviceClientsMap;
+		std::map<std::string,ros::ServiceServer> serviceServersMap;
 		/*TODO - Take a look at TimerManager class, maybe
 		*we can remove this map */
 		std::map<std::string,ros::Timer> timerMap;
-		std::map<std::string,ros::ServiceClient> serviceClientsMap;
-		std::map<std::string,ros::ServiceServer> serviceServersMap;
 		double angleErrorMargin;
 		double positionErrorMargin;
 		int defaultQueueSize;
+		std::string nodeName;
 
 		//Methods
 		bool hasPublisher(const char* topicName);
 		void sleepAndSpin(double miliSeconds);
 		void sleepAndSpin(ros::Rate& rate);
+		int infoFailCreatingTopicAndExit(const char* topicName);
 
 		/*Methods that need to be implemented here, because of compiling
 		*issues. More information at
@@ -122,7 +124,8 @@ class BaseRosNode : public RosNodeInterface{
 		virtual ~BaseRosNode() {};
 
 		//Methods
-		static 	int shutdownAndExit(const char* nodeName);
+		int shutdownAndExit();
+		int shutdownAndExit(std::exception &e);
 		virtual int runNode();
 		virtual bool subscribeToTopics();
 		virtual bool createPublishers();

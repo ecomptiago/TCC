@@ -45,24 +45,8 @@ class VRepUtils {
 		}
 
 		static bool getObjectPose(int32_t objectHandle,ros::NodeHandle &nodeHandle,
-			common::simRosGetObjectPose &simRosGetObjectPose) {
-				simRosGetObjectPose.request.handle = objectHandle;
-				simRosGetObjectPose.request.relativeToObjectHandle = -1;
-				ros::ServiceClient client = nodeHandle.serviceClient
-					<common::simRosGetObjectPose>("/vrep/simRosGetObjectPose");
-				client.call(simRosGetObjectPose);
-				if(simRosGetObjectPose.response.result != -1) {
-					return true;
-				} else {
-					return false;
-				}
-		}
+			common::simRosGetObjectPose &simRosGetObjectPose);
 
-		static void infoFailgetObjectsAndExit(const char* nodeName) {
-			ROS_INFO("Failed to get objects from V-Rep simulation. Be sure"
-				" that the simulation is running.");
-			BaseRosNode::shutdownAndExit(nodeName);
-		}
 };
 
 #endif /* INCLUDE_COMMON_UTILS_VREPUTILS_H_ */
