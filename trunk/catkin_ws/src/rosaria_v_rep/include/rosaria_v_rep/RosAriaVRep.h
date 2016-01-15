@@ -25,7 +25,6 @@
 #include "rosaria_v_rep/simRosEnableSubscriber.h"
 #include "rosaria_v_rep/simRosSetJointState.h"
 
-const char* nodeName = "Rosaria_v_rep";
 const char* enablePublisherService = "/vrep/simRosEnablePublisher";
 const char* enableSubscriberService = "/vrep/simRosEnableSubscriber";
 const char* setJointStateService = "/vrep/simRosSetJointState";

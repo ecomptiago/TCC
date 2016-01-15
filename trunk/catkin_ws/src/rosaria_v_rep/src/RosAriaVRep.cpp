@@ -9,7 +9,7 @@
 
 //Constructors
 RosAriaVRep::RosAriaVRep(int argc, char **argv) :
-	BaseRosNode(argc, argv, nodeName){
+	BaseRosNode(argc, argv, "Rosaria_v_rep"){
 }
 
 //Methods
@@ -53,11 +53,13 @@ int RosAriaVRep::runNode() {
 			}
 
 	} else {
-		VRepUtils::infoFailgetObjectsAndExit(nodeName);
+		ROS_ERROR("Failed to get objects from V-Rep simulation. Be sure"
+					" that the simulation is running.");
+		return	shutdownAndExit();
 	}
 
 	ros::spin();
-	BaseRosNode::shutdownAndExit(nodeName);
+	return shutdownAndExit();
 }
 
 void RosAriaVRep::setWheelsVelocity(rosaria_v_rep::simRosSetJointState& simRosSetJointState,
@@ -149,7 +151,7 @@ rosaria_v_rep::simRosEnablePublisher RosAriaVRep::createEnablePublisher(const ch
 
 int RosAriaVRep::infoFailAndExit(const char* topicName) {
 	ROS_INFO("Failed to create %s topic",topicName);
-	return BaseRosNode::shutdownAndExit(nodeName);
+	return shutdownAndExit();
 }
 
 bool RosAriaVRep::createPublishers() {
@@ -242,9 +244,9 @@ int main(int argc, char **argv) {
 			rosAriaVRep.createPublishers()) {
 				return rosAriaVRep.runNode();
 		} else {
-			BaseRosNode::shutdownAndExit(nodeName);
+			return rosAriaVRep.shutdownAndExit();
 		}
 	} catch (std::exception &e) {
-		BaseRosNode::shutdownAndExit(nodeName);
+		return rosAriaVRep.shutdownAndExit(e);
 	}
 }
