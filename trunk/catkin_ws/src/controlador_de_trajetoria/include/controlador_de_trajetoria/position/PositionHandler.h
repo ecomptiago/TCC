@@ -21,7 +21,6 @@
 
 const char* actualRobotPositionTopic = "Position_handler/actual_robot_position";
 const char* poseTopic = "/RosAria/pose";
-const char* nodeName = "Position_handler";
 const char* timerActualRobotPosition = "actualRobotPositionTimer";
 
 class PositionHandler :public BaseRosNode{

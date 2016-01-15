@@ -3,7 +3,7 @@
 //Constructors
 MessagesHandler::MessagesHandler(int argc, char **argv, int numberOfCoordinatesToStore,
 	double wakeUpTime, float freeCoordinatesDelay, float nextTargetsDelay) :
-	BaseRosNode(argc,argv,nodeName) {
+	BaseRosNode(argc,argv,"Message_handler") {
 		this->wakeUpTime = wakeUpTime;
 		this->freeCoordinatesDelay = freeCoordinatesDelay;
 		this->nextTargetsDelay = nextTargetsDelay;
@@ -38,7 +38,7 @@ int MessagesHandler::runNode() {
 		}
 		sleepAndSpin(rate);
 	}
-	return 0;
+	return shutdownAndExit();
 }
 
 bool MessagesHandler::subscribeToTopics() {
@@ -171,17 +171,17 @@ bool MessagesHandler::moveRobotSync(
 
 //Main
 int main(int argc,char **argv) {
+	MessagesHandler messagesHandler(argc, argv, 100, 1, 1, 1);
 	try {
-		MessagesHandler messagesHandler(argc, argv, 100, 1, 1, 1);
 		if(messagesHandler.subscribeToTopics() &&
 			messagesHandler.createPublishers() &&
 			messagesHandler.createTimers() &&
 			messagesHandler.createServices()) {
 				return messagesHandler.runNode();
 		} else {
-			BaseRosNode::shutdownAndExit(nodeName);
+			return messagesHandler.shutdownAndExit();
 		}
 	} catch (std::exception &e) {
-		BaseRosNode::shutdownAndExit(nodeName);
+		return messagesHandler.shutdownAndExit(e);
 	}
 }

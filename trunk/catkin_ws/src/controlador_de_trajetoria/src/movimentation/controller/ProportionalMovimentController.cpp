@@ -89,8 +89,7 @@ float ProportionalMovimentController::calculateError() {
 			tf::Quaternion quaternion(
 				0, 0, actualOdometryPosition.pose.orientation.z,
 				actualOdometryPosition.pose.orientation.w);
-			double theta =
-				OdometryUtils::getAngleFromQuaternation<tf::Quaternion>
+			double theta = OdometryUtils::getAngleFromQuaternation
 				(quaternion.normalize(),true);
 			ROS_DEBUG("Calculated deltaX:%f deltaY:%f theta:%f",
 				deltaX, deltaY, theta);
@@ -111,8 +110,7 @@ float ProportionalMovimentController::calculateError() {
 				0, 0, actualOdometryPosition.pose.orientation.z,
 				actualOdometryPosition.pose.pose.orientation.w);
 			double theta =
-				OdometryUtils::getAngleFromQuaternation<tf::Quaternion>
-				(quaternion.normalize());
+				OdometryUtils::getAngleFromQuaternation(quaternion.normalize());
 			ROS_DEBUG("Calculated deltaX:%f deltaY:%f theta:%f",
 				deltaX, deltaY, theta);
 			this->rho = sqrt(pow(deltaX , 2) + pow(deltaY, 2));

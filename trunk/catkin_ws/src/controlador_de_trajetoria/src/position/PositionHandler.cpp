@@ -3,7 +3,7 @@
 
 //Constructors
 PositionHandler::PositionHandler(int argc, char **argv, float actualRobotPositionDelay) :
-	BaseRosNode(argc,argv,nodeName) {
+	BaseRosNode(argc,argv,"Position_handler") {
 	this->actualRobotPositionDelay = actualRobotPositionDelay;
 }
 
@@ -63,16 +63,16 @@ void PositionHandler::publishPosition(const ros::TimerEvent& timerEvent) {
 
 //Main
 int main(int argc,char **argv) {
+	PositionHandler positionHandler(argc,argv,1);
 	try {
-		PositionHandler positionHandler(argc,argv,1);
 		if(positionHandler.subscribeToTopics() &&
 				positionHandler.createPublishers() &&
 				positionHandler.createTimers()) {
 			return positionHandler.runNode();
 		} else {
-			BaseRosNode::shutdownAndExit(nodeName);
+			return positionHandler.shutdownAndExit();
 		}
 	} catch (std::exception &e) {
-		BaseRosNode::shutdownAndExit(nodeName);
+		return positionHandler.shutdownAndExit(e);
 	}
 }

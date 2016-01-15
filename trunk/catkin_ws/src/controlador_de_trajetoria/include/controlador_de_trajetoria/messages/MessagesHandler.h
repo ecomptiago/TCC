@@ -20,7 +20,6 @@
 #include "controlador_de_trajetoria/utils/MovimentationUtils.h"
 #include "controlador_de_trajetoria/messages/MoveRobotWrapper.h"
 
-const char* nodeName = "Message_handler";
 const char* moveRobotAssyncTopic = "Message_handler/move_robot_assync";
 const char* targetPositionTopic = "Message_handler/target_position";
 const char* targetPositionAchievedTopic = "Message_handler/target_position_achieved";

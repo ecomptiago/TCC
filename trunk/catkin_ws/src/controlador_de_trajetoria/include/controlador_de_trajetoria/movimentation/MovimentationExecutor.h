@@ -34,7 +34,6 @@
 #include "controller/ProportionalMovimentController.h"
 #include "tf/transform_datatypes.h"
 
-const char* nodeName = "Movimentation_executor";
 const char* motorStateTopic = "/RosAria/motors_state";
 const char* cmdVelTopic = "/RosAria/cmd_vel";
 const char* poseTopic = "/RosAria/pose";

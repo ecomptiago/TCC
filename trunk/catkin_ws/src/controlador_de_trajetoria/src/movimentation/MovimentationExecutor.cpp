@@ -2,7 +2,8 @@
 
 //Constructors
 MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
-	float nextTryInterval, double wakeUpTime, double verifyRobotMovimentDelay) : BaseRosNode(argc,argv,nodeName) {
+	float nextTryInterval, double wakeUpTime, double verifyRobotMovimentDelay) :
+	BaseRosNode(argc,argv,"Movimentation_executor") {
 		this->pointerTargetPosition = NULL;
 		this->nextTryInterval = nextTryInterval;
 		this->wakeUpTime = wakeUpTime;
@@ -27,6 +28,7 @@ int MovimentationExecutor::runNode() {
 		}
 		sleepAndSpin(rate);
 	}
+//	shutdownAndExit();
 	return 0;
 }
 
@@ -78,7 +80,8 @@ double MovimentationExecutor::getActualAngle(int sleepBeforeActualize) {
 		tf::Quaternion quaternion(
 			0, 0, actualOdometryPosition.pose.orientation.z,
 			actualOdometryPosition.pose.orientation.w);
-		return OdometryUtils::getAngleFromQuaternation(quaternion.normalize(), false);
+		return OdometryUtils::getAngleFromQuaternation
+			(quaternion.normalize(), false);
 	#else
 		return OdometryUtils::getAngleFromQuaternation(
 			actualOdometryPosition.pose.pose.orientation);
@@ -267,17 +270,17 @@ void MovimentationExecutor::verifyRobotMovimentEvent(const ros::TimerEvent& time
 
 //Main
 int main(int argc,char **argv) {
+	MovimentationExecutor movimentationExecutor(argc, argv, 1, 1, 5);
 	try {
-		MovimentationExecutor movimentationExecutor(argc, argv, 1, 1, 5);
 		if(movimentationExecutor.subscribeToTopics() &&
 			movimentationExecutor.createPublishers() &&
 			movimentationExecutor.createServices() &&
 			movimentationExecutor.createTimers()) {
 				return movimentationExecutor.runNode();
 		} else {
-			BaseRosNode::shutdownAndExit(nodeName);
+			return movimentationExecutor.shutdownAndExit();
 		}
 	} catch (std::exception &e) {
-		BaseRosNode::shutdownAndExit(nodeName);
+		return movimentationExecutor.shutdownAndExit(e);
 	}
 }
