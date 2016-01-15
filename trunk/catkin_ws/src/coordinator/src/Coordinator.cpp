@@ -27,7 +27,7 @@ int Coordinator::runNode() {
 		}
 		sleepAndSpin(rate);
 	}
-	BaseRosNode::shutdownAndExit(nodeName);
+	return shutdownAndExit();
 }
 
 bool Coordinator::subscribeToTopics() {
@@ -54,9 +54,9 @@ int main(int argc, char **argv) {
 		if(coordinator.subscribeToTopics()) {
 			return coordinator.runNode();
 		} else {
-			BaseRosNode::shutdownAndExit(nodeName);
+			 return coordinator.shutdownAndExit();
 		}
 	} catch (std::exception &e) {
-		BaseRosNode::shutdownAndExit(nodeName);
+		return coordinator.shutdownAndExit(e);
 	}
 }
