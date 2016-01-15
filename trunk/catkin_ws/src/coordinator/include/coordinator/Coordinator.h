@@ -14,7 +14,6 @@
 #include "common/utils/NumericUtils.h"
 #include "sensor_msgs/LaserScan.h"
 
-const char* nodeName = "Coordinator";
 const char* laserTopic = "/RosAria/laser";
 
 class Coordinator : public BaseRosNode{
