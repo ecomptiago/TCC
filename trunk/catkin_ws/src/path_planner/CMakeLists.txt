@@ -144,7 +144,8 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
-set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp)
+set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp 
+	../common/src/utils/VRepUtils.cpp)
 set (MSG_GENERATION path_planner_generate_messages_cpp)
 
 add_executable(PathPlanner ${SOURCEFILES} src/PathPlanner.cpp)

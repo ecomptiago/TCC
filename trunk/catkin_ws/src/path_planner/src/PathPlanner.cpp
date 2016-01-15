@@ -16,6 +16,36 @@ PathPlanner::PathPlanner(int argc, char **argv) :
 int PathPlanner::runNode() {
 	ROS_INFO("Running node");
 
+	if(VRepUtils::getObjectHandle(wallHandle,nodeHandler,signalObjectMap) &&
+	   VRepUtils::getObjectHandle(cuboidHandle,nodeHandler,signalObjectMap)) {
+			path_planner::simRosGetObjectGroupData simRosGetObjectGroupData;
+			simRosGetObjectGroupData.request.objectType = sim_object_shape_type;
+			//dataType = 2 retrieves the parent object handle
+			simRosGetObjectGroupData.request.dataType = 2;
+			serviceClientsMap[getObjectGroupDataService].call(simRosGetObjectGroupData);
+			std::vector<int, std::allocator<int>> responseHandles =
+				simRosGetObjectGroupData.response.handles;
+			std::vector<int, std::allocator<int>> responseIntData =
+				simRosGetObjectGroupData.response.intData;
+			if (responseHandles.size() > 0 && responseIntData.size() > 0
+				&& responseHandles.size() == responseIntData.size()) {
+				std::vector<int32_t> wallsVectorObjectHandles(responseIntData.size());
+				std::vector<int32_t> cuboidVectorHandles(responseIntData.size());
+				for(int i = 0; i < responseIntData.size(); i++) {
+					if(responseIntData.at(i) == signalObjectMap[cuboidHandle]) {
+						cuboidVectorHandles.push_back(responseIntData.at(i));
+					} else if(responseIntData.at(i) == signalObjectMap[wallHandle]) {
+						wallsVectorObjectHandles.push_back(responseIntData.at(i));
+					}
+				}
+			} else {
+				ROS_INFO("There is not objects of shape type. "
+					"Could not construct the map. Exiting!");
+			}
+	} else {
+		VRepUtils::infoFailgetObjectsAndExit(nodeName);
+	}
+
 	ros::spin();
 	BaseRosNode::shutdownAndExit(nodeName);
 }

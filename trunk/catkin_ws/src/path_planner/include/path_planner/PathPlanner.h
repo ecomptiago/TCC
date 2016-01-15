@@ -8,8 +8,10 @@
 #ifndef INCLUDE_PATH_PLANNER_PATHPLANNER_H_
 #define INCLUDE_PATH_PLANNER_PATHPLANNER_H_
 
+#include "vector"
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
+#include "common/utils/VRepUtils.h"
 #include "path_planner/simRosGetObjectGroupData.h"
 
 const char* nodeName = "Path_planner";
@@ -22,6 +24,7 @@ class PathPlanner : public BaseRosNode {
 	private:
 		//Atttributes
 		ros::NodeHandle nodeHandler;
+		std::map<std::string,int32_t> signalObjectMap;
 
 		//Methods
 		bool createServiceClients();
