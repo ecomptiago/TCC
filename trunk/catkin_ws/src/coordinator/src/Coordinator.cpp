@@ -9,7 +9,7 @@
 
 //Constructor
 Coordinator::Coordinator(int argc, char **argv) :
-	BaseRosNode(argc, argv, nodeName){
+	BaseRosNode(argc, argv, "Coordinator"){
 }
 
 //Methods
