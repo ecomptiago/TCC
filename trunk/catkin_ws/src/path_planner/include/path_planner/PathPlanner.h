@@ -12,9 +12,11 @@
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
 #include "common/utils/VRepUtils.h"
+#include "common/utils/OdometryUtils.h"
+#include "common/utils/NumericUtils.h"
+#include "common/simRosGetObjectPose.h"
 #include "path_planner/simRosGetObjectGroupData.h"
 
-const char* nodeName = "Path_planner";
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* wallHandle = "Wall";
 const char* cuboidHandle = "Cuboid";
@@ -30,6 +32,8 @@ class PathPlanner : public BaseRosNode {
 		bool createServiceClients();
 		bool createServiceServers();
 		int infoFailAndExit(const char* topicName);
+		bool addToMap(int32_t objectHandle);
+
 
 	public:
 		//Constructor

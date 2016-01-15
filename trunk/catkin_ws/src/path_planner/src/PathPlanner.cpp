@@ -9,7 +9,7 @@
 
 //Constructors
 PathPlanner::PathPlanner(int argc, char **argv) :
-	BaseRosNode(argc, argv, nodeName){
+	BaseRosNode(argc, argv, "Path_planner"){
 }
 
 //Methods
@@ -23,33 +23,49 @@ int PathPlanner::runNode() {
 			//dataType = 2 retrieves the parent object handle
 			simRosGetObjectGroupData.request.dataType = 2;
 			serviceClientsMap[getObjectGroupDataService].call(simRosGetObjectGroupData);
-			std::vector<int, std::allocator<int>> responseHandles =
+			std::vector<int32_t> objectHandles =
 				simRosGetObjectGroupData.response.handles;
-			std::vector<int, std::allocator<int>> responseIntData =
+			std::vector<int32_t> parentHandles =
 				simRosGetObjectGroupData.response.intData;
-			if (responseHandles.size() > 0 && responseIntData.size() > 0
-				&& responseHandles.size() == responseIntData.size()) {
-				std::vector<int32_t> wallsVectorObjectHandles(responseIntData.size());
-				std::vector<int32_t> cuboidVectorHandles(responseIntData.size());
-				for(int i = 0; i < responseIntData.size(); i++) {
-					if(responseIntData.at(i) == signalObjectMap[cuboidHandle]) {
-						cuboidVectorHandles.push_back(responseIntData.at(i));
-					} else if(responseIntData.at(i) == signalObjectMap[wallHandle]) {
-						wallsVectorObjectHandles.push_back(responseIntData.at(i));
+			if (objectHandles.size() > 0 && parentHandles.size() > 0
+				&& objectHandles.size() == parentHandles.size()) {
+					for(int i = 0; i < parentHandles.size(); i++) {
+					int parentHandle = parentHandles.at(i);
+					if (parentHandle == signalObjectMap[cuboidHandle] ||
+						parentHandle == signalObjectMap[wallHandle]) {
+							if(!addToMap(objectHandles.at(i))) {
+								ROS_ERROR("Failed to get object pose during the construction "
+									"of the occupancy map.");
+								shutdownAndExit();
+							}
 					}
 				}
 			} else {
-				ROS_INFO("There is not objects of shape type. "
+				ROS_ERROR("There is not objects of shape type. "
 					"Could not construct the map. Exiting!");
 			}
 	} else {
-		VRepUtils::infoFailgetObjectsAndExit(nodeName);
+		ROS_ERROR("Failed to get objects from V-Rep simulation. Be sure"
+			" that the simulation is running.");
+		shutdownAndExit();
 	}
 
 	ros::spin();
-	BaseRosNode::shutdownAndExit(nodeName);
+	shutdownAndExit();
 }
 
+bool PathPlanner::addToMap(int32_t objectHandle) {
+	common::simRosGetObjectPose simRosGetObjectPose;
+	if(VRepUtils::getObjectPose(objectHandle,nodeHandler,simRosGetObjectPose)) {
+		tf::Quaternion quaternion(0, 0,
+			simRosGetObjectPose.response.pose.pose.orientation.z,
+			simRosGetObjectPose.response.pose.pose.orientation.w);
+		double angle = OdometryUtils::getAngleFromQuaternation(quaternion,false);
+		return false;
+	} else{
+		return false;
+	}
+}
 
 bool PathPlanner::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
@@ -73,11 +89,6 @@ bool PathPlanner::createServiceServers() {
 	return true;
 }
 
-int PathPlanner::infoFailAndExit(const char* topicName) {
-	ROS_INFO("Failed to create %s topic",topicName);
-	return BaseRosNode::shutdownAndExit(nodeName);
-}
-
 bool PathPlanner::createPublishers() {
 	ROS_INFO("Creating publishers");
 	return true;
@@ -87,16 +98,16 @@ bool PathPlanner::createPublishers() {
 
 //Main
 int main(int argc, char **argv) {
-	PathPlanner rosAriaVRep(argc,argv);
+	PathPlanner pathPlanner(argc,argv);
 	try{
-		if(rosAriaVRep.createServices() &&
-			rosAriaVRep.subscribeToTopics() &&
-			rosAriaVRep.createPublishers()) {
-				return rosAriaVRep.runNode();
+		if(pathPlanner.createServices() &&
+			pathPlanner.subscribeToTopics() &&
+			pathPlanner.createPublishers()) {
+				return pathPlanner.runNode();
 		} else {
-			BaseRosNode::shutdownAndExit(nodeName);
+			pathPlanner.shutdownAndExit();
 		}
 	} catch (std::exception &e) {
-		BaseRosNode::shutdownAndExit(nodeName);
+		pathPlanner.shutdownAndExit(e);
 	}
 }
