@@ -53,9 +53,7 @@ int RosAriaVRep::runNode() {
 			}
 
 	} else {
-		ROS_INFO("Failed to get objects from V-Rep simulation. Be sure"
-			" that the simulation is running.");
-		BaseRosNode::shutdownAndExit(nodeName);
+		VRepUtils::infoFailgetObjectsAndExit(nodeName);
 	}
 
 	ros::spin();
