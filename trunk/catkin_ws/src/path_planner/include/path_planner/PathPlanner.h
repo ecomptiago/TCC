@@ -9,17 +9,26 @@
 #define INCLUDE_PATH_PLANNER_PATHPLANNER_H_
 
 #include "vector"
+#include "nav_msgs/OccupancyGrid.h"
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
 #include "common/utils/VRepUtils.h"
 #include "common/utils/OdometryUtils.h"
 #include "common/utils/NumericUtils.h"
 #include "common/simRosGetObjectPose.h"
+#include "common/Position.h"
+#include "path_planner/ObjectInfo.h"
 #include "path_planner/simRosGetObjectGroupData.h"
+#include "path_planner/simRosGetObjectFloatParameter.h"
 
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
-const char* wallHandle = "Wall";
+const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
 const char* cuboidHandle = "Cuboid";
+const char* floorHandle = "ResizableFloor_5_25";
+const int32_t sim_objfloatparam_modelbbox_min_x = 21;
+const int32_t sim_objfloatparam_modelbbox_max_x = 24;
+const int32_t sim_objfloatparam_modelbbox_min_y = 22;
+const int32_t sim_objfloatparam_modelbbox_max_y = 25;
 
 class PathPlanner : public BaseRosNode {
 
@@ -27,17 +36,24 @@ class PathPlanner : public BaseRosNode {
 		//Atttributes
 		ros::NodeHandle nodeHandler;
 		std::map<std::string,int32_t> signalObjectMap;
+		nav_msgs::OccupancyGrid occupancyGrid;
 
 		//Methods
 		bool createServiceClients();
 		bool createServiceServers();
 		int infoFailAndExit(const char* topicName);
 		bool addToMap(int32_t objectHandle);
-
+		bool buildOccupancyGrid(std::vector<int32_t> floorHandles);
+		path_planner::ObjectInfo getObjectInfo(int32_t objectHandle,
+			common::simRosGetObjectPose simRosGetObjectPose);
+		void callGetFloatParameterService(int32_t objectHandle,
+			int32_t parameterID,
+			path_planner::simRosGetObjectFloatParameter simRosGetObjectFloatParameter);
 
 	public:
 		//Constructor
-		PathPlanner(int argc, char **argv);
+		PathPlanner(int argc, char **argv, int cellArea, int mapWidth,
+			int mapHeight);
 
 		//Destructor
 		virtual ~PathPlanner() {};
