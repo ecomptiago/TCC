@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  geometry_msgs
+  common
   message_generation
 )
 
@@ -47,10 +49,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-    Position.msg
-    Move_robot.msg
-    Move_robot_multi_array.msg
-    Movimentation_error.msg
+  Move_robot.msg
+  Move_robot_multi_array.msg
+  Movimentation_error.msg
 )
 
 
@@ -71,6 +72,8 @@ add_service_files(
  generate_messages(
    DEPENDENCIES
    std_msgs
+   geometry_msgs
+   common
  )
 
 ################################################

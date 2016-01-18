@@ -41,7 +41,7 @@ ProportionalMovimentController::ProportionalMovimentController(float kRho, float
 
 //Setters and getters
 void ProportionalMovimentController::setTargetPosition(
-	const controlador_de_trajetoria::Position& targetPosition) {
+	const common::Position& targetPosition) {
 		this->targetPosition = targetPosition;
 		this->pointerTargetPosition = &targetPosition;
 }

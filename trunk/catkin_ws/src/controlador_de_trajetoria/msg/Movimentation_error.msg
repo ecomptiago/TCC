@@ -1,2 +1,2 @@
-Position coordinateToMove
+common/Position coordinateToMove
 string whyCantMove

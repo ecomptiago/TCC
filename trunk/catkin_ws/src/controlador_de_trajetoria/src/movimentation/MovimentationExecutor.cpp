@@ -45,7 +45,7 @@ geometry_msgs::Twist MovimentationExecutor::createStopMessage() {
 
 void MovimentationExecutor::publishPositionAchieved(
 	double initialXPosition, double initialYPosition) {
-		controlador_de_trajetoria::Position positionAchieved;
+	common::Position positionAchieved;
 
 		#ifdef VREP_SIMULATION
 			positionAchieved.x =
@@ -163,7 +163,7 @@ bool MovimentationExecutor::subscribeToTopics() {
 
 bool MovimentationExecutor::createPublishers() {
 	ROS_INFO("Creating publishers");
-	return addPublisherClient<controlador_de_trajetoria::Position>(
+	return addPublisherClient<common::Position>(
 		   nodeHandler, targetPositionAchievedTopic, false) &&
 
 		   addPublisherClient<controlador_de_trajetoria::Move_robot>(

@@ -19,7 +19,7 @@
 #endif
 
 #include "ros/console.h"
-#include "controlador_de_trajetoria/Position.h"
+#include "common/Position.h"
 #include "common/utils/OdometryUtils.h"
 #include "common/utils/NumericUtils.h"
 
@@ -33,10 +33,10 @@ class ProportionalMovimentController : public MovimentControllerInterface {
 		float rho;
 		float alpha;
 		float beta;
-		controlador_de_trajetoria::Position targetPosition;
+		common::Position targetPosition;
 
 		//TODO - Use shared_ptr instead of raw pointer
-		const controlador_de_trajetoria::Position *pointerTargetPosition;
+		const common::Position *pointerTargetPosition;
 
 	public:
 		//Constructor
@@ -48,7 +48,7 @@ class ProportionalMovimentController : public MovimentControllerInterface {
 
 		//Setters and getters
 		void setTargetPosition(
-			const controlador_de_trajetoria::Position& targetPosition);
+			const common::Position& targetPosition);
 
 		//Methods
 		virtual geometry_msgs::Twist calculateVelocities();

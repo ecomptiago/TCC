@@ -12,7 +12,6 @@
 
 #include "math.h"
 #include "functional"
-#include "common/utils/MatrixUtils.h"
 #include "std_msgs/Bool.h"
 #include "std_srvs/Empty.h"
 #include "geometry_msgs/Twist.h"
@@ -24,9 +23,10 @@
 	#include "nav_msgs/Odometry.h"
 #endif
 
+#include "common/utils/MatrixUtils.h"
 #include "common/BaseRosNode.h"
 #include "common/utils/OdometryUtils.h"
-#include "controlador_de_trajetoria/Position.h"
+#include "common/Position.h"
 #include "controlador_de_trajetoria/Move_robot.h"
 #include "controlador_de_trajetoria/Movimentation_error.h"
 #include "controlador_de_trajetoria/movimentation/MovimentationErrorEnum.h"
@@ -53,10 +53,10 @@ class MovimentationExecutor :public BaseRosNode{
 		problem is that it can not be instantied before
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
-		controlador_de_trajetoria::Position targetPosition;
+		common::Position targetPosition;
 
 		//TODO - Use shared_ptr instead of raw pointer
-		controlador_de_trajetoria::Position *pointerTargetPosition;
+		common::Position *pointerTargetPosition;
 
 		ProportionalMovimentController proportionalController;
 
