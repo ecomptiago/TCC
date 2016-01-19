@@ -29,7 +29,7 @@ int RosAriaVRep::runNode() {
 
 			rosaria_v_rep::simRosEnablePublisher simRosEnablePublisher =
 				createEnablePublisher(poseTopic, simros_strmcmd_get_object_pose,
-				signalObjectMap[pionnerLxObjectHandleName], -1, "");
+				signalObjectMap[pionnerLxObjectHandleName], poseRelativeToWorld, "");
 			serviceClientsMap[enablePublisherService].call(simRosEnablePublisher);
 			if(simRosEnablePublisher.response.effectiveTopicName.length() == 0) {
 				infoFailAndExit(poseTopic);
@@ -185,7 +185,7 @@ void RosAriaVRep::receivedTwist(
 			ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
 				simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
 			serviceClientsMap[setJointStateService].call(simRosSetJointState);
-			if(simRosSetJointState.response.result == -1) {
+			if(simRosSetJointState.response.result == responseError) {
 				ROS_INFO("Could not set velocity to wheels");
 			} else {
 				ROS_INFO("Wheels velocity set");
@@ -202,7 +202,7 @@ void RosAriaVRep::calculateWheelsVelocity(float& rightWheelVelocity,
 		common::simRosGetObjectPose simRosGetObjectPose;
 		VRepUtils::getObjectPose(signalObjectMap[pionnerLxObjectHandleName],
 			nodeHandler,simRosGetObjectPose);
-		if(simRosGetObjectPose.response.result != -1) {
+		if(simRosGetObjectPose.response.result != responseError) {
 			float response[2];
 			float radiusOfWheel = diameterOfWheels / 2;
 			float radiusOfWheelDividedByLenght =
