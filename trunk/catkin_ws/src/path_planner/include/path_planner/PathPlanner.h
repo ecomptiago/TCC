@@ -20,15 +20,18 @@
 #include "path_planner/ObjectInfo.h"
 #include "path_planner/simRosGetObjectGroupData.h"
 #include "path_planner/simRosGetObjectFloatParameter.h"
+#include "path_planner/simRosGetObjectChild.h"
 
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
+const char* getObjectChildService = "/vrep/simRosGetObjectChild";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
 const int32_t sim_objfloatparam_modelbbox_min_x = 21;
 const int32_t sim_objfloatparam_modelbbox_max_x = 24;
 const int32_t sim_objfloatparam_modelbbox_min_y = 22;
 const int32_t sim_objfloatparam_modelbbox_max_y = 25;
+
 
 class PathPlanner : public BaseRosNode {
 
@@ -42,13 +45,11 @@ class PathPlanner : public BaseRosNode {
 		bool createServiceClients();
 		bool createServiceServers();
 		int infoFailAndExit(const char* topicName);
-		bool addToMap(int32_t objectHandle);
-		bool buildOccupancyGrid(std::vector<int32_t> floorHandles);
-		path_planner::ObjectInfo getObjectInfo(int32_t objectHandle,
-			common::simRosGetObjectPose simRosGetObjectPose);
-		void callGetFloatParameterService(int32_t objectHandle,
-			int32_t parameterID,
-			path_planner::simRosGetObjectFloatParameter simRosGetObjectFloatParameter);
+		bool getMinimumXYObjectCoordinate(int32_t objecthandle,
+			common::simRosGetObjectPose &simRosGetObjectPose,common::Position &position);
+		void callGetFloatParameterService(int32_t objectHandle, int32_t parameterID,
+			path_planner::simRosGetObjectFloatParameter &simRosGetObjectFloatParameter);
+		bool getObjectWidthHeight(int32_t objectHandle,	path_planner::ObjectInfo &objectInfo);
 
 	public:
 		//Constructor

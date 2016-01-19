@@ -57,6 +57,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    simRosGetObjectFloatParameter.srv
    simRosGetObjectGroupData.srv
+   simRosGetObjectChild.srv
  )
 
 ## Generate actions in the 'action' folder
