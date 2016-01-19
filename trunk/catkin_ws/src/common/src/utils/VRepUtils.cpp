@@ -10,11 +10,11 @@
 bool VRepUtils::getObjectPose(int32_t objectHandle,ros::NodeHandle &nodeHandle,
 	common::simRosGetObjectPose &simRosGetObjectPose) {
 		simRosGetObjectPose.request.handle = objectHandle;
-		simRosGetObjectPose.request.relativeToObjectHandle = -1;
+		simRosGetObjectPose.request.relativeToObjectHandle = poseRelativeToWorld;
 		ros::ServiceClient client = nodeHandle.serviceClient
 			<common::simRosGetObjectPose>("/vrep/simRosGetObjectPose");
 		client.call(simRosGetObjectPose);
-		if(simRosGetObjectPose.response.result != -1) {
+		if(simRosGetObjectPose.response.result != responseError) {
 			return true;
 		} else {
 			return false;

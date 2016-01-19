@@ -15,6 +15,8 @@
 #include "common/simRosGetObjectHandle.h"
 #include "common/simRosGetObjectPose.h"
 
+#define poseRelativeToWorld -1
+#define responseError -1
 
 class VRepUtils {
 
@@ -25,6 +27,8 @@ class VRepUtils {
 		//Destructor
 		virtual ~VRepUtils() {};
 
+		//Constants
+
 		//Methods
 		static bool getObjectHandle(const char* objectHandleName,
 			ros::NodeHandle &nodeHandle,
@@ -34,7 +38,7 @@ class VRepUtils {
 				ros::ServiceClient client = nodeHandle.serviceClient
 					<common::simRosGetObjectHandle>("/vrep/simRosGetObjectHandle");
 				client.call(simRosGetObjectHandle);
-				if(simRosGetObjectHandle.response.handle != -1) {
+				if(simRosGetObjectHandle.response.handle != responseError) {
 					ROS_DEBUG("Got %d int handle for %s", simRosGetObjectHandle.response.handle,
 						objectHandleName);
 					signalObjectMap[objectHandleName] = simRosGetObjectHandle.response.handle;
