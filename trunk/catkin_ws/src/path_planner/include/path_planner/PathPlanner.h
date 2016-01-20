@@ -10,11 +10,13 @@
 
 #include "vector"
 #include "nav_msgs/OccupancyGrid.h"
+#include "geometry_msgs/Quaternion.h"
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
 #include "common/utils/VRepUtils.h"
 #include "common/utils/OdometryUtils.h"
 #include "common/utils/NumericUtils.h"
+#include "common/utils/MatrixUtils.h"
 #include "common/simRosGetObjectPose.h"
 #include "common/Position.h"
 #include "path_planner/ObjectInfo.h"
@@ -31,7 +33,7 @@ const int32_t sim_objfloatparam_modelbbox_min_x = 21;
 const int32_t sim_objfloatparam_modelbbox_max_x = 24;
 const int32_t sim_objfloatparam_modelbbox_min_y = 22;
 const int32_t sim_objfloatparam_modelbbox_max_y = 25;
-
+const int8_t occupiedCell = 100;
 
 class PathPlanner : public BaseRosNode {
 
@@ -40,6 +42,7 @@ class PathPlanner : public BaseRosNode {
 		ros::NodeHandle nodeHandler;
 		std::map<std::string,int32_t> signalObjectMap;
 		nav_msgs::OccupancyGrid occupancyGrid;
+		float angleTolerance;
 
 		//Methods
 		bool createServiceClients();
@@ -50,11 +53,13 @@ class PathPlanner : public BaseRosNode {
 		void callGetFloatParameterService(int32_t objectHandle, int32_t parameterID,
 			path_planner::simRosGetObjectFloatParameter &simRosGetObjectFloatParameter);
 		bool getObjectWidthHeight(int32_t objectHandle,	path_planner::ObjectInfo &objectInfo);
+		int getDataVectorPosition(common::Position &position);
+		bool addObjectToOccupancyMaop(int32_t childHandle);
 
 	public:
 		//Constructor
 		PathPlanner(int argc, char **argv, int cellArea, int mapWidth,
-			int mapHeight);
+			int mapHeight, float angleTolerance);
 
 		//Destructor
 		virtual ~PathPlanner() {};

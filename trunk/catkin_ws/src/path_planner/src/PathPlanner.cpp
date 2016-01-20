@@ -8,11 +8,13 @@
 #include "path_planner/PathPlanner.h"
 
 //Constructors
-PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int mapHeight) :
-	BaseRosNode(argc, argv, "Path_planner"){
-		occupancyGrid.info.resolution = cellArea;
-		occupancyGrid.info.width = mapWidth;
-		occupancyGrid.info.height = mapHeight;
+PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int mapHeight,
+	float angleTolerance) : BaseRosNode(argc, argv, "Path_planner"){
+		this->occupancyGrid.info.resolution = cellArea;
+		this->occupancyGrid.info.width = mapWidth;
+		this->occupancyGrid.info.height = mapHeight;
+		this->occupancyGrid.data.resize((mapWidth * mapHeight) / cellArea);
+		this->angleTolerance = angleTolerance;
 }
 
 //Methods
@@ -63,22 +65,17 @@ int PathPlanner::runNode() {
 
 	if(VRepUtils::getObjectHandle(cuboidHandle,nodeHandler,signalObjectMap)) {
 		index = 0;
+		addObjectToOccupancyMaop(signalObjectMap[cuboidHandle]);
 		do{
 			simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
 			simRosGetObjectChild.request.index = index;
 			serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
 			int32_t childHandle = simRosGetObjectChild.response.childHandle;
-			if (childHandle != responseError) {
-				common::simRosGetObjectPose simRosGetObjectPose;
-				if(VRepUtils::getObjectPose(simRosGetObjectChild.response.childHandle,
-					nodeHandler,simRosGetObjectPose)) {
-
-				} else {
-					ROS_ERROR("Could not get pose of a children from object %s",cuboidHandle);
-					shutdownAndExit();
-				}
+			if(addObjectToOccupancyMaop(childHandle)) {
+				index++;
+			} else {
+				shutdownAndExit();
 			}
-			index++;
 		} while(simRosGetObjectChild.response.childHandle != responseError);
 	} else {
 		ROS_ERROR("Could not found handle for object %s",cuboidHandle);
@@ -87,6 +84,77 @@ int PathPlanner::runNode() {
 
 	ros::spin();
 	shutdownAndExit();
+}
+
+bool PathPlanner::addObjectToOccupancyMaop(int32_t childHandle) {
+	if (childHandle != responseError) {
+		common::simRosGetObjectPose simRosGetObjectPose;
+		path_planner::ObjectInfo objectInfo;
+		if (VRepUtils::getObjectPose(childHandle, nodeHandler,simRosGetObjectPose)) {
+			tf::Quaternion quaternion(0, 0,
+				simRosGetObjectPose.response.pose.pose.orientation.z,
+				simRosGetObjectPose.response.pose.pose.orientation.z);
+			if (getObjectWidthHeight(childHandle, objectInfo)) {
+				common::Position objectPosition;
+				if (getMinimumXYObjectCoordinate(childHandle,simRosGetObjectPose, objectPosition)) {
+					float angle = OdometryUtils::getAngleFromQuaternation(quaternion, false);
+					float celllSize = occupancyGrid.info.resolution;
+					if ((NumericUtils::isFirstGreaterEqual<float>(angle, 90 - angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, 90 + angleTolerance)) ||
+						(NumericUtils::isFirstGreaterEqual<float>(angle, 270 - angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, 270 + angleTolerance))) {
+						if (objectInfo.height < celllSize) {
+							int aux = getDataVectorPosition(objectPosition);
+							std::vector<int8_t>::iterator it;
+							it = occupancyGrid.data.begin();
+							it = it + aux;
+							int numberOfElements = ceil(objectInfo.width / celllSize);
+							occupancyGrid.data.insert(it, numberOfElements,	occupiedCell);
+							return true;
+						} else {
+							//TODO
+							return true;
+						}
+					} else if ((NumericUtils::isFirstGreaterEqual<float>(angle,	0) &&
+						NumericUtils::isFirstLessEqual<float>(angle, angleTolerance)) ||
+						(NumericUtils::isFirstGreaterEqual<float>(angle, 360 - angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, 360)) ||
+						(NumericUtils::isFirstGreaterEqual<float>(angle, 180 - angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, 180 + angleTolerance))) {
+						if (objectInfo.width < occupancyGrid.info.resolution) {
+							//occupancyGrid.data.insert(
+							//	occupancyGrid.data.begin() + getDataVectorPosition(objectPosition),
+							//	ceil(objectInfo.height / celllSize),occupiedCell);
+							//TODO - this needs a increment that is not linear though we insert can
+							//not be used
+							return true;
+						} else {
+							//TODO
+							return true;
+						}
+					} else {
+						//TODO
+						return true;
+					}
+				} else {
+					ROS_ERROR("Could not get coordinates of a children from object %s",
+						cuboidHandle);
+					return false;
+				}
+			} else {
+				ROS_ERROR("Could not get pose of a children from object %s",
+					cuboidHandle);
+				return false;
+			}
+		} else {
+			ROS_ERROR("Could not get pose of a children from object %s",
+				cuboidHandle);
+			return false;
+		}
+	} else {
+		ROS_ERROR("Object handle can not be -1");
+		return false;
+	}
 }
 
 bool PathPlanner::getMinimumXYObjectCoordinate(int32_t objecthandle,
@@ -99,6 +167,13 @@ bool PathPlanner::getMinimumXYObjectCoordinate(int32_t objecthandle,
 	} else {
 		return false;
 	}
+}
+
+int PathPlanner::getDataVectorPosition(common::Position &position) {
+	float cellResolution = occupancyGrid.info.resolution;
+	return (ceil(occupancyGrid.info.width / cellResolution) *
+		(ceil(position.y - occupancyGrid.info.origin.position.y) / cellResolution)) +
+		(ceil(position.x - occupancyGrid.info.origin.position.x) / cellResolution);
 }
 
 bool PathPlanner::getObjectWidthHeight(int32_t objectHandle,
@@ -121,7 +196,7 @@ bool PathPlanner::getObjectWidthHeight(int32_t objectHandle,
 			return false;
 		} else {
 			float minY = simRosGetObjectFloatParameter.response.parameterValue;
-			callGetFloatParameterService(objectHandle,sim_objfloatparam_modelbbox_max_x,simRosGetObjectFloatParameter);
+			callGetFloatParameterService(objectHandle,sim_objfloatparam_modelbbox_max_y,simRosGetObjectFloatParameter);
 			if(simRosGetObjectFloatParameter.response.result == responseError) {
 				return false;
 			} else {
@@ -172,7 +247,7 @@ bool PathPlanner::createPublishers() {
 
 //Main
 int main(int argc, char **argv) {
-	PathPlanner pathPlanner(argc,argv,1,10,10);
+	PathPlanner pathPlanner(argc,argv,1,10,10,10);
 	try{
 		if(pathPlanner.createServices() &&
 			pathPlanner.subscribeToTopics() &&
