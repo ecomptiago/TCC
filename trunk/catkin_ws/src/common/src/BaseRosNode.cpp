@@ -71,10 +71,10 @@ int BaseRosNode::shutdownAndExit() {
 
 int BaseRosNode::shutdownAndExit(std::exception &e){
 	ROS_ERROR("%s",e.what());
-	return this->shutdownAndExit();
+	return shutdownAndExit();
 }
 
 int BaseRosNode::infoFailCreatingTopicAndExit(const char* topicName) {
 	ROS_ERROR("Failed to create %s topic",topicName);
-	return this->shutdownAndExit();
+	return shutdownAndExit();
 }
