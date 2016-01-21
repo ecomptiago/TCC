@@ -9,6 +9,7 @@
 #define INCLUDE_PATH_PLANNER_PATHPLANNER_H_
 
 #include "vector"
+#include "stdio.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Quaternion.h"
 #include "common/BaseRosNode.h"
@@ -29,11 +30,13 @@ const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParamete
 const char* getObjectChildService = "/vrep/simRosGetObjectChild";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
-const int32_t sim_objfloatparam_modelbbox_min_x = 21;
-const int32_t sim_objfloatparam_modelbbox_max_x = 24;
-const int32_t sim_objfloatparam_modelbbox_min_y = 22;
-const int32_t sim_objfloatparam_modelbbox_max_y = 25;
+const int32_t sim_objfloatparam_modelbbox_min_x = 15;
+const int32_t sim_objfloatparam_modelbbox_max_x = 18;
+const int32_t sim_objfloatparam_modelbbox_min_y = 16;
+const int32_t sim_objfloatparam_modelbbox_max_y = 19;
 const int8_t occupiedCell = 100;
+const int8_t unknownCell = -1;
+const int8_t freeCell = 0;
 
 class PathPlanner : public BaseRosNode {
 

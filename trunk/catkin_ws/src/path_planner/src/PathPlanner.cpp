@@ -13,7 +13,10 @@ PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int 
 		this->occupancyGrid.info.resolution = cellArea;
 		this->occupancyGrid.info.width = mapWidth;
 		this->occupancyGrid.info.height = mapHeight;
-		this->occupancyGrid.data.resize((mapWidth * mapHeight) / cellArea);
+//		this->occupancyGrid.data.resize((mapWidth * mapHeight) / cellArea);
+		for(int i = 0; i < (mapWidth * mapHeight) / cellArea; i++) {
+			this->occupancyGrid.data.insert(this->occupancyGrid.data.begin(),freeCell);
+		}
 		this->angleTolerance = angleTolerance;
 }
 
@@ -45,11 +48,11 @@ int PathPlanner::runNode() {
 							}
 						} else {
 							ROS_ERROR("Could not get minimum x y of a children from object %s",floorHandle);
-							shutdownAndExit();
+							return shutdownAndExit();
 						}
 				} else {
 					ROS_ERROR("Could not get pose of a children from object %s",floorHandle);
-					shutdownAndExit();
+					return shutdownAndExit();
 				}
 			}
 			index++;
@@ -60,30 +63,46 @@ int PathPlanner::runNode() {
 		occupancyGrid.info.origin = pose;
 	} else {
 		ROS_ERROR("Could not found handle for object %s",floorHandle);
-		shutdownAndExit();
+		return shutdownAndExit();
 	}
 
 	if(VRepUtils::getObjectHandle(cuboidHandle,nodeHandler,signalObjectMap)) {
 		index = 0;
 		addObjectToOccupancyMaop(signalObjectMap[cuboidHandle]);
+		simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
+		simRosGetObjectChild.request.index = index;
+		serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
 		do{
-			simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
-			simRosGetObjectChild.request.index = index;
-			serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
 			int32_t childHandle = simRosGetObjectChild.response.childHandle;
 			if(addObjectToOccupancyMaop(childHandle)) {
 				index++;
 			} else {
-				shutdownAndExit();
+				return shutdownAndExit();
 			}
+			simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
+			simRosGetObjectChild.request.index = index;
+			serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
 		} while(simRosGetObjectChild.response.childHandle != responseError);
 	} else {
 		ROS_ERROR("Could not found handle for object %s",cuboidHandle);
-		shutdownAndExit();
+		return shutdownAndExit();
+	}
+
+	std::vector<int8_t>::iterator it;
+	it = occupancyGrid.data.begin();
+
+	while(it != occupancyGrid.data.end()) {
+		for(int i = 0;
+			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
+			i++) {
+				printf("| %d |",*it);
+				it++;
+		}
+		printf("\n");
 	}
 
 	ros::spin();
-	shutdownAndExit();
+	return shutdownAndExit();
 }
 
 bool PathPlanner::addObjectToOccupancyMaop(int32_t childHandle) {
@@ -104,12 +123,13 @@ bool PathPlanner::addObjectToOccupancyMaop(int32_t childHandle) {
 						(NumericUtils::isFirstGreaterEqual<float>(angle, 270 - angleTolerance) &&
 						NumericUtils::isFirstLessEqual<float>(angle, 270 + angleTolerance))) {
 						if (objectInfo.height < celllSize) {
-							int aux = getDataVectorPosition(objectPosition);
-							std::vector<int8_t>::iterator it;
-							it = occupancyGrid.data.begin();
-							it = it + aux;
-							int numberOfElements = ceil(objectInfo.width / celllSize);
-							occupancyGrid.data.insert(it, numberOfElements,	occupiedCell);
+							int positionToInsert = getDataVectorPosition(objectPosition);
+							int numberOfCellsOccupied = ceil(objectInfo.width / celllSize);
+							for(int i = 0; i < numberOfCellsOccupied; i++) {
+								occupancyGrid.data.at(positionToInsert + i) = occupiedCell;
+							}
+//							occupancyGrid.data.insert(occupancyGrid.data.begin() + positionToInsert,
+//								numberOfCellsOccupied,	occupiedCell);
 							return true;
 						} else {
 							//TODO
@@ -171,9 +191,12 @@ bool PathPlanner::getMinimumXYObjectCoordinate(int32_t objecthandle,
 
 int PathPlanner::getDataVectorPosition(common::Position &position) {
 	float cellResolution = occupancyGrid.info.resolution;
-	return (ceil(occupancyGrid.info.width / cellResolution) *
-		(ceil(position.y - occupancyGrid.info.origin.position.y) / cellResolution)) +
-		(ceil(position.x - occupancyGrid.info.origin.position.x) / cellResolution);
+	float yCell = round(position.y - occupancyGrid.info.origin.position.y);
+	float xCell = round(position.x - occupancyGrid.info.origin.position.x);
+	float wCell = ceil(occupancyGrid.info.width);
+	return ((wCell / cellResolution) *
+		(yCell / cellResolution)) +
+		(xCell / cellResolution);
 }
 
 bool PathPlanner::getObjectWidthHeight(int32_t objectHandle,
@@ -254,9 +277,9 @@ int main(int argc, char **argv) {
 			pathPlanner.createPublishers()) {
 				return pathPlanner.runNode();
 		} else {
-			pathPlanner.shutdownAndExit();
+			return pathPlanner.shutdownAndExit();
 		}
 	} catch (std::exception &e) {
-		pathPlanner.shutdownAndExit(e);
+		return pathPlanner.shutdownAndExit(e);
 	}
 }
