@@ -28,8 +28,7 @@ int MovimentationExecutor::runNode() {
 		}
 		sleepAndSpin(rate);
 	}
-//	shutdownAndExit();
-	return 0;
+	return shutdownAndExit();
 }
 
 geometry_msgs::Twist MovimentationExecutor::createStopMessage() {
