@@ -62,6 +62,7 @@ class NumericUtils {
 			}
 		}
 
+		static double round(double number, double middleValue);
 		static double round(double number);
 
 };
