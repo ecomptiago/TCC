@@ -9,6 +9,7 @@
 #define SRC_UTILS_NUMERICUTILS_H_
 
 #include "functional"
+#include "math.h"
 
 class NumericUtils {
 
@@ -60,6 +61,8 @@ class NumericUtils {
 				return number;
 			}
 		}
+
+		static double round(double number);
 
 };
 
