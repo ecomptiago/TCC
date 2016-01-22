@@ -9,7 +9,7 @@
 
 //Constructors
 PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int mapHeight,
-	float angleTolerance) : BaseRosNode(argc, argv, "Path_planner"){
+	float angleTolerance, double wakeUpTime) : BaseRosNode(argc, argv, "Path_planner"){
 		this->occupancyGrid.info.resolution = cellArea;
 		this->occupancyGrid.info.width = mapWidth;
 		this->occupancyGrid.info.height = mapHeight;
@@ -17,6 +17,7 @@ PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int 
 			this->occupancyGrid.data.insert(this->occupancyGrid.data.begin(),freeCell);
 		}
 		this->angleTolerance = angleTolerance;
+		this->wakeUpTime = wakeUpTime;
 }
 
 //Methods
@@ -87,20 +88,25 @@ int PathPlanner::runNode() {
 		return shutdownAndExit();
 	}
 
-	std::vector<int8_t>::iterator it;
-	it = occupancyGrid.data.begin();
+//	std::vector<int8_t>::iterator it;
+//	it = occupancyGrid.data.begin();
+//
+//	while(it != occupancyGrid.data.end()) {
+//		for(int i = 0;
+//			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
+//			i++) {
+//				printf("| %d |",*it);
+//				it++;
+//		}
+//		printf("\n");
+//	}
 
-	while(it != occupancyGrid.data.end()) {
-		for(int i = 0;
-			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
-			i++) {
-				printf("| %d |",*it);
-				it++;
-		}
-		printf("\n");
+	ros::Rate rate(1/wakeUpTime);
+	while(ros::ok()) {
+		publisherMap[mapTopic].publish(occupancyGrid);
+		sleepAndSpin(rate);
 	}
 
-	ros::spin();
 	return shutdownAndExit();
 }
 
@@ -111,44 +117,41 @@ bool PathPlanner::addObjectToOccupancyMaop(int32_t childHandle) {
 		if (VRepUtils::getObjectPose(childHandle, nodeHandler,simRosGetObjectPose)) {
 			tf::Quaternion quaternion(0, 0,
 				simRosGetObjectPose.response.pose.pose.orientation.z,
-				simRosGetObjectPose.response.pose.pose.orientation.z);
+				simRosGetObjectPose.response.pose.pose.orientation.w);
 			if (getObjectWidthHeight(childHandle, objectInfo)) {
 				common::Position objectPosition;
 				if (getMinimumXYObjectCoordinate(childHandle,simRosGetObjectPose, objectPosition)) {
 					float angle = OdometryUtils::getAngleFromQuaternation(quaternion, false);
-					float celllSize = occupancyGrid.info.resolution;
-					if ((NumericUtils::isFirstGreaterEqual<float>(angle, 90 - angleTolerance) &&
-						NumericUtils::isFirstLessEqual<float>(angle, 90 + angleTolerance)) ||
-						(NumericUtils::isFirstGreaterEqual<float>(angle, 270 - angleTolerance) &&
-						NumericUtils::isFirstLessEqual<float>(angle, 270 + angleTolerance))) {
-						if (objectInfo.height < celllSize) {
-							int positionToInsert = getDataVectorPosition(objectPosition);
-							int numberOfCellsOccupied = ceil(objectInfo.width / celllSize);
-							for(int i = 0; i < numberOfCellsOccupied; i++) {
-								occupancyGrid.data.at(positionToInsert + i) = occupiedCell;
+					float cellSize = occupancyGrid.info.resolution;
+					int positionToInsert = getDataVectorPosition(objectPosition);
+					int mapWidth = NumericUtils::round(occupancyGrid.info.width / cellSize,0.6);
+					if ((NumericUtils::isFirstGreaterEqual<float>(angle, 0) &&
+						NumericUtils::isFirstLessEqual<float>(angle, angleTolerance)) ||
+						(NumericUtils::isFirstGreaterEqual<float>(angle, -angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, 0)) ||
+						(NumericUtils::isFirstGreaterEqual<float>(angle, 180 - angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, 180)) ||
+						(NumericUtils::isFirstGreaterEqual<float>(angle, angleTolerance - 180) &&
+						NumericUtils::isFirstLessEqual<float>(angle, -180))) {
+							int numberOfCellsOccupiedX = NumericUtils::round(objectInfo.width / cellSize,0.6);
+							int numberOfCellsOccupiedY;
+							if (objectInfo.height < cellSize) {
+								numberOfCellsOccupiedY = 1;
+							} else {
+								numberOfCellsOccupiedY = ceil(objectInfo.height / cellSize);
+							}
+							for(int i = 0; i < numberOfCellsOccupiedX; i++) {
+								for(int j = 0; j <numberOfCellsOccupiedY; j++) {
+									occupancyGrid.data.at(positionToInsert + i + (j * mapWidth)) = occupiedCell;
+								}
 							}
 							return true;
-						} else {
+					} else if ((NumericUtils::isFirstGreaterEqual<float>(angle, 90 - angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, 90 + angleTolerance)) ||
+						(NumericUtils::isFirstGreaterEqual<float>(angle, -90 - angleTolerance) &&
+						NumericUtils::isFirstLessEqual<float>(angle, -90 + angleTolerance))) {
 							//TODO
 							return true;
-						}
-					} else if ((NumericUtils::isFirstGreaterEqual<float>(angle,	0) &&
-						NumericUtils::isFirstLessEqual<float>(angle, angleTolerance)) ||
-						(NumericUtils::isFirstGreaterEqual<float>(angle, 360 - angleTolerance) &&
-						NumericUtils::isFirstLessEqual<float>(angle, 360)) ||
-						(NumericUtils::isFirstGreaterEqual<float>(angle, 180 - angleTolerance) &&
-						NumericUtils::isFirstLessEqual<float>(angle, 180 + angleTolerance))) {
-						if (objectInfo.width < occupancyGrid.info.resolution) {
-							//occupancyGrid.data.insert(
-							//	occupancyGrid.data.begin() + getDataVectorPosition(objectPosition),
-							//	ceil(objectInfo.height / celllSize),occupiedCell);
-							//TODO - this needs a increment that is not linear though we insert can
-							//not be used
-							return true;
-						} else {
-							//TODO
-							return true;
-						}
 					} else {
 						//TODO
 						return true;
@@ -188,12 +191,10 @@ bool PathPlanner::getMinimumXYObjectCoordinate(int32_t objecthandle,
 
 int PathPlanner::getDataVectorPosition(common::Position &position) {
 	float cellResolution = occupancyGrid.info.resolution;
-	float yCell = NumericUtils::round(position.y - occupancyGrid.info.origin.position.y);
-	float xCell = NumericUtils::round(position.x - occupancyGrid.info.origin.position.x);
-	float wCell = NumericUtils::round(occupancyGrid.info.width);
-	return ((wCell / cellResolution) *
-		(yCell / cellResolution)) +
-		(xCell / cellResolution);
+	float yCell = NumericUtils::round(position.y - occupancyGrid.info.origin.position.y,0.6);
+	float xCell = NumericUtils::round(position.x - occupancyGrid.info.origin.position.x,0.6);
+	float wCell = NumericUtils::round(occupancyGrid.info.width,0.6);
+	return ((wCell / cellResolution) * (yCell / cellResolution)) + (xCell / cellResolution);
 }
 
 bool PathPlanner::getObjectWidthHeight(int32_t objectHandle,
@@ -260,14 +261,14 @@ bool PathPlanner::createServiceServers() {
 }
 
 bool PathPlanner::createPublishers() {
-	return true;
+	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false);
 }
 
 //Callback
 
 //Main
 int main(int argc, char **argv) {
-	PathPlanner pathPlanner(argc,argv,1,10,10,10);
+	PathPlanner pathPlanner(argc,argv,1,10,10,10,1);
 	try{
 		if(pathPlanner.createServices() &&
 			pathPlanner.subscribeToTopics() &&

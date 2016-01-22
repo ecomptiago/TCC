@@ -28,6 +28,7 @@
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
 const char* getObjectChildService = "/vrep/simRosGetObjectChild";
+const char* mapTopic = "/PathPlanner/map";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
 const int32_t sim_objfloatparam_modelbbox_min_x = 15;
@@ -46,6 +47,7 @@ class PathPlanner : public BaseRosNode {
 		std::map<std::string,int32_t> signalObjectMap;
 		nav_msgs::OccupancyGrid occupancyGrid;
 		float angleTolerance;
+		double wakeUpTime;
 
 		//Methods
 		bool createServiceClients();
@@ -62,7 +64,7 @@ class PathPlanner : public BaseRosNode {
 	public:
 		//Constructor
 		PathPlanner(int argc, char **argv, int cellArea, int mapWidth,
-			int mapHeight, float angleTolerance);
+			int mapHeight, float angleTolerance, double wakeUpTime);
 
 		//Destructor
 		virtual ~PathPlanner() {};
