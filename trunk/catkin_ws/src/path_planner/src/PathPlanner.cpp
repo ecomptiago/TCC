@@ -13,7 +13,6 @@ PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int 
 		this->occupancyGrid.info.resolution = cellArea;
 		this->occupancyGrid.info.width = mapWidth;
 		this->occupancyGrid.info.height = mapHeight;
-//		this->occupancyGrid.data.resize((mapWidth * mapHeight) / cellArea);
 		for(int i = 0; i < (mapWidth * mapHeight) / cellArea; i++) {
 			this->occupancyGrid.data.insert(this->occupancyGrid.data.begin(),freeCell);
 		}
@@ -128,8 +127,6 @@ bool PathPlanner::addObjectToOccupancyMaop(int32_t childHandle) {
 							for(int i = 0; i < numberOfCellsOccupied; i++) {
 								occupancyGrid.data.at(positionToInsert + i) = occupiedCell;
 							}
-//							occupancyGrid.data.insert(occupancyGrid.data.begin() + positionToInsert,
-//								numberOfCellsOccupied,	occupiedCell);
 							return true;
 						} else {
 							//TODO
@@ -191,9 +188,9 @@ bool PathPlanner::getMinimumXYObjectCoordinate(int32_t objecthandle,
 
 int PathPlanner::getDataVectorPosition(common::Position &position) {
 	float cellResolution = occupancyGrid.info.resolution;
-	float yCell = round(position.y - occupancyGrid.info.origin.position.y);
-	float xCell = round(position.x - occupancyGrid.info.origin.position.x);
-	float wCell = ceil(occupancyGrid.info.width);
+	float yCell = NumericUtils::round(position.y - occupancyGrid.info.origin.position.y);
+	float xCell = NumericUtils::round(position.x - occupancyGrid.info.origin.position.x);
+	float wCell = NumericUtils::round(occupancyGrid.info.width);
 	return ((wCell / cellResolution) *
 		(yCell / cellResolution)) +
 		(xCell / cellResolution);

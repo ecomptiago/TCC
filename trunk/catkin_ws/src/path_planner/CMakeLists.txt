@@ -146,7 +146,8 @@ include_directories(
 # )
 
 set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp 
-	../common/src/utils/VRepUtils.cpp ../common/src/utils/OdometryUtils.cpp)
+	../common/src/utils/VRepUtils.cpp ../common/src/utils/OdometryUtils.cpp 
+	../common/src/utils/NumericUtils.cpp)
 set (MSG_GENERATION path_planner_generate_messages_cpp)
 
 add_executable(PathPlanner ${SOURCEFILES} src/PathPlanner.cpp)
