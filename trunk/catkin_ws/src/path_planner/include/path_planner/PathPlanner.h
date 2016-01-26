@@ -24,6 +24,7 @@
 #include "path_planner/simRosGetObjectGroupData.h"
 #include "path_planner/simRosGetObjectFloatParameter.h"
 #include "path_planner/simRosGetObjectChild.h"
+#include "path_planner/search/AStar.h"
 
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
@@ -48,6 +49,7 @@ class PathPlanner : public BaseRosNode {
 		nav_msgs::OccupancyGrid occupancyGrid;
 		float angleTolerance;
 		double wakeUpTime;
+		AStar aStar;
 
 		//Methods
 		bool createServiceClients();
@@ -59,7 +61,7 @@ class PathPlanner : public BaseRosNode {
 			path_planner::simRosGetObjectFloatParameter &simRosGetObjectFloatParameter);
 		bool getObjectWidthHeight(int32_t objectHandle,	path_planner::ObjectInfo &objectInfo);
 		int getDataVectorPosition(common::Position &position);
-		bool addObjectToOccupancyMaop(int32_t childHandle);
+		bool addObjectToOccupancyMap(int32_t childHandle);
 
 	public:
 		//Constructor

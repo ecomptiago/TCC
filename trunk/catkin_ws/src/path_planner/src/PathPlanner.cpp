@@ -18,6 +18,7 @@ PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int 
 		}
 		this->angleTolerance = angleTolerance;
 		this->wakeUpTime = wakeUpTime;
+		this->aStar = AStar();
 }
 
 //Methods
@@ -68,13 +69,13 @@ int PathPlanner::runNode() {
 
 	if(VRepUtils::getObjectHandle(cuboidHandle,nodeHandler,signalObjectMap)) {
 		index = 0;
-		addObjectToOccupancyMaop(signalObjectMap[cuboidHandle]);
+		addObjectToOccupancyMap(signalObjectMap[cuboidHandle]);
 		simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
 		simRosGetObjectChild.request.index = index;
 		serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
 		do{
 			int32_t childHandle = simRosGetObjectChild.response.childHandle;
-			if(addObjectToOccupancyMaop(childHandle)) {
+			if(addObjectToOccupancyMap(childHandle)) {
 				index++;
 			} else {
 				return shutdownAndExit();
@@ -101,6 +102,8 @@ int PathPlanner::runNode() {
 //		printf("\n");
 //	}
 
+	aStar.setOccupancyGrid(occupancyGrid);
+
 	ros::Rate rate(1/wakeUpTime);
 	while(ros::ok()) {
 		publisherMap[mapTopic].publish(occupancyGrid);
@@ -110,7 +113,7 @@ int PathPlanner::runNode() {
 	return shutdownAndExit();
 }
 
-bool PathPlanner::addObjectToOccupancyMaop(int32_t childHandle) {
+bool PathPlanner::addObjectToOccupancyMap(int32_t childHandle) {
 	if (childHandle != responseError) {
 		common::simRosGetObjectPose simRosGetObjectPose;
 		path_planner::ObjectInfo objectInfo;
