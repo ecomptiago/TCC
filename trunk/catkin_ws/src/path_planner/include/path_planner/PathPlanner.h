@@ -16,7 +16,6 @@
 #include "common/v_repConst.h"
 #include "common/utils/VRepUtils.h"
 #include "common/utils/OdometryUtils.h"
-#include "common/utils/NumericUtils.h"
 #include "common/utils/MatrixUtils.h"
 #include "common/simRosGetObjectPose.h"
 #include "common/Position.h"
@@ -25,6 +24,7 @@
 #include "path_planner/simRosGetObjectFloatParameter.h"
 #include "path_planner/simRosGetObjectChild.h"
 #include "path_planner/search/AStar.h"
+#include "path_planner/utils/PathPlannerUtils.h"
 
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
@@ -32,6 +32,7 @@ const char* getObjectChildService = "/vrep/simRosGetObjectChild";
 const char* mapTopic = "/PathPlanner/map";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
+const char* pionnerHandle = "Pionner_LX";
 const int32_t sim_objfloatparam_modelbbox_min_x = 15;
 const int32_t sim_objfloatparam_modelbbox_max_x = 18;
 const int32_t sim_objfloatparam_modelbbox_min_y = 16;
@@ -60,7 +61,6 @@ class PathPlanner : public BaseRosNode {
 		void callGetFloatParameterService(int32_t objectHandle, int32_t parameterID,
 			path_planner::simRosGetObjectFloatParameter &simRosGetObjectFloatParameter);
 		bool getObjectWidthHeight(int32_t objectHandle,	path_planner::ObjectInfo &objectInfo);
-		int getDataVectorPosition(common::Position &position);
 		bool addObjectToOccupancyMap(int32_t childHandle);
 
 	public:

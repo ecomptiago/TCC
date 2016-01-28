@@ -8,8 +8,10 @@
 #ifndef INCLUDE_PATH_PLANNER_SEARCH_ASTAR_H_
 #define INCLUDE_PATH_PLANNER_SEARCH_ASTAR_H_
 
+#include "stdio.h"
 #include "SearchAlgorithmInterface .h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "path_planner/utils/PathPlannerUtils.h"
 
 class AStar: public SearchAlgorithmInterface{
 
@@ -24,7 +26,8 @@ class AStar: public SearchAlgorithmInterface{
 		virtual ~AStar() {};
 
 		//Methods
-		virtual bool findPathToGoal(common::Position &position);
+		virtual bool findPathToGoal(common::Position &initialPosition,
+			common::Position &targetPosition);
 		void setOccupancyGrid(nav_msgs::OccupancyGrid &occupancyGrid);
 };
 
