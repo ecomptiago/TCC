@@ -11,7 +11,7 @@ double NumericUtils::round(double number, double middleValue) {
 	double fractpart;
 	double intpart;
 	fractpart = modf (number , &intpart);
-	if(fractpart < 0.6) {
+	if(fractpart < middleValue) {
 		return intpart;
 	} else {
 		return intpart + 1;

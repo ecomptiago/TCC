@@ -89,20 +89,39 @@ int PathPlanner::runNode() {
 		return shutdownAndExit();
 	}
 
-//	std::vector<int8_t>::iterator it;
-//	it = occupancyGrid.data.begin();
-//
-//	while(it != occupancyGrid.data.end()) {
-//		for(int i = 0;
-//			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
-//			i++) {
-//				printf("| %d |",*it);
-//				it++;
-//		}
-//		printf("\n");
-//	}
+	std::vector<int8_t>::iterator it;
+	it = occupancyGrid.data.begin();
 
-	aStar.setOccupancyGrid(occupancyGrid);
+	while(it != occupancyGrid.data.end()) {
+		for(int i = 0;
+			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
+			i++) {
+				printf("| %d |",*it);
+				it++;
+		}
+		printf("\n");
+	}
+
+	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
+		common::simRosGetObjectPose simRosGetObjectPose;
+		aStar.setOccupancyGrid(occupancyGrid);
+		if(VRepUtils::getObjectPose(signalObjectMap[pionnerHandle], nodeHandler,simRosGetObjectPose)) {
+			common::Position targetPosition;
+			targetPosition.x = -2.35;
+			targetPosition.y = 9.14;
+
+			common::Position initialPosition;
+			initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
+			initialPosition.y = simRosGetObjectPose.response.pose.pose.position.y;
+
+			if(aStar.findPathToGoal(initialPosition ,targetPosition)) {
+
+			}
+
+		}
+	}
+
+
 
 	ros::Rate rate(1/wakeUpTime);
 	while(ros::ok()) {
@@ -126,7 +145,7 @@ bool PathPlanner::addObjectToOccupancyMap(int32_t childHandle) {
 				if (getMinimumXYObjectCoordinate(childHandle,simRosGetObjectPose, objectPosition)) {
 					float angle = OdometryUtils::getAngleFromQuaternation(quaternion, false);
 					float cellSize = occupancyGrid.info.resolution;
-					int positionToInsert = getDataVectorPosition(objectPosition);
+					int positionToInsert = PathPlannerUtils::getDataVectorPosition(occupancyGrid, objectPosition);
 					int mapWidth = NumericUtils::round(occupancyGrid.info.width / cellSize,0.6);
 					if ((NumericUtils::isFirstGreaterEqual<float>(angle, 0) &&
 						NumericUtils::isFirstLessEqual<float>(angle, angleTolerance)) ||
@@ -190,14 +209,6 @@ bool PathPlanner::getMinimumXYObjectCoordinate(int32_t objecthandle,
 	} else {
 		return false;
 	}
-}
-
-int PathPlanner::getDataVectorPosition(common::Position &position) {
-	float cellResolution = occupancyGrid.info.resolution;
-	float yCell = NumericUtils::round(position.y - occupancyGrid.info.origin.position.y,0.6);
-	float xCell = NumericUtils::round(position.x - occupancyGrid.info.origin.position.x,0.6);
-	float wCell = NumericUtils::round(occupancyGrid.info.width,0.6);
-	return ((wCell / cellResolution) * (yCell / cellResolution)) + (xCell / cellResolution);
 }
 
 bool PathPlanner::getObjectWidthHeight(int32_t objectHandle,

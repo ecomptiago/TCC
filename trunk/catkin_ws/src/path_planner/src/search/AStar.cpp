@@ -11,11 +11,19 @@ AStar::AStar() {
 	this->occupancyGridPointer = NULL;
 }
 
-bool AStar::findPathToGoal(common::Position &position) {
-	if(occupancyGridPointer == NULL) {
-		return false;
-	}
-	return true;
+bool AStar::findPathToGoal(common::Position &initialPosition,
+	common::Position &targetPosition) {
+		if(occupancyGridPointer == NULL) {
+			return false;
+		} else {
+			ROS_DEBUG("initial: %d final: %d",
+				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, initialPosition),
+				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, targetPosition));
+//			GridCell gridCell(1);
+//			gridCell.calculateHeuristicValue(0);
+
+			return true;
+		}
 }
 
 void AStar::setOccupancyGrid(nav_msgs::OccupancyGrid &occupancyGrid) {

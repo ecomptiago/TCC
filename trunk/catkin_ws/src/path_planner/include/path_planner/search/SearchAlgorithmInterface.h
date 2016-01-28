@@ -10,13 +10,14 @@
 
 #include "common/Position.h"
 
-class SearchAlgorithmInterface{
+class SearchAlgorithmInterface {
 	public:
 		//Destructor
 		virtual ~SearchAlgorithmInterface () {};
 
 		//Methods
-		virtual bool findPathToGoal(common::Position &position) = 0;
+		virtual bool findPathToGoal(common::Position &initialPosition,
+			common::Position &targetPosition) = 0;
 };
 
 #endif /* INCLUDE_PATH_PLANNER_SEARCH_SEARCHALGORITHMINTERFACE__H_ */
