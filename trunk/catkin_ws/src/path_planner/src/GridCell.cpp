@@ -49,4 +49,3 @@ void GridCell::setPosition(int position) {
 bool GridCell::calculateHeuristicValue(int targetPosition){
 	return true;
 }
-
