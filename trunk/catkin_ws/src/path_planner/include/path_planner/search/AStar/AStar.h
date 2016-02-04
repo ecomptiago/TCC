@@ -11,17 +11,17 @@
 #include "map"
 #include "string"
 #include "ros/ros.h"
-#include "SearchAlgorithmInterface.h"
 #include "nav_msgs/OccupancyGrid.h"
-#include "path_planner/GridCell.h"
+#include "path_planner/search/SearchAlgorithmInterface.h"
+#include "path_planner/search/AStar/AStarGridCell.h"
 #include "path_planner/utils/PathPlannerUtils.h"
 
 class AStar: public SearchAlgorithmInterface{
 
 	private:
 		nav_msgs::OccupancyGrid *occupancyGridPointer;
-		std::map<int,GridCell> openNodes;
-		std::map<int,GridCell> closedNodes;
+		std::map<int,AStarGridCell> openNodes;
+		std::map<int,AStarGridCell> closedNodes;
 
 	public:
 		//Constructor

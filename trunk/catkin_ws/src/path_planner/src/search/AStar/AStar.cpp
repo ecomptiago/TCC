@@ -5,7 +5,7 @@
  *      Author: tcoelho
  */
 
-#include "path_planner/search/AStar.h"
+#include "path_planner/search/AStar/AStar.h"
 
 AStar::AStar() {
 	this->occupancyGridPointer = NULL;
@@ -19,8 +19,9 @@ bool AStar::findPathToGoal(common::Position &initialPosition,
 			ROS_DEBUG("initial: %d final: %d",
 				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, initialPosition),
 				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, targetPosition));
-//			GridCell gridCell(1);
-//			gridCell.calculateHeuristicValue(0);
+
+			AStarGridCell aStarGridCell;
+			aStarGridCell.calculateCellCost(0);
 
 			return true;
 		}

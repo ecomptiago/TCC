@@ -79,6 +79,7 @@ int PathPlanner::runNode() {
 				index++;
 			} else {
 				return shutdownAndExit();
+
 			}
 			simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
 			simRosGetObjectChild.request.index = index;
@@ -89,18 +90,18 @@ int PathPlanner::runNode() {
 		return shutdownAndExit();
 	}
 
-	std::vector<int8_t>::iterator it;
-	it = occupancyGrid.data.begin();
-
-	while(it != occupancyGrid.data.end()) {
-		for(int i = 0;
-			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
-			i++) {
-				printf("| %d |",*it);
-				it++;
-		}
-		printf("\n");
-	}
+//	std::vector<int8_t>::iterator it;
+//	it = occupancyGrid.data.begin();
+//
+//	while(it != occupancyGrid.data.end()) {
+//		for(int i = 0;
+//			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
+//			i++) {
+//				printf("| %d |",*it);
+//				it++;
+//		}
+//		printf("\n");
+//	}
 
 	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
 		common::simRosGetObjectPose simRosGetObjectPose;
