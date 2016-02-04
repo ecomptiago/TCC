@@ -37,7 +37,6 @@ class BaseGridCell: public GridCellInterface{
 		virtual bool calculateCellCost(int initialGridPosition) {
 			MethodNotImplementedError error(__func__,"BaseGridCell");
 		}
-
 };
 
 #endif /* PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_SEARCH_BASEGRIDCELL_H_ */

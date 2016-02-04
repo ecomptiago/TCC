@@ -44,3 +44,4 @@ void AStarGridCell::copy(AStarGridCell& aStarGridCell) {
 	this->cost = aStarGridCell.cost;
 	this->targetCoordinates = aStarGridCell.targetCoordinates;
 }
+

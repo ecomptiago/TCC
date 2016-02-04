@@ -30,6 +30,7 @@ class AStarGridCell: public BaseGridCell<float> {
 		//Methods
 		bool calculateCellCost(int initialPosition);
 		void copy(AStarGridCell &aStarGridCell);
+
 };
 
 #endif /* PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_SEARCH_ASTAR_ASTARGRIDCELL_H_ */
