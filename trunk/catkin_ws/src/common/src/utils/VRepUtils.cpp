@@ -7,6 +7,23 @@
 
 #include "../../include/common/utils/VRepUtils.h"
 
+bool VRepUtils::getObjectHandle(const char* objectHandleName,
+	ros::NodeHandle &nodeHandle,std::map<std::string,int32_t> &signalObjectMap) {
+		common::simRosGetObjectHandle simRosGetObjectHandle;
+		simRosGetObjectHandle.request.objectName = objectHandleName;
+		ros::ServiceClient client = nodeHandle.serviceClient
+			<common::simRosGetObjectHandle>("/vrep/simRosGetObjectHandle");
+		client.call(simRosGetObjectHandle);
+		if(simRosGetObjectHandle.response.handle != responseError) {
+			ROS_DEBUG("Got %d int handle for %s", simRosGetObjectHandle.response.handle,
+				objectHandleName);
+			signalObjectMap[objectHandleName] = simRosGetObjectHandle.response.handle;
+			return true;
+		} else {
+			return false;
+		}
+}
+
 bool VRepUtils::getObjectPose(int32_t objectHandle,ros::NodeHandle &nodeHandle,
 	common::simRosGetObjectPose &simRosGetObjectPose) {
 		simRosGetObjectPose.request.handle = objectHandle;
