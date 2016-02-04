@@ -23,7 +23,7 @@
 #include "path_planner/simRosGetObjectGroupData.h"
 #include "path_planner/simRosGetObjectFloatParameter.h"
 #include "path_planner/simRosGetObjectChild.h"
-#include "path_planner/search/AStar.h"
+#include "path_planner/search/AStar/AStar.h"
 #include "path_planner/utils/PathPlannerUtils.h"
 
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";

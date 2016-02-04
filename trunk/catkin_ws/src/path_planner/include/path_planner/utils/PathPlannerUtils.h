@@ -11,7 +11,6 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "common/Position.h"
 #include "common/utils/NumericUtils.h"
-#include "path_planner/GridCell.h"
 
 class PathPlannerUtils {
 
