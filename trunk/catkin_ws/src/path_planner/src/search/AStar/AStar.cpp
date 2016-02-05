@@ -24,39 +24,59 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 			ROS_DEBUG("initial cell: %d target cell: %d",initialCell,targetCell);
 
 			AStarGridCell aStarGridCell(initialCoordinates,targetCoordinates,initialCell);
-			aStarGridCell.calculateCellCost(initialCell);
+			aStarGridCell.setGCost(0);
+			aStarGridCell.calculateCellCost();
 			openNodes[initialCell] = aStarGridCell;
 
-			if(!openNodes.empty()) {
+			while(!openNodes.empty()) {
 				AStarGridCell aStarGridCellSmallerCost;
-				if(getCellWithSmallerCostOpenNodes(aStarGridCellSmallerCost)) {
-					closedNodes[aStarGridCellSmallerCost.cellGridPosition] =
-						aStarGridCellSmallerCost;
-					openNodes.erase(aStarGridCellSmallerCost.cellGridPosition);
+				getCellWithSmallerCostOpenNodes(aStarGridCellSmallerCost);
+				closedNodes[aStarGridCellSmallerCost.cellGridPosition] =
+					aStarGridCellSmallerCost;
+				openNodes.erase(aStarGridCellSmallerCost.cellGridPosition);
+				if(aStarGridCellSmallerCost.cellGridPosition ==  targetCell) {
 					return true;
 				} else {
-					return false;
+
+					std::vector<AStarGridCell> neighbours(4);
+					aStarGridCellSmallerCost.getCellNeighbours(neighbours,*occupancyGridPointer);
+
+					std::vector<AStarGridCell>::iterator neighboursIterator;
+					neighboursIterator = neighbours.begin();
+					while(neighboursIterator != neighbours.end()) {
+//
+						std::map<int,AStarGridCell>::iterator openNodesIterator =
+							openNodes.find(((AStarGridCell)*neighboursIterator).cellGridPosition);
+						std::map<int,AStarGridCell>::iterator closedNodesIterator =
+							closedNodes.find(((AStarGridCell)*neighboursIterator).cellGridPosition);
+						if(closedNodesIterator != closedNodes.end()) {
+							continue;
+						} else if(openNodesIterator != openNodes.end()) {
+							if(occupancyGridPointer->data[((AStarGridCell)*neighboursIterator).cellGridPosition] == 100) {
+								((AStarGridCell)*neighboursIterator).setGCost(infiniteCost);
+							} else {
+								((AStarGridCell)*neighboursIterator).setGCost(aStarGridCellSmallerCost.getGCost() + 1);
+							}
+							((AStarGridCell)*neighboursIterator).calculateCellCost();
+							openNodes[((AStarGridCell)*neighboursIterator).cellGridPosition]  = (AStarGridCell)*neighboursIterator;
+							aStarGridCellSmallerCost.getSuccessors().push_back((AStarGridCell)*neighboursIterator);
+						}
+//						((AStarGridCell)*neighboursIterator).setComingFromCell(aStarGridCellSmallerCost);
+					}
 				}
-
-			} else {
-				return false;
 			}
-
 		}
+		return true;
 }
 
-bool AStar::getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell) {
+void AStar::getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell) {
 	AStarGridCell aStarGridCellSmalleCost;
-	if(openNodes.empty()) {
-		return false;
-	}
 	aStarGridCellSmalleCost.copy(openNodes[0]);
 	for(int i = 1; i < openNodes.size(); i++) {
 		if(NumericUtils::isFirstLess<float>(openNodes[i].cost,aStarGridCell.cost)) {
 			aStarGridCellSmalleCost.copy(openNodes[0]);
 		}
 	}
-	return true;
 }
 
 void AStar::setOccupancyGrid(nav_msgs::OccupancyGrid &occupancyGrid) {

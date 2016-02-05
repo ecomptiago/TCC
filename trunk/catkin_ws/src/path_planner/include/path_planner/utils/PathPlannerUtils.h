@@ -20,10 +20,10 @@ class PathPlannerUtils {
 		virtual ~PathPlannerUtils() {};
 
 		//Methods
-//		static GridCell getCellFromPosition(common::Position &position);
-
 		static int getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGrid,
 			common::Position &position);
+		static void getCoordinatesFromDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGrid,
+			common::Position &position, int dataVectorPosition);
 };
 
 #endif /* PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_UTILS_PATHPLANNERUTILS_H_ */

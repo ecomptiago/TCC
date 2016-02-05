@@ -34,7 +34,7 @@ class BaseGridCell: public GridCellInterface{
 		virtual ~BaseGridCell() {};
 
 		//Methods
-		virtual bool calculateCellCost(int initialGridPosition) {
+		virtual bool calculateCellCost() {
 			MethodNotImplementedError error(__func__,"BaseGridCell");
 		}
 };
