@@ -10,6 +10,7 @@
 
 #include "map"
 #include "string"
+#include "vector"
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "path_planner/search/SearchAlgorithmInterface.h"
@@ -33,7 +34,7 @@ class AStar: public SearchAlgorithmInterface{
 		//Methods
 		virtual bool findPathToGoal(common::Position &initialCoordinates,
 			common::Position &targetCoordinates);
-		bool getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell);
+		void getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell);
 
 		//Getters and setters
 		void setOccupancyGrid(nav_msgs::OccupancyGrid &occupancyGrid);

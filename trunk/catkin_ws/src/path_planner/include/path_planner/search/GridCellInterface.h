@@ -15,7 +15,7 @@ class GridCellInterface {
 		//Destructor
 		virtual ~GridCellInterface(){};
 
-		virtual bool calculateCellCost(int initialGridPosition) = 0;
+		virtual bool calculateCellCost() = 0;
 };
 
 #endif /* PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_SEARCH_GRIDCELLINTERFACE_H_ */
