@@ -20,9 +20,16 @@
 class AStar: public SearchAlgorithmInterface{
 
 	private:
+
+		//Attributes
 		nav_msgs::OccupancyGrid *occupancyGridPointer;
 		std::map<int,AStarGridCell> openNodes;
 		std::map<int,AStarGridCell> closedNodes;
+
+		//Methods
+		void getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell);
+		bool successorsContainsCell(std::pair<const int, AStarGridCell> &aStarGridCell, int targetCell);
+		void getCellWithSmallerCostAndSuccessor(int targetCell, std::vector<AStarGridCell> &path);
 
 	public:
 		//Constructor
@@ -34,7 +41,8 @@ class AStar: public SearchAlgorithmInterface{
 		//Methods
 		virtual bool findPathToGoal(common::Position &initialCoordinates,
 			common::Position &targetCoordinates);
-		void getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell);
+		void reconstructPath(std::vector<AStarGridCell> &path, common::Position &targetCoordinates,
+			common::Position &initialCoordinates);
 
 		//Getters and setters
 		void setOccupancyGrid(nav_msgs::OccupancyGrid &occupancyGrid);

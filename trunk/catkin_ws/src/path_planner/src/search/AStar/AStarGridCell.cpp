@@ -34,15 +34,18 @@ void AStarGridCell::copy(AStarGridCell& aStarGridCell) {
 	this->cellGridPosition = aStarGridCell.cellGridPosition;
 	this->cost = aStarGridCell.cost;
 	this->targetCoordinates = aStarGridCell.targetCoordinates;
+	this->gCost = aStarGridCell.gCost;
+	if(aStarGridCell.successors.size() > 0){
+		this->successors[0] = aStarGridCell.successors[0];
+	}
 }
 
-void AStarGridCell::addNodeToNeighbours(int rightCell,nav_msgs::OccupancyGrid& occupancyGrid,
+void AStarGridCell::addNodeToNeighbours(int cellGridPosition,nav_msgs::OccupancyGrid& occupancyGrid,
 	std::vector<AStarGridCell>& neighbours) {
 		common::Position position;
 		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
-			position, rightCell);
-		neighbours.push_back(
-			AStarGridCell(position, targetCoordinates, rightCell));
+			position, cellGridPosition);
+		neighbours.push_back(AStarGridCell(position, targetCoordinates, cellGridPosition));
 }
 
 void AStarGridCell::getCellNeighbours(std::vector<AStarGridCell> &neighbours,
@@ -65,6 +68,7 @@ void AStarGridCell::getCellNeighbours(std::vector<AStarGridCell> &neighbours,
 		if (belowCell > 0) {
 			addNodeToNeighbours(belowCell, occupancyGrid, neighbours);
 		}
+
 }
 
 //Getters and setters

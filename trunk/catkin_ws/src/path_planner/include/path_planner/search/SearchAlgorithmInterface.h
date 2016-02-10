@@ -8,7 +8,9 @@
 #ifndef INCLUDE_PATH_PLANNER_SEARCH_SEARCHALGORITHMINTERFACE__H_
 #define INCLUDE_PATH_PLANNER_SEARCH_SEARCHALGORITHMINTERFACE__H_
 
+#include "vector"
 #include "common/Position.h"
+#include "path_planner/search/GridCellInterface.h"
 
 class SearchAlgorithmInterface {
 	public:

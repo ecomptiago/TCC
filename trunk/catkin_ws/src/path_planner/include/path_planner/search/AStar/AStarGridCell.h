@@ -28,7 +28,7 @@ class AStarGridCell: public BaseGridCell<float> {
 		std::vector<AStarGridCell> successors;
 
 		//Methods
-		void addNodeToNeighbours(int rightCell,
+		void addNodeToNeighbours(int cellGridPosition,
 			nav_msgs::OccupancyGrid& occupancyGrid,
 			std::vector<AStarGridCell>& neighbours);
 

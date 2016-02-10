@@ -108,17 +108,19 @@ int PathPlanner::runNode() {
 		aStar.setOccupancyGrid(occupancyGrid);
 		if(VRepUtils::getObjectPose(signalObjectMap[pionnerHandle], nodeHandler,simRosGetObjectPose)) {
 			common::Position targetPosition;
-			targetPosition.x = -2.35;
-			targetPosition.y = 9.14;
+//			targetPosition.x = -2.35;
+//			targetPosition.y = 9.14;
+			targetPosition.x = -0.74;
+			targetPosition.y = 2.23;
 
 			common::Position initialPosition;
 			initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
 			initialPosition.y = simRosGetObjectPose.response.pose.pose.position.y;
 
 			if(aStar.findPathToGoal(initialPosition ,targetPosition)) {
-
+				std::vector<AStarGridCell> path;
+				aStar.reconstructPath(path, targetPosition,initialPosition);
 			}
-
 		}
 	}
 
