@@ -17,7 +17,7 @@
 
 #include "std_msgs/String.h"
 #include "common/BaseRosNode.h"
-#include "controlador_de_trajetoria/Position.h"
+#include "common/Position.h"
 
 const char* actualRobotPositionTopic = "Position_handler/actual_robot_position";
 const char* poseTopic = "/RosAria/pose";
@@ -31,7 +31,7 @@ class PositionHandler :public BaseRosNode{
 		problem is that it can not be instantied before
 		calling ros::init*/
 		ros::NodeHandle nodeHandler;
-		controlador_de_trajetoria::Position position;
+		common::Position position;
 		float actualRobotPositionDelay; //This is in seconds
 
 	public:

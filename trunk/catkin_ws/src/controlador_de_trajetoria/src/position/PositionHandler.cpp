@@ -27,7 +27,7 @@ bool PositionHandler::subscribeToTopics() {
 
 bool PositionHandler::createPublishers() {
 	ROS_INFO("Creating publishers");
-	return addPublisherClient<controlador_de_trajetoria::Position>(nodeHandler, actualRobotPositionTopic, false);
+	return addPublisherClient<common::Position>(nodeHandler, actualRobotPositionTopic, false);
 }
 
 bool PositionHandler::createTimers() {

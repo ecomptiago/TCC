@@ -154,9 +154,9 @@ set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImpl
 	src/messages/MoveRobotWrapper.cpp)
 set (MSG_GENERATION controlador_de_trajetoria_generate_messages_cpp)
 
-add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)
-target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
-add_dependencies(MessagesHandler ${MSG_GENERATION})
+#add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)
+#target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
+#add_dependencies(MessagesHandler ${MSG_GENERATION})
 
 add_executable(MovimentationExecutor ${SOURCEFILES} src/movimentation/MovimentationExecutor.cpp)
 target_link_libraries(MovimentationExecutor ${catkin_LIBRARIES})
