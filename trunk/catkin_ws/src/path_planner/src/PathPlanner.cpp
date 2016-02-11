@@ -90,18 +90,8 @@ int PathPlanner::runNode() {
 		return shutdownAndExit();
 	}
 
-//	std::vector<int8_t>::iterator it;
-//	it = occupancyGrid.data.begin();
-//
-//	while(it != occupancyGrid.data.end()) {
-//		for(int i = 0;
-//			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
-//			i++) {
-//				printf("| %d |",*it);
-//				it++;
-//		}
-//		printf("\n");
-//	}
+	std::vector<int8_t>::iterator it;
+	it = occupancyGrid.data.begin();
 
 	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
 		common::simRosGetObjectPose simRosGetObjectPose;
@@ -120,11 +110,18 @@ int PathPlanner::runNode() {
 			if(aStar.findPathToGoal(initialPosition ,targetPosition)) {
 				std::vector<AStarGridCell> path;
 				aStar.reconstructPath(path, targetPosition,initialPosition);
+
+				std::vector<AStarGridCell>::iterator it;
+				it = path.begin();
+
+				ROS_DEBUG("Path found: ");
+				while(it != path.end()) {
+					ROS_DEBUG(" %d ",((AStarGridCell)*it).cellGridPosition);
+					it++;
+				}
 			}
 		}
 	}
-
-
 
 	ros::Rate rate(1/wakeUpTime);
 	while(ros::ok()) {

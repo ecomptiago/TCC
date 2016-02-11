@@ -14,12 +14,10 @@ AStarGridCell::AStarGridCell(common::Position cellCoordinates,
 		this->cellCoordinates = cellCoordinates;
 		this->targetCoordinates = targetCoordinates;
 		this->gCost = infiniteCost;
-//		this->comingFromCell = NULL;
 }
 
 AStarGridCell::AStarGridCell(): BaseGridCell() {
 	this->gCost = infiniteCost;
-//	this->comingFromCell = NULL;
 }
 
 //Methods
@@ -35,8 +33,8 @@ void AStarGridCell::copy(AStarGridCell& aStarGridCell) {
 	this->cost = aStarGridCell.cost;
 	this->targetCoordinates = aStarGridCell.targetCoordinates;
 	this->gCost = aStarGridCell.gCost;
-	if(aStarGridCell.successors.size() > 0){
-		this->successors[0] = aStarGridCell.successors[0];
+	if(aStarGridCell.getSuccessors().size() > 0){
+		setSuccessors(aStarGridCell.getSuccessors());
 	}
 }
 
@@ -50,25 +48,24 @@ void AStarGridCell::addNodeToNeighbours(int cellGridPosition,nav_msgs::Occupancy
 
 void AStarGridCell::getCellNeighbours(std::vector<AStarGridCell> &neighbours,
 	nav_msgs::OccupancyGrid &occupancyGrid) {
-		int rightCell = cellGridPosition + 1;
-		int leftCell = cellGridPosition - 1;
-		int upperCell = cellGridPosition +
-			(occupancyGrid.info.height / occupancyGrid.info.resolution);
-		int belowCell = cellGridPosition -
-			(occupancyGrid.info.height / occupancyGrid.info.resolution);
-		if (rightCell < occupancyGrid.data.size()) {
-			addNodeToNeighbours(rightCell, occupancyGrid, neighbours);
+		int columns = occupancyGrid.info.width / occupancyGrid.info.resolution;
+		int rows = occupancyGrid.info.height / occupancyGrid.info.resolution;
+		//Verifying if cell has an upper cell
+		if(cellGridPosition < (columns * (rows - 1))) {
+			addNodeToNeighbours(cellGridPosition + columns, occupancyGrid, neighbours);
 		}
-		if (leftCell > 0) {
-			addNodeToNeighbours(leftCell, occupancyGrid, neighbours);
+		//Verifying if cell has a cell below it
+		if(cellGridPosition > columns - 1) {
+			addNodeToNeighbours(cellGridPosition - columns, occupancyGrid, neighbours);
 		}
-		if (upperCell < occupancyGrid.data.size()) {
-			addNodeToNeighbours(upperCell, occupancyGrid, neighbours);
+		//Verifying if cell has a cell in the right
+		if(cellGridPosition % (columns - 1) != 0 ) {
+			addNodeToNeighbours(cellGridPosition + 1, occupancyGrid, neighbours);
 		}
-		if (belowCell > 0) {
-			addNodeToNeighbours(belowCell, occupancyGrid, neighbours);
+		//Verifying if cell has a cell in the left
+		if(cellGridPosition % columns != 0) {
+			addNodeToNeighbours(cellGridPosition - 1, occupancyGrid, neighbours);
 		}
-
 }
 
 //Getters and setters
@@ -80,18 +77,13 @@ void AStarGridCell::setGCost(int gCost) {
 	this->gCost = gCost;
 }
 
-//AStarGridCell*& AStarGridCell::getComingFromCell(){
-//	return comingFromCell;
-//}
-//
-//void AStarGridCell::setComingFromCell(AStarGridCell &comingFromCell) {
-//	this->comingFromCell = &comingFromCell;
-//}
-
 std::vector<AStarGridCell>& AStarGridCell::getSuccessors() {
 	return successors;
 }
 
 void AStarGridCell::setSuccessors(std::vector<AStarGridCell>& successors) {
-	this->successors = successors;
+	this->successors.resize(successors.size());
+	for(int i = 0; i < successors.size(); i++) {
+		this->successors.at(i) = successors.at(i);
+	}
 }

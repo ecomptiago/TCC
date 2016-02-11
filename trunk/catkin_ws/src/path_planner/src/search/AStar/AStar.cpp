@@ -58,6 +58,10 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 				AStarGridCell aStarGridCellSmallerCost;
 				getCellWithSmallerCostOpenNodes(aStarGridCellSmallerCost);
 
+				std::vector<AStarGridCell> neighbours;
+				aStarGridCellSmallerCost.getCellNeighbours(neighbours,*occupancyGridPointer);
+				aStarGridCellSmallerCost.setSuccessors(neighbours);
+
 				ROS_DEBUG("Got node with position %d and cost %f",aStarGridCellSmallerCost.cellGridPosition, aStarGridCellSmallerCost.cost);
 				closedNodes[aStarGridCellSmallerCost.cellGridPosition] =
 					aStarGridCellSmallerCost;
@@ -65,11 +69,8 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 				if(aStarGridCellSmallerCost.cellGridPosition ==  targetCell) {
 					return true;
 				} else {
-					std::vector<AStarGridCell> neighbours;
-					aStarGridCellSmallerCost.getCellNeighbours(neighbours,*occupancyGridPointer);
-					aStarGridCellSmallerCost.setSuccessors(neighbours);
-					for(int i = 0; i < neighbours.size(); i++) {
-						AStarGridCell aStarGridCellNeighbour = neighbours[i];
+					for(int i = 0; i < aStarGridCellSmallerCost.getSuccessors().size(); i++) {
+						AStarGridCell aStarGridCellNeighbour = aStarGridCellSmallerCost.getSuccessors()[i];
 						std::map<int,AStarGridCell>::iterator openNodesIterator =
 							openNodes.find(aStarGridCellNeighbour.cellGridPosition);
 						std::map<int,AStarGridCell>::iterator closedNodesIterator =
@@ -115,37 +116,41 @@ void AStar::getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell) {
 void AStar::reconstructPath(std::vector<AStarGridCell> &path, common::Position &targetCoordinates, common::Position &initialCoordinates) {
 	int initialCell = PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, initialCoordinates);
 	int targetCell = PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, targetCoordinates);
-	path.push_back(closedNodes[targetCell]);
-	std::vector<AStarGridCell>::iterator pathIterator = path.begin();
-	while(((AStarGridCell)*pathIterator).cellGridPosition != initialCell) {
-		getCellWithSmallerCostAndSuccessor(((AStarGridCell)*pathIterator).cellGridPosition, path);
-		pathIterator = path.begin();
+
+	std::map<int,AStarGridCell>::iterator closedNodesIterator =
+		closedNodes.find(targetCell);
+	if(closedNodesIterator != closedNodes.end()) {
+
+		path.push_back(closedNodes[targetCell]);
+		while(path.back().cellGridPosition != initialCell) {
+			getCellWithSmallerCostAndSuccessor(path.back().cellGridPosition, path);
+		}
+	} else {
+		ROS_ERROR("Target node %d not in closed nodes", targetCell);
 	}
 }
 
 void AStar::getCellWithSmallerCostAndSuccessor(int targetCell, std::vector<AStarGridCell> &path) {
 	std::map<int,AStarGridCell>::iterator closedNodesIterator = closedNodes.begin();
-	AStarGridCell *tempAStarGridCell = NULL;
+	AStarGridCell tempAStarGridCell;
+	tempAStarGridCell.calculateCellCost();
 	while(closedNodesIterator != closedNodes.end()) {
 	std::pair<const int, AStarGridCell> aStarGridCellMapPair(*closedNodesIterator);
 		if(successorsContainsCell(aStarGridCellMapPair, targetCell)) {
-			if(tempAStarGridCell == NULL || NumericUtils::isFirstLessEqual(aStarGridCellMapPair.second.cost, tempAStarGridCell->cost)) {
-				tempAStarGridCell = &aStarGridCellMapPair.second;
+			if(NumericUtils::isFirstLessEqual(aStarGridCellMapPair.second.cost, tempAStarGridCell.cost)) {
+				tempAStarGridCell.copy(aStarGridCellMapPair.second);
 			}
 		}
 		closedNodesIterator++;
 	}
-	path.push_back(*tempAStarGridCell);
+	path.push_back(tempAStarGridCell);
 }
 
 bool AStar::successorsContainsCell(std::pair<const int, AStarGridCell> &aStarGridCell, int targetCell) {
-	std::vector<AStarGridCell>::iterator successorsVectorIterator;
-	successorsVectorIterator = aStarGridCell.second.getSuccessors().begin();
-	while(successorsVectorIterator != aStarGridCell.second.getSuccessors().end()) {
-		if(((AStarGridCell) *successorsVectorIterator).cellGridPosition == targetCell) {
+	for(int i = 0; i < aStarGridCell.second.getSuccessors().size(); i++) {
+		if(aStarGridCell.second.getSuccessors()[i].cellGridPosition == targetCell) {
 			return true;
 		}
-		successorsVectorIterator++;
 	}
 	return false;
 }

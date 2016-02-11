@@ -24,7 +24,6 @@ class AStarGridCell: public BaseGridCell<float> {
 		common::Position targetCoordinates;
 		common::Position cellCoordinates;
 		int gCost;
-//		AStarGridCell *comingFromCell;
 		std::vector<AStarGridCell> successors;
 
 		//Methods
@@ -48,8 +47,6 @@ class AStarGridCell: public BaseGridCell<float> {
 		//Getters and setters
 		int getGCost();
 		void setGCost(int gCost);
-//		AStarGridCell*& getComingFromCell();
-//		void setComingFromCell(AStarGridCell &comingFromCell);
 		std::vector<AStarGridCell>& getSuccessors();
 		void setSuccessors(std::vector<AStarGridCell>& successors);
 };
