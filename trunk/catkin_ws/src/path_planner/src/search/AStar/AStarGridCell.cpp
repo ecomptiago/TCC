@@ -8,16 +8,19 @@
 #include "path_planner/search/AStar/AStarGridCell.h"
 
 //Constructors
-AStarGridCell::AStarGridCell(common::Position cellCoordinates,
-	common::Position targetPosition, int cellGridPosition) :
-	BaseGridCell(cellGridPosition){
-		this->cellCoordinates = cellCoordinates;
+AStarGridCell::AStarGridCell(common::Position &targetCoordinates,
+	int cellGridPosition) : BaseGridCell(cellGridPosition){
 		this->targetCoordinates = targetCoordinates;
 		this->gCost = infiniteCost;
 }
 
 AStarGridCell::AStarGridCell(): BaseGridCell() {
 	this->gCost = infiniteCost;
+}
+
+AStarGridCell::AStarGridCell(int cellGridPosition):
+	BaseGridCell(cellGridPosition) {
+		this->gCost = infiniteCost;
 }
 
 //Methods
@@ -38,12 +41,21 @@ void AStarGridCell::copy(AStarGridCell& aStarGridCell) {
 	}
 }
 
+
+void AStarGridCell::calculateCellCoordinates(nav_msgs::OccupancyGrid& occupancyGrid) {
+	if(cellGridPosition != -1) {
+		common::Position cellCoordinates;
+		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,cellCoordinates,cellGridPosition);
+		this->cellCoordinates = cellCoordinates;
+	}
+}
+
 void AStarGridCell::addNodeToNeighbours(int cellGridPosition,nav_msgs::OccupancyGrid& occupancyGrid,
 	std::vector<AStarGridCell>& neighbours) {
 		common::Position position;
 		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
 			position, cellGridPosition);
-		neighbours.push_back(AStarGridCell(position, targetCoordinates, cellGridPosition));
+		neighbours.push_back(AStarGridCell(targetCoordinates, cellGridPosition));
 }
 
 void AStarGridCell::getCellNeighbours(std::vector<AStarGridCell> &neighbours,
@@ -86,4 +98,16 @@ void AStarGridCell::setSuccessors(std::vector<AStarGridCell>& successors) {
 	for(int i = 0; i < successors.size(); i++) {
 		this->successors.at(i) = successors.at(i);
 	}
+}
+
+common::Position& AStarGridCell::getTargetCoordinates() {
+	return targetCoordinates;
+}
+
+common::Position& AStarGridCell::getCellCoordinates() {
+	return cellCoordinates;
+}
+
+void AStarGridCell::setTargetCoordinates(common::Position& targetCoordinates) {
+	this->targetCoordinates = targetCoordinates;
 }

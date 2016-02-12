@@ -90,8 +90,7 @@ int PathPlanner::runNode() {
 		return shutdownAndExit();
 	}
 
-	std::vector<int8_t>::iterator it;
-	it = occupancyGrid.data.begin();
+//	std::vector<geometry_msgs::PoseStamped> pathPose;
 
 	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
 		common::simRosGetObjectPose simRosGetObjectPose;
@@ -107,10 +106,13 @@ int PathPlanner::runNode() {
 			initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
 			initialPosition.y = simRosGetObjectPose.response.pose.pose.position.y;
 
+
+
 			if(aStar.findPathToGoal(initialPosition ,targetPosition)) {
 				std::vector<AStarGridCell> path;
 				aStar.reconstructPath(path, targetPosition,initialPosition);
 
+//				pathPose.resize(path.size());
 				std::vector<AStarGridCell>::iterator it;
 				it = path.begin();
 
@@ -118,6 +120,10 @@ int PathPlanner::runNode() {
 				while(it != path.end()) {
 					ROS_DEBUG(" %d ",((AStarGridCell)*it).cellGridPosition);
 					it++;
+//					geometry_msgs::PoseStamped poseStamped;
+//					poseStamped.pose.position.x = ((AStarGridCell)*it).getCellCoordinates().x;
+//					poseStamped.pose.position.y = ((AStarGridCell)*it).getCellCoordinates().y;
+//					pathPose.push_back(poseStamped);
 				}
 			}
 		}
@@ -126,6 +132,7 @@ int PathPlanner::runNode() {
 	ros::Rate rate(1/wakeUpTime);
 	while(ros::ok()) {
 		publisherMap[mapTopic].publish(occupancyGrid);
+//		publisherMap[pathTopic].publish(pathPose);
 		sleepAndSpin(rate);
 	}
 
@@ -275,7 +282,15 @@ bool PathPlanner::createServiceServers() {
 }
 
 bool PathPlanner::createPublishers() {
-	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false);
+//	ros::Publisher pub =
+//		nodeHandler.advertise<geometry_msgs::PoseStamped[]>(pathTopic, defaultQueueSize,false);
+//	if(pub) {
+//		publisherMap[pathTopic] = pub;
+//	} else {
+//		ROS_DEBUG("Could not create publisher %s",pathTopic);
+//	}
+	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false);// &&
+//		   addPublisherClient<geometry_msgs::PoseStamped[]>(nodeHandler,pathTopic,false);
 }
 
 //Callback

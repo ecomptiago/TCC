@@ -12,6 +12,7 @@
 #include "stdio.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
 #include "common/utils/VRepUtils.h"
@@ -30,6 +31,7 @@ const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
 const char* getObjectChildService = "/vrep/simRosGetObjectChild";
 const char* mapTopic = "/PathPlanner/map";
+const char* pathTopic = "/PathPlanner/path";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
 const char* pionnerHandle = "Pionner_LX";

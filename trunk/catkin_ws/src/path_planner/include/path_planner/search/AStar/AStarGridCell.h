@@ -35,20 +35,25 @@ class AStarGridCell: public BaseGridCell<float> {
 
 		//Constructors
 		AStarGridCell();
-		AStarGridCell(common::Position cellCoordinates,
-			common::Position targetCoordinates, int cellGridPosition);
+		AStarGridCell(int cellGridPosition);
+		AStarGridCell(common::Position &targetCoordinates,
+			int cellGridPosition);
 
 		//Methods
 		bool calculateCellCost();
 		void copy(AStarGridCell &aStarGridCell);
 		void getCellNeighbours(std::vector<AStarGridCell> &neighbours,
 			nav_msgs::OccupancyGrid &occupancyGrid);
+		void calculateCellCoordinates(nav_msgs::OccupancyGrid &occupancyGrid);
 
 		//Getters and setters
 		int getGCost();
 		void setGCost(int gCost);
 		std::vector<AStarGridCell>& getSuccessors();
 		void setSuccessors(std::vector<AStarGridCell>& successors);
+		common::Position& getTargetCoordinates() ;
+		void setTargetCoordinates(common::Position& targetCoordinates);
+		common::Position& getCellCoordinates();
 };
 
 #endif /* PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_SEARCH_ASTAR_ASTARGRIDCELL_H_ */

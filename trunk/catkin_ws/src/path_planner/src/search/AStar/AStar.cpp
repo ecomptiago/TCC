@@ -25,7 +25,7 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, targetCoordinates);
 			ROS_DEBUG("initial cell: %d target cell: %d",initialCell,targetCell);
 
-			AStarGridCell aStarGridCell(initialCoordinates,targetCoordinates,initialCell);
+			AStarGridCell aStarGridCell(targetCoordinates,initialCell);
 			aStarGridCell.setGCost(0);
 			aStarGridCell.calculateCellCost();
 			openNodes[initialCell] = aStarGridCell;
@@ -48,7 +48,7 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 					std::pair<const int, AStarGridCell> aStarGridCellMapPair(*closedNodesIterator);
 					ROS_DEBUG("closed node : grid position %d cost %f",aStarGridCellMapPair.second.cellGridPosition, aStarGridCellMapPair.second.cost);
 					for(int i = 0; i < aStarGridCellMapPair.second.getSuccessors().size(); i++) {
-						ROS_DEBUG("closed node %d sucessor position $%d cost %f", aStarGridCellMapPair.second.cellGridPosition,
+						ROS_DEBUG("closed node %d successor position $%d cost %f", aStarGridCellMapPair.second.cellGridPosition,
 							aStarGridCellMapPair.second.getSuccessors()[i].cellGridPosition,
 							aStarGridCellMapPair.second.getSuccessors()[i].cost);
 					}
@@ -61,6 +61,8 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 				std::vector<AStarGridCell> neighbours;
 				aStarGridCellSmallerCost.getCellNeighbours(neighbours,*occupancyGridPointer);
 				aStarGridCellSmallerCost.setSuccessors(neighbours);
+				aStarGridCellSmallerCost.setTargetCoordinates(targetCoordinates);
+				aStarGridCellSmallerCost.calculateCellCoordinates(*occupancyGridPointer);
 
 				ROS_DEBUG("Got node with position %d and cost %f",aStarGridCellSmallerCost.cellGridPosition, aStarGridCellSmallerCost.cost);
 				closedNodes[aStarGridCellSmallerCost.cellGridPosition] =
