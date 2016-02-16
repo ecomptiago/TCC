@@ -7,17 +7,29 @@
 
 #include "../../include/common/utils/NumericUtils.h"
 
-double NumericUtils::round(double number, double middleValue) {
-	double fractpart;
-	double intpart;
-	fractpart = modf (number , &intpart);
-	if(fractpart < middleValue) {
-		return intpart;
-	} else {
-		return intpart + 1;
-	}
+bool NumericUtils::isFirstGreaterEqualWithPrecision(double a, double b,
+	int precision) {
+		double intpartA;
+		double intpartB;
+		modf(a*pow10(precision), &intpartA);
+		modf(b*pow10(precision), &intpartB);
+		return NumericUtils::isFirstGreaterEqual<double>(intpartA,intpartB);
 }
 
-double NumericUtils::round(double number) {
-	return round(number,0.5);
+bool NumericUtils::isFirstLessEqualWithPrecision(double a, double b,
+	int precision) {
+		double intpartA;
+		double intpartB;
+		modf(a*pow10(precision), &intpartA);
+		modf(b*pow10(precision), &intpartB);
+		return NumericUtils::isFirstLessEqual<double>(intpartA,intpartB);
+}
+
+bool NumericUtils::isFirstLessWithPrecision(double a, double b,
+	int precision) {
+		double intpartA;
+		double intpartB;
+		modf(a*pow10(precision), &intpartA);
+		modf(b*pow10(precision), &intpartB);
+		return NumericUtils::isFirstLess<double>(intpartA,intpartB);
 }

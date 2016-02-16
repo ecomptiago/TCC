@@ -62,8 +62,9 @@ class NumericUtils {
 			}
 		}
 
-		static double round(double number, double middleValue);
-		static double round(double number);
+		static bool isFirstGreaterEqualWithPrecision(double a, double b, int precision);
+		static bool isFirstLessEqualWithPrecision(double a, double b, int precision);
+		static bool isFirstLessWithPrecision(double a, double b, int precision);
 
 };
 
