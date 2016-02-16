@@ -107,6 +107,8 @@ int PathPlanner::runNode() {
 
 	ROS_DEBUG("Map of static objects: \n%s",buffer);
 
+	nav_msgs::Path pathMsg;
+
 	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
 		common::simRosGetObjectPose simRosGetObjectPose;
 		aStar.setOccupancyGrid(occupancyGrid);
@@ -132,6 +134,10 @@ int PathPlanner::runNode() {
 				while(it != path.end()) {
 					charsWrote += sprintf(buffer + charsWrote,
 						" %d,",((AStarGridCell)*it).cellGridPosition);
+					geometry_msgs::PoseStamped poseStamped;
+					poseStamped.pose.position.x = ((AStarGridCell)*it).getCellCoordinates().x;
+					poseStamped.pose.position.y = ((AStarGridCell)*it).getCellCoordinates().y;
+					pathMsg.poses.push_back(poseStamped);
 					it++;
 				}
 				ROS_DEBUG("Path found: [%s]",buffer);
@@ -142,6 +148,7 @@ int PathPlanner::runNode() {
 	ros::Rate rate(1/wakeUpTime);
 	while(ros::ok()) {
 		publisherMap[mapTopic].publish(occupancyGrid);
+		publisherMap[pathTopic].publish(pathMsg);
 		sleepAndSpin(rate);
 	}
 
@@ -299,7 +306,8 @@ bool PathPlanner::createServiceServers() {
 }
 
 bool PathPlanner::createPublishers() {
-	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false);
+	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false) &&
+		   addPublisherClient<nav_msgs::Path>(nodeHandler,pathTopic,false);
 }
 
 //Callback

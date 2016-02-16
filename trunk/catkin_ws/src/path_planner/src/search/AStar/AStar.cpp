@@ -82,8 +82,6 @@ void AStar::getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell) {
 			tempAStarGridCell.copy(aStarGridCellMapPair.second);
 			firstCell = false;
 		} else if(NumericUtils::isFirstLess(aStarGridCellMapPair.second.cost,tempAStarGridCell.cost)) {
-			ROS_DEBUG("Changing node %d with cost %f with node %d with cost %f", aStarGridCellMapPair.second.cellGridPosition,
-				aStarGridCellMapPair.second.cost,tempAStarGridCell.cellGridPosition,tempAStarGridCell.cost);
 			tempAStarGridCell.copy(aStarGridCellMapPair.second);
 		}
 		openNodesIterator++;

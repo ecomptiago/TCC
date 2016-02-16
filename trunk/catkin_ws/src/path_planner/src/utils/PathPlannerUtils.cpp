@@ -49,14 +49,18 @@ int PathPlannerUtils::getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGr
 void PathPlannerUtils::getCoordinatesFromDataVectorPosition(
 	nav_msgs::OccupancyGrid& occupancyGrid, common::Position& position,
 	int dataVectorPosition) {
-		int row = dataVectorPosition / (occupancyGrid.info.height / occupancyGrid.info.resolution);
-		if(row == 0) {
-			row++;
+		int totalRows = (occupancyGrid.info.height / occupancyGrid.info.resolution);
+		int row = dataVectorPosition / totalRows;
+		int column = dataVectorPosition - row * totalRows;
+		double halfCell = occupancyGrid.info.resolution / 2;
+		if(row == 0 ) {
+			position.y = occupancyGrid.info.origin.position.y + halfCell;
+		} else {
+			position.y = occupancyGrid.info.origin.position.y + (row  * occupancyGrid.info.resolution) + halfCell;
 		}
-		int column = dataVectorPosition / (occupancyGrid.info.width / occupancyGrid.info.resolution);
 		if(column == 0) {
-			column++;
+			position.x = occupancyGrid.info.origin.position.x + halfCell;
+		} else {
+			position.x = occupancyGrid.info.origin.position.x + (column * occupancyGrid.info.resolution) + halfCell;
 		}
-		position.y = occupancyGrid.info.origin.position.y + (row * (occupancyGrid.info.resolution / 2));
-		position.x = occupancyGrid.info.origin.position.x + (column * (occupancyGrid.info.resolution / 2));
 }

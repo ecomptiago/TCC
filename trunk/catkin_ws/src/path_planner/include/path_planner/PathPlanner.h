@@ -13,6 +13,7 @@
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Path.h"
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
 #include "common/utils/VRepUtils.h"

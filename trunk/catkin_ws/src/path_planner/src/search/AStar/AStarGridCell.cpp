@@ -46,6 +46,7 @@ void AStarGridCell::calculateCellCoordinates(nav_msgs::OccupancyGrid& occupancyG
 	if(cellGridPosition != -1) {
 		common::Position cellCoordinates;
 		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,cellCoordinates,cellGridPosition);
+		ROS_DEBUG("Cell %d has coordinates x:%f y:%f", cellGridPosition, cellCoordinates.x,cellCoordinates.y);
 		this->cellCoordinates = cellCoordinates;
 	}
 }
