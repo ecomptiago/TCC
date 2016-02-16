@@ -90,41 +90,51 @@ int PathPlanner::runNode() {
 		return shutdownAndExit();
 	}
 
-//	std::vector<geometry_msgs::PoseStamped> pathPose;
+	std::vector<int8_t>::iterator it;
+	it = occupancyGrid.data.begin();
+	char buffer [occupancyGrid.data.size() * 6];
+	int charsWrote = 0;
+
+	while(it != occupancyGrid.data.end()) {
+		for(int i = 0;
+			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
+			i++) {
+				charsWrote += sprintf(buffer + charsWrote, "| %d |",*it);
+				it++;
+		}
+		charsWrote += sprintf(buffer + charsWrote, "\n");
+	}
+
+	ROS_DEBUG("Map of static objects: \n%s",buffer);
 
 	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
 		common::simRosGetObjectPose simRosGetObjectPose;
 		aStar.setOccupancyGrid(occupancyGrid);
 		if(VRepUtils::getObjectPose(signalObjectMap[pionnerHandle], nodeHandler,simRosGetObjectPose)) {
 			common::Position targetPosition;
-//			targetPosition.x = -2.35;
-//			targetPosition.y = 9.14;
-			targetPosition.x = -0.74;
-			targetPosition.y = 2.23;
+			targetPosition.x = -2.35;
+			targetPosition.y = 9.14;
+//			targetPosition.x = -0.74;
+//			targetPosition.y = 2.23;
 
 			common::Position initialPosition;
 			initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
 			initialPosition.y = simRosGetObjectPose.response.pose.pose.position.y;
 
-
-
 			if(aStar.findPathToGoal(initialPosition ,targetPosition)) {
 				std::vector<AStarGridCell> path;
 				aStar.reconstructPath(path, targetPosition,initialPosition);
 
-//				pathPose.resize(path.size());
 				std::vector<AStarGridCell>::iterator it;
 				it = path.begin();
+				charsWrote = 0;
 
-				ROS_DEBUG("Path found: ");
 				while(it != path.end()) {
-					ROS_DEBUG(" %d ",((AStarGridCell)*it).cellGridPosition);
+					charsWrote += sprintf(buffer + charsWrote,
+						" %d,",((AStarGridCell)*it).cellGridPosition);
 					it++;
-//					geometry_msgs::PoseStamped poseStamped;
-//					poseStamped.pose.position.x = ((AStarGridCell)*it).getCellCoordinates().x;
-//					poseStamped.pose.position.y = ((AStarGridCell)*it).getCellCoordinates().y;
-//					pathPose.push_back(poseStamped);
 				}
+				ROS_DEBUG("Path found: [%s]",buffer);
 			}
 		}
 	}
@@ -132,7 +142,6 @@ int PathPlanner::runNode() {
 	ros::Rate rate(1/wakeUpTime);
 	while(ros::ok()) {
 		publisherMap[mapTopic].publish(occupancyGrid);
-//		publisherMap[pathTopic].publish(pathPose);
 		sleepAndSpin(rate);
 	}
 
@@ -153,7 +162,7 @@ bool PathPlanner::addObjectToOccupancyMap(int32_t childHandle) {
 					float angle = OdometryUtils::getAngleFromQuaternation(quaternion, false);
 					float cellSize = occupancyGrid.info.resolution;
 					int positionToInsert = PathPlannerUtils::getDataVectorPosition(occupancyGrid, objectPosition);
-					int mapWidth = NumericUtils::round(occupancyGrid.info.width / cellSize,0.6);
+					int mapWidth = round(occupancyGrid.info.width / cellSize);
 					if ((NumericUtils::isFirstGreaterEqual<float>(angle, 0) &&
 						NumericUtils::isFirstLessEqual<float>(angle, angleTolerance)) ||
 						(NumericUtils::isFirstGreaterEqual<float>(angle, -angleTolerance) &&
@@ -162,7 +171,7 @@ bool PathPlanner::addObjectToOccupancyMap(int32_t childHandle) {
 						NumericUtils::isFirstLessEqual<float>(angle, 180)) ||
 						(NumericUtils::isFirstGreaterEqual<float>(angle, angleTolerance - 180) &&
 						NumericUtils::isFirstLessEqual<float>(angle, -180))) {
-							int numberOfCellsOccupiedX = NumericUtils::round(objectInfo.width / cellSize,0.6);
+							int numberOfCellsOccupiedX = round(objectInfo.width / cellSize);
 							int numberOfCellsOccupiedY;
 							if (objectInfo.height < cellSize) {
 								numberOfCellsOccupiedY = 1;
@@ -210,8 +219,16 @@ bool PathPlanner::getMinimumXYObjectCoordinate(int32_t objecthandle,
 	common::simRosGetObjectPose &simRosGetObjectPose,common::Position &position){
 	path_planner::ObjectInfo objectInfo;
 	if(getObjectWidthHeight(objecthandle,objectInfo)) {
-		position.x = simRosGetObjectPose.response.pose.pose.position.x - (objectInfo.width / 2);
-		position.y = simRosGetObjectPose.response.pose.pose.position.y - (objectInfo.height / 2);
+		if(objectInfo.height / 2 < 1) {
+			position.x = simRosGetObjectPose.response.pose.pose.position.x - (objectInfo.width / 2);
+			position.y = simRosGetObjectPose.response.pose.pose.position.y;
+		} else if(objectInfo.width / 2 < 1) {
+			position.x = simRosGetObjectPose.response.pose.pose.position.x;
+			position.y = simRosGetObjectPose.response.pose.pose.position.y - (objectInfo.height / 2);
+		} else {
+			position.x = simRosGetObjectPose.response.pose.pose.position.x - (objectInfo.width / 2);
+			position.y = simRosGetObjectPose.response.pose.pose.position.y - (objectInfo.height / 2);
+		}
 		return true;
 	} else {
 		return false;
@@ -282,15 +299,7 @@ bool PathPlanner::createServiceServers() {
 }
 
 bool PathPlanner::createPublishers() {
-//	ros::Publisher pub =
-//		nodeHandler.advertise<geometry_msgs::PoseStamped[]>(pathTopic, defaultQueueSize,false);
-//	if(pub) {
-//		publisherMap[pathTopic] = pub;
-//	} else {
-//		ROS_DEBUG("Could not create publisher %s",pathTopic);
-//	}
-	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false);// &&
-//		   addPublisherClient<geometry_msgs::PoseStamped[]>(nodeHandler,pathTopic,false);
+	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false);
 }
 
 //Callback

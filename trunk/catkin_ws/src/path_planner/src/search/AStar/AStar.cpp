@@ -31,29 +31,6 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 			openNodes[initialCell] = aStarGridCell;
 
 			while(!openNodes.empty()) {
-				std::map<int,AStarGridCell>::iterator openNodesIterator = openNodes.begin();
-				while(openNodesIterator != openNodes.end()) {
-					std::pair<const int, AStarGridCell> aStarGridCellMapPair(*openNodesIterator);
-					ROS_DEBUG("open node : grid position %d cost %f",aStarGridCellMapPair.second.cellGridPosition, aStarGridCellMapPair.second.cost);
-					for(int i = 0; i < aStarGridCellMapPair.second.getSuccessors().size(); i++) {
-						ROS_DEBUG("open node %d sucessor position $%d cost %f", aStarGridCellMapPair.second.cellGridPosition,
-							aStarGridCellMapPair.second.getSuccessors()[i].cellGridPosition,
-							aStarGridCellMapPair.second.getSuccessors()[i].cost);
-					}
-					openNodesIterator++;
-				}
-
-				std::map<int,AStarGridCell>::iterator closedNodesIterator = closedNodes.begin();
-				while(closedNodesIterator != closedNodes.end()) {
-					std::pair<const int, AStarGridCell> aStarGridCellMapPair(*closedNodesIterator);
-					ROS_DEBUG("closed node : grid position %d cost %f",aStarGridCellMapPair.second.cellGridPosition, aStarGridCellMapPair.second.cost);
-					for(int i = 0; i < aStarGridCellMapPair.second.getSuccessors().size(); i++) {
-						ROS_DEBUG("closed node %d successor position $%d cost %f", aStarGridCellMapPair.second.cellGridPosition,
-							aStarGridCellMapPair.second.getSuccessors()[i].cellGridPosition,
-							aStarGridCellMapPair.second.getSuccessors()[i].cost);
-					}
-					closedNodesIterator++;
-				}
 
 				AStarGridCell aStarGridCellSmallerCost;
 				getCellWithSmallerCostOpenNodes(aStarGridCellSmallerCost);

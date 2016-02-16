@@ -10,11 +10,40 @@
 //Methods
 int PathPlannerUtils::getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGrid,
 	common::Position &position) {
-		float cellResolution = occupancyGrid.info.resolution;
-		float yCell = NumericUtils::round(position.y - occupancyGrid.info.origin.position.y,0.6);
-		float xCell = NumericUtils::round(position.x - occupancyGrid.info.origin.position.x,0.6);
-		float wCell = NumericUtils::round(occupancyGrid.info.width,0.6);
-		return ((wCell / cellResolution) * (yCell / cellResolution)) + (xCell / cellResolution);
+
+		double cellResolution = occupancyGrid.info.resolution;
+
+		//TODO - This should be improved
+		int yCell = 0;
+		double yStartInterval = occupancyGrid.info.origin.position.y;
+		double yStopInterval = yStartInterval + cellResolution;
+		double yObjectPosition = position.y;
+		double yLastStopInterval = occupancyGrid.info.origin.position.y +
+			occupancyGrid.info.height / cellResolution;
+		while( !NumericUtils::isFirstGreaterEqualWithPrecision(yStopInterval,yLastStopInterval,2) &&
+			!(NumericUtils::isFirstGreaterEqualWithPrecision(yObjectPosition,yStartInterval,2) &&
+			  NumericUtils::isFirstLessWithPrecision(yObjectPosition,yStopInterval,2))) {
+				yStartInterval = yStopInterval;
+				yStopInterval = yStartInterval + cellResolution;
+				yCell++;
+		}
+
+		//TODO - This should be improved
+		int xCell = 0;
+		double xStartInterval = occupancyGrid.info.origin.position.x;
+		double xStopInterval = xStartInterval + cellResolution;
+		double xObjectPosition = position.x;
+		double xLastStopInterval = occupancyGrid.info.origin.position.x +
+			occupancyGrid.info.width / cellResolution;
+		while(!NumericUtils::isFirstGreaterEqualWithPrecision(xStopInterval,xLastStopInterval,2) &&
+			!(NumericUtils::isFirstGreaterEqualWithPrecision(xObjectPosition,xStartInterval,2) &&
+			  NumericUtils::isFirstLessWithPrecision(xObjectPosition,xStopInterval,2))) {
+				xStartInterval = xStopInterval;
+				xStopInterval = xStartInterval + cellResolution;
+				xCell++;
+		}
+
+		return ((occupancyGrid.info.width / cellResolution) * yCell) + xCell;
 }
 
 void PathPlannerUtils::getCoordinatesFromDataVectorPosition(
