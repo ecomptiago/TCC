@@ -30,7 +30,8 @@ class AStarGridCell: public BaseGridCell<float> {
 		void addNodeToNeighbours(int cellGridPosition,
 			nav_msgs::OccupancyGrid& occupancyGrid,
 			std::vector<AStarGridCell>& neighbours);
-
+		bool hasRightCell(int cellGridPosition,
+			int columns, int rows);
 	public:
 
 		//Constructors

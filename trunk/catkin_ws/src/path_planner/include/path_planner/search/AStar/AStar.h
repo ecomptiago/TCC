@@ -9,6 +9,7 @@
 #define INCLUDE_PATH_PLANNER_SEARCH_ASTAR_H_
 
 #include "map"
+#include "algorithm"
 #include "string"
 #include "vector"
 #include "ros/ros.h"

@@ -27,6 +27,7 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 
 			AStarGridCell aStarGridCell(targetCoordinates,initialCell);
 			aStarGridCell.setGCost(0);
+			aStarGridCell.calculateCellCoordinates(*occupancyGridPointer);
 			aStarGridCell.calculateCellCost();
 			openNodes[initialCell] = aStarGridCell;
 
@@ -50,18 +51,18 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 				} else {
 					for(int i = 0; i < aStarGridCellSmallerCost.getSuccessors().size(); i++) {
 						AStarGridCell aStarGridCellNeighbour = aStarGridCellSmallerCost.getSuccessors()[i];
-						std::map<int,AStarGridCell>::iterator openNodesIterator =
-							openNodes.find(aStarGridCellNeighbour.cellGridPosition);
 						std::map<int,AStarGridCell>::iterator closedNodesIterator =
 							closedNodes.find(aStarGridCellNeighbour.cellGridPosition);
 						if(closedNodesIterator != closedNodes.end()) {
 							continue;
-						} else if(openNodesIterator == openNodes.end()) {
+						} else {
 							if(occupancyGridPointer->data[aStarGridCellNeighbour.cellGridPosition] == 100) {
 								aStarGridCellNeighbour.setGCost(infiniteCost);
 							} else {
 								aStarGridCellNeighbour.setGCost(aStarGridCellSmallerCost.getGCost() + 1);
 							}
+							aStarGridCellNeighbour.setTargetCoordinates(targetCoordinates);
+							aStarGridCellNeighbour.calculateCellCoordinates(*occupancyGridPointer);
 							aStarGridCellNeighbour.calculateCellCost();
 							openNodes[aStarGridCellNeighbour.cellGridPosition] = aStarGridCellNeighbour;
 						}
@@ -102,9 +103,13 @@ void AStar::reconstructPath(std::vector<AStarGridCell> &path, common::Position &
 		while(path.back().cellGridPosition != initialCell) {
 			getCellWithSmallerCostAndSuccessor(path.back().cellGridPosition, path);
 		}
+
+		std::reverse(path.begin(),path.end());
+
 	} else {
 		ROS_ERROR("Target node %d not in closed nodes", targetCell);
 	}
+
 }
 
 void AStar::getCellWithSmallerCostAndSuccessor(int targetCell, std::vector<AStarGridCell> &path) {

@@ -13,6 +13,7 @@ PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int 
 		this->occupancyGrid.info.resolution = cellArea;
 		this->occupancyGrid.info.width = mapWidth;
 		this->occupancyGrid.info.height = mapHeight;
+		this->occupancyGrid.header.frame_id = "my_frame";
 		for(int i = 0; i < (mapWidth * mapHeight) / cellArea; i++) {
 			this->occupancyGrid.data.insert(this->occupancyGrid.data.begin(),freeCell);
 		}
@@ -107,17 +108,13 @@ int PathPlanner::runNode() {
 
 	ROS_DEBUG("Map of static objects: \n%s",buffer);
 
-	nav_msgs::Path pathMsg;
-
 	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
 		common::simRosGetObjectPose simRosGetObjectPose;
 		aStar.setOccupancyGrid(occupancyGrid);
 		if(VRepUtils::getObjectPose(signalObjectMap[pionnerHandle], nodeHandler,simRosGetObjectPose)) {
 			common::Position targetPosition;
-			targetPosition.x = -2.35;
-			targetPosition.y = 9.14;
-//			targetPosition.x = -0.74;
-//			targetPosition.y = 2.23;
+			targetPosition.x = 4.35;
+			targetPosition.y = 10.14;
 
 			common::Position initialPosition;
 			initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
@@ -135,9 +132,6 @@ int PathPlanner::runNode() {
 					charsWrote += sprintf(buffer + charsWrote,
 						" %d,",((AStarGridCell)*it).cellGridPosition);
 					geometry_msgs::PoseStamped poseStamped;
-					poseStamped.pose.position.x = ((AStarGridCell)*it).getCellCoordinates().x;
-					poseStamped.pose.position.y = ((AStarGridCell)*it).getCellCoordinates().y;
-					pathMsg.poses.push_back(poseStamped);
 					it++;
 				}
 				ROS_DEBUG("Path found: [%s]",buffer);
@@ -148,7 +142,6 @@ int PathPlanner::runNode() {
 	ros::Rate rate(1/wakeUpTime);
 	while(ros::ok()) {
 		publisherMap[mapTopic].publish(occupancyGrid);
-		publisherMap[pathTopic].publish(pathMsg);
 		sleepAndSpin(rate);
 	}
 
@@ -306,8 +299,7 @@ bool PathPlanner::createServiceServers() {
 }
 
 bool PathPlanner::createPublishers() {
-	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false) &&
-		   addPublisherClient<nav_msgs::Path>(nodeHandler,pathTopic,false);
+	return addPublisherClient<nav_msgs::OccupancyGrid>(nodeHandler,mapTopic,false);
 }
 
 //Callback

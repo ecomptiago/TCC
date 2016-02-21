@@ -46,7 +46,6 @@ void AStarGridCell::calculateCellCoordinates(nav_msgs::OccupancyGrid& occupancyG
 	if(cellGridPosition != -1) {
 		common::Position cellCoordinates;
 		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,cellCoordinates,cellGridPosition);
-		ROS_DEBUG("Cell %d has coordinates x:%f y:%f", cellGridPosition, cellCoordinates.x,cellCoordinates.y);
 		this->cellCoordinates = cellCoordinates;
 	}
 }
@@ -57,6 +56,16 @@ void AStarGridCell::addNodeToNeighbours(int cellGridPosition,nav_msgs::Occupancy
 		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
 			position, cellGridPosition);
 		neighbours.push_back(AStarGridCell(targetCoordinates, cellGridPosition));
+}
+
+bool AStarGridCell::hasRightCell(int cellGridPosition, int columns, int rows) {
+	int lastCellFirstRow = (columns - 1);
+	for(int i = 0; i < rows; i++) {
+		if(cellGridPosition == lastCellFirstRow + (i * columns)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void AStarGridCell::getCellNeighbours(std::vector<AStarGridCell> &neighbours,
@@ -72,7 +81,8 @@ void AStarGridCell::getCellNeighbours(std::vector<AStarGridCell> &neighbours,
 			addNodeToNeighbours(cellGridPosition - columns, occupancyGrid, neighbours);
 		}
 		//Verifying if cell has a cell in the right
-		if(cellGridPosition % (columns - 1) != 0 ) {
+		//TODO - improve this
+		if(hasRightCell(cellGridPosition,columns,rows)) {
 			addNodeToNeighbours(cellGridPosition + 1, occupancyGrid, neighbours);
 		}
 		//Verifying if cell has a cell in the left
