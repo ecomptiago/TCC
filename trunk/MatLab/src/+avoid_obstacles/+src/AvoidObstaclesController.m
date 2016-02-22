@@ -19,6 +19,7 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 readfis('../fuzzy_desvio_objeto.fis');
         end
         
+        %Methods
         function subscribeToTopics(instance)
            addSubscribedTopic(instance, instance.constants.laserTopic,...
                instance.constants.laserTopicMsgType, ...
@@ -33,32 +34,55 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 instance.constants.cmdVelTopicMsgType);
         end
         
+        function cmdVelMsg = createCmdVelMsg(instance,linearVel,angularVel) 
+            cmdVelMsg = rosmessage(instance.constants.cmdVelTopicMsgType);
+            cmdVelMsg.Linear.X = linearVel;
+            cmdVelMsg.Angular.Z = angularVel;
+        end 
+        
+        function moveForward(instance)
+            send(instance.publisherMap(instance.constants.cmdVelTopic),...
+                instance.createCmdVelMsg(instance.constants.constLinearVel,...
+                0));
+        end
+        
+        function stop(instance)
+            send(instance.publisherMap(instance.constants.cmdVelTopic),...
+                instance.createCmdVelMsg(0,0));
+        end
+        
+        function turn(instance, turnRate)
+            send(instance.publisherMap(instance.constants.cmdVelTopic),...
+                instance.createCmdVelMsg(instance.constants.constLinearVel,...
+                turnRate));
+        end
+        
         function runNode(instance)
-%             cmdVelMsg = rosmessage(instance.constants.cmdVelTopicMsgType);
-%             cmdVelMsg.Linear.X = 0.1;
-%             cmdVelMsg.Angular.Z = -0.1;
-%             send(instance.publisherMap(instance.constants.cmdVelTopic),cmdVelMsg);
+            instance.moveForward();
             while(1)
-%                 matrix30x6 = reshape(instance.laserValues,[],6);
-%                 meanValues =mean(matrix30x6,'double');
-%                 disp(meanValues);
-%                 meanValues(meanValues > 3.5) = 3.5;
-%                 disp(meanValues);
-%                 turnRate = evalfis(meanValues,instance.fuzzySystem);
-%when turnRate is positive we need to set a negative value to Angular.Z and positive otherwise
-%                 disp(turnRate);
-%                 disp(instance.robotPose);
-                pause(1);
+                matrix30x6 = reshape(instance.laserValues,[],6);
+                meanValues = mean(matrix30x6,'double');
+                meanValues(meanValues > 3.5) = 3.5;
+                turnRate = evalfis(meanValues,instance.fuzzySystem);
+                if(turnRate >= 0.1 || turnRate <= -0.1)
+                    disp(turnRate / 50);
+                    instance.turn(turnRate / 50);
+                elseif(instance.robotPose < 9) 
+                    instance.moveForward();
+                else
+                    instance.stop();
+                end
+                pause(0.75);
             end
         end
         
-        %Callback functions
+        %Callback
         function laserTopicCallbackFunction(instance,~,msg)
             instance.laserValues = msg.Ranges;
         end
         
         function poseTopicCallbackFunction(instance,~,msg)
-            instance.robotPose = msg.Pose;
+            instance.robotPose = msg.Pose.Position.Y;
         end 
     end
 end
