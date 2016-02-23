@@ -134,7 +134,7 @@ int PathPlanner::runNode() {
 					geometry_msgs::PoseStamped poseStamped;
 					it++;
 				}
-				ROS_DEBUG("Path found: [%s]",buffer);
+				ROS_DEBUG("Optimized path: [%s]",buffer);
 			}
 		}
 	}
