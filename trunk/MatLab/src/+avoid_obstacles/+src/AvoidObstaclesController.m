@@ -5,6 +5,10 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         constants
         fuzzySystem
         robotPose
+        robotAngleX
+        robotAngleY
+        robotAngleZ
+        robotTestAngle
     end
     
     methods
@@ -58,21 +62,26 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         end
         
         function runNode(instance)
-            instance.moveForward();
+             instance.stop();
+%             instance.moveForward();
             while(1)
-                matrix30x6 = reshape(instance.laserValues,[],6);
-                meanValues = mean(matrix30x6,'double');
-                meanValues(meanValues > 3.5) = 3.5;
-                turnRate = evalfis(meanValues,instance.fuzzySystem);
-                if(turnRate >= 0.1 || turnRate <= -0.1)
-                    disp(turnRate / 50);
-                    instance.turn(turnRate / 50);
-                elseif(instance.robotPose < 9) 
-                    instance.moveForward();
-                else
-                    instance.stop();
-                end
-                pause(0.75);
+%                 matrix30x6 = reshape(instance.laserValues,[],6);
+%                 meanValues = mean(matrix30x6,'double');
+%                 meanValues(meanValues > 3.5) = 3.5;
+%                 turnRate = evalfis(meanValues,instance.fuzzySystem);
+%                 if(turnRate >= 0.1 || turnRate <= -0.1)
+%                     disp(turnRate / 75);
+%                     instance.turn(turnRate / 75);
+%                 elseif(instance.robotPose < 10) 
+%                     instance.moveForward();
+%                 else
+%                     instance.stop();
+%                 end
+                  fprintf('X: %f Y: %f Z: %f\n', ...
+                      rad2deg(instance.robotAngleX), ...
+                      rad2deg(instance.robotAngleY),...
+                      rad2deg(instance.robotAngleZ));
+                  pause(0.75);
             end
         end
         
@@ -83,6 +92,12 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         
         function poseTopicCallbackFunction(instance,~,msg)
             instance.robotPose = msg.Pose.Position.Y;
+            angle = quat2eul(quatnormalize([0, ...
+                0, msg.Pose.Orientation.Z, ...
+                msg.Pose.Orientation.W]));
+            instance.robotAngleX = angle(1);
+            instance.robotAngleY = angle(2);
+            instance.robotAngleZ = angle(3);
         end 
     end
 end
