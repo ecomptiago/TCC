@@ -10,6 +10,7 @@
 
 #include "map"
 #include "algorithm"
+#include "stdio.h"
 #include "string"
 #include "vector"
 #include "ros/ros.h"
@@ -31,6 +32,7 @@ class AStar: public SearchAlgorithmInterface{
 		void getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell);
 		bool successorsContainsCell(std::pair<const int, AStarGridCell> &aStarGridCell, int targetCell);
 		void getCellWithSmallerCostAndSuccessor(int targetCell, std::vector<AStarGridCell> &path);
+	std::vector<int> optimizePath(std::vector<AStarGridCell>& path);
 
 	public:
 		//Constructor

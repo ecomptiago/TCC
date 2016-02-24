@@ -90,6 +90,71 @@ void AStar::getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell) {
 	aStarGridCell.copy(tempAStarGridCell);
 }
 
+std::vector<int> AStar::optimizePath(std::vector<AStarGridCell>& path) {
+	int i = 0;
+	int gridLengh = occupancyGridPointer->info.width
+			/ occupancyGridPointer->info.resolution;
+	int freeCell = 0;
+	std::vector<int> cellsToEliminate(path.size());
+	while (i < path.size() - 1) {
+		AStarGridCell actualCell = path.at(i);
+		AStarGridCell nextCell = path.at(i + 1);
+		AStarGridCell nextNextCell = path.at(i + 2);
+		int upperCellFromActualCell = actualCell.cellGridPosition + gridLengh;
+		int upperRightCellFromActualCell = upperCellFromActualCell + 1;
+		int upperLeftCellFromActualCell = upperCellFromActualCell - 1;
+		int aboveCellFromActualCell = actualCell.cellGridPosition - gridLengh;
+		int aboveRightCellFromActualCell = aboveCellFromActualCell + 1;
+		int aboveLeftCellFromActualCell = aboveCellFromActualCell - 1;
+		int righCellFromActualCell = actualCell.cellGridPosition + 1;
+		int leftCellFromActualCell = actualCell.cellGridPosition - 1;
+
+		if(nextNextCell.cellGridPosition == upperRightCellFromActualCell) {
+			if ((nextCell.cellGridPosition == upperCellFromActualCell &&
+				 occupancyGridPointer->data[righCellFromActualCell] == freeCell) ||
+				(nextCell.cellGridPosition == righCellFromActualCell &&
+				 occupancyGridPointer->data[upperCellFromActualCell] == freeCell)) {
+						cellsToEliminate.push_back(nextCell.cellGridPosition);
+						i = i + 2;
+						continue;
+			}
+		}
+		if(nextNextCell.cellGridPosition == upperLeftCellFromActualCell) {
+			if ((nextCell.cellGridPosition == upperCellFromActualCell &&
+				 occupancyGridPointer->data[leftCellFromActualCell] == freeCell) ||
+				(nextCell.cellGridPosition == leftCellFromActualCell &&
+				 occupancyGridPointer->data[upperCellFromActualCell] == freeCell)) {
+						cellsToEliminate.push_back(nextCell.cellGridPosition);
+						i = i + 2;
+						continue;
+			}
+		}
+		if(nextNextCell.cellGridPosition == aboveRightCellFromActualCell) {
+			if ((nextCell.cellGridPosition == aboveCellFromActualCell &&
+				 occupancyGridPointer->data[righCellFromActualCell] == freeCell) ||
+				(nextCell.cellGridPosition == righCellFromActualCell &&
+				 occupancyGridPointer->data[aboveCellFromActualCell] == freeCell)) {
+						cellsToEliminate.push_back(nextCell.cellGridPosition);
+						i = i + 2;
+						continue;
+			}
+		}
+		if(nextNextCell.cellGridPosition == aboveLeftCellFromActualCell) {
+			if ((nextCell.cellGridPosition == aboveCellFromActualCell &&
+				 occupancyGridPointer->data[leftCellFromActualCell] == freeCell) ||
+				(nextCell.cellGridPosition == leftCellFromActualCell &&
+				 occupancyGridPointer->data[aboveCellFromActualCell] == freeCell)) {
+						cellsToEliminate.push_back(nextCell.cellGridPosition);
+						i = i + 2;
+						continue;
+			}
+		}
+
+		i++;
+	}
+	return cellsToEliminate;
+}
+
 //TODO- This should be optimized
 void AStar::reconstructPath(std::vector<AStarGridCell> &path, common::Position &targetCoordinates, common::Position &initialCoordinates) {
 	int initialCell = PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, initialCoordinates);
@@ -105,6 +170,33 @@ void AStar::reconstructPath(std::vector<AStarGridCell> &path, common::Position &
 		}
 
 		std::reverse(path.begin(),path.end());
+
+		std::vector<AStarGridCell>::iterator it;
+		it = path.begin();
+		int charsWrote = 0;
+		char buffer [path.size() * 6];
+
+		while(it != path.end()) {
+			charsWrote += sprintf(buffer + charsWrote,
+					" %d,",((AStarGridCell)*it).cellGridPosition);
+			it++;
+		}
+		ROS_DEBUG("Path found: [%s]",buffer);
+
+		std::vector<int> cellsToEliminate = optimizePath(path);
+
+		std::vector<int>::iterator itCellElimination;
+		itCellElimination = cellsToEliminate.begin();
+
+		while(itCellElimination != cellsToEliminate.end()) {
+			for(int i = 0; i < path.size(); i++) {
+				if(path.at(i).cellGridPosition == *itCellElimination) {
+					path.erase(path.begin() + i);
+					break;
+				}
+			}
+			itCellElimination++;
+		}
 
 	} else {
 		ROS_ERROR("Target node %d not in closed nodes", targetCell);
