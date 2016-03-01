@@ -5,10 +5,7 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         constants
         fuzzySystem
         robotPose
-        robotAngleX
-        robotAngleY
-        robotAngleZ
-        robotTestAngle
+        robotAngle
     end
     
     methods
@@ -61,27 +58,42 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 turnRate));
         end
         
+        function rotateLeft(instance)
+            send(instance.publisherMap(instance.constants.cmdVelTopic),...
+                instance.createCmdVelMsg(0,0.1));
+        end
+        
+        function rotateRight(instance)
+            send(instance.publisherMap(instance.constants.cmdVelTopic),...
+                instance.createCmdVelMsg(0,-0.1));
+        end   
+        
         function runNode(instance)
-             instance.stop();
-%             instance.moveForward();
+            instance.stop();
             while(1)
-%                 matrix30x6 = reshape(instance.laserValues,[],6);
-%                 meanValues = mean(matrix30x6,'double');
-%                 meanValues(meanValues > 3.5) = 3.5;
-%                 turnRate = evalfis(meanValues,instance.fuzzySystem);
-%                 if(turnRate >= 0.1 || turnRate <= -0.1)
-%                     disp(turnRate / 75);
-%                     instance.turn(turnRate / 75);
-%                 elseif(instance.robotPose < 10) 
-%                     instance.moveForward();
-%                 else
-%                     instance.stop();
-%                 end
-                  fprintf('X: %f Y: %f Z: %f\n', ...
-                      rad2deg(instance.robotAngleX), ...
-                      rad2deg(instance.robotAngleY),...
-                      rad2deg(instance.robotAngleZ));
-                  pause(0.75);
+                matrix30x6 = reshape(instance.laserValues,[],6);
+                meanValues = mean(matrix30x6,'double');
+                meanValues(meanValues > 3.5) = 3.5;
+                turnRate = evalfis(meanValues,instance.fuzzySystem);
+                if(instance.robotPose < 9.75)
+                    if(turnRate >= 0.1 || turnRate <= -0.1)
+                        fprintf('turnRate %f \n', turnRate / 100);
+                        instance.turn(turnRate / 100);
+                    else
+                        fprintf('robotAngle: %f\n', instance.robotAngle);
+                        if(instance.robotAngle < 0 && instance.robotAngle > -90)
+                            instance.rotateLeft();
+                        elseif(instance.robotAngle > -180 && instance.robotAngle ...
+                            < -90)
+                                instance.rotateRigth();
+                        else
+                            instance.moveForward();
+                        end
+                    end
+                else
+                    instance.stop();
+                end
+                  pause(0.5);
             end
         end
         
@@ -95,9 +107,7 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
             angle = quat2eul(quatnormalize([0, ...
                 0, msg.Pose.Orientation.Z, ...
                 msg.Pose.Orientation.W]));
-            instance.robotAngleX = angle(1);
-            instance.robotAngleY = angle(2);
-            instance.robotAngleZ = angle(3);
+            instance.robotAngle = rad2deg(angle(3));
         end 
     end
 end
