@@ -66,7 +66,7 @@ class MessagesHandler :public BaseRosNode{
 		void proccessPositionToMoveRobot(
 			const controlador_de_trajetoria::Move_robot::ConstPtr& moveRobotPosition);
 		void positionAchieved(
-			const controlador_de_trajetoria::Position::ConstPtr& positionAchieved);
+			const common::Position::ConstPtr& positionAchieved);
 		bool moveRobotSync(
 			controlador_de_trajetoria::Move_robot_service::Request& request,
 			controlador_de_trajetoria::Move_robot_service::Response& response);

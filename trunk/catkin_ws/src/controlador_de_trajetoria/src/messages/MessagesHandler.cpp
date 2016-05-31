@@ -46,7 +46,7 @@ bool MessagesHandler::subscribeToTopics() {
 	return addSubscribedTopic<const controlador_de_trajetoria::Move_robot::ConstPtr&, MessagesHandler>(
 		   nodeHandler,moveRobotAssyncTopic, &MessagesHandler::proccessPositionToMoveRobot,this) &&
 
-		   addSubscribedTopic<const controlador_de_trajetoria::Position::ConstPtr&, MessagesHandler>(
+		   addSubscribedTopic<const common::Position::ConstPtr&, MessagesHandler>(
 		   nodeHandler,targetPositionAchievedTopic, &MessagesHandler::positionAchieved,this);
 }
 
@@ -90,7 +90,7 @@ void MessagesHandler::proccessPositionToMoveRobot(
 }
 
 void MessagesHandler::positionAchieved(
-	const controlador_de_trajetoria::Position::ConstPtr& positionAchieved) {
+	const common::Position::ConstPtr& positionAchieved) {
 		ROS_INFO("Checking if the position was achieved");
 		ROS_DEBUG("Position achieved is x:%f y:%f",positionAchieved->x,
 			positionAchieved->y);
