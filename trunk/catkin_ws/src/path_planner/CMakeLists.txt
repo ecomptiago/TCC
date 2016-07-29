@@ -155,6 +155,10 @@ add_executable(PathPlanner ${SOURCEFILES} src/PathPlanner.cpp)
 target_link_libraries(PathPlanner ${catkin_LIBRARIES})
 add_dependencies(PathPlanner ${MSG_GENERATION})
 
+add_executable(PathDrawer ${SOURCEFILES} src/PathDrawer.cpp)
+target_link_libraries(PathDrawer ${catkin_LIBRARIES})
+add_dependencies(PathDrawer ${MSG_GENERATION})
+
 #############
 ## Install ##
 #############
