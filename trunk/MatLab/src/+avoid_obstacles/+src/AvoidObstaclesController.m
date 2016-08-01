@@ -17,7 +17,7 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
             avoidObstaclesInstance.constants = ...
                 avoid_obstacles.src.constants.AvoidObstaclesConstants;
             avoidObstaclesInstance.fuzzySystem = ...
-                readfis('../fuzzy_desvio_objeto.fis');
+                readfis('fuzzy_desvio_objeto.fis');
         end
         
         %Methods
@@ -76,19 +76,27 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 meanValues(meanValues > 3.5) = 3.5;
                 turnRate = evalfis(meanValues,instance.fuzzySystem);
                 if(instance.robotPose < 9.75)
-                    if(turnRate >= 0.1 || turnRate <= -0.1)
-                        fprintf('turnRate %f \n', turnRate / 100);
-                        instance.turn(turnRate / 100);
+                    fprintf('robotAngle: %f\n', instance.robotAngle);
+                    fprintf('turnRate %f \n', turnRate / 100);
+                    if(instance.robotAngle < 0 && instance.robotAngle > -90)
+                        instance.rotateLeft();
+                        while(~(instance.robotAngle<110 && instance.robotAngle ...
+                            >90)) 
+                            fprintf('robotAngle while: %f\n', instance.robotAngle);
+                            pause(0.1);
+                        end        
+                    elseif(instance.robotAngle > -180 && instance.robotAngle ...
+                        < -130)
+                            instance.rotateRight();
+                            while(~(instance.robotAngle<110 && instance.robotAngle ...
+                            >90)) 
+                                fprintf('robotAngle while: %f\n', instance.robotAngle);
+                                pause(0.1);
+                            end
+                    elseif(turnRate >= 0.1 || turnRate <= -0.1)
+                         instance.turn(turnRate / 100);
                     else
-                        fprintf('robotAngle: %f\n', instance.robotAngle);
-                        if(instance.robotAngle < 0 && instance.robotAngle > -90)
-                            instance.rotateLeft();
-                        elseif(instance.robotAngle > -180 && instance.robotAngle ...
-                            < -90)
-                                instance.rotateRigth();
-                        else
-                            instance.moveForward();
-                        end
+                         instance.moveForward();
                     end
                 else
                     instance.stop();

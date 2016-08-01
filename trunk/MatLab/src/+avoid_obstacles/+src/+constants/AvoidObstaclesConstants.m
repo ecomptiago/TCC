@@ -1,7 +1,7 @@
 classdef AvoidObstaclesConstants
     properties(Constant)
         
-        nodeName = 'Avoid_obstacles_controller2';
+        nodeName = 'Avoid_obstacles_controller';
         constLinearVel = 0.1;
         
         %Topics
