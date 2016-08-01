@@ -20,37 +20,17 @@
 
 #include "vector"
 #include "stdio.h"
-#include "nav_msgs/OccupancyGrid.h"
-#include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Path.h"
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
 #include "common/utils/VRepUtils.h"
-#include "common/utils/OdometryUtils.h"
-#include "common/utils/MatrixUtils.h"
 #include "common/simRosGetObjectPose.h"
-#include "common/Position.h"
-#include "path_planner/ObjectInfo.h"
-#include "path_planner/simRosGetObjectGroupData.h"
-#include "path_planner/simRosGetObjectFloatParameter.h"
-#include "path_planner/simRosGetObjectChild.h"
-#include "path_planner/search/AStar/AStar.h"
 #include "path_planner/utils/PathPlannerUtils.h"
 
-const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
-const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
-const char* getObjectChildService = "/vrep/simRosGetObjectChild";
-const char* mapTopic = "/PathPlanner/map";
-const char* cuboidHandle = "Cuboid";
-const char* floorHandle = "ResizableFloor_5_25";
+const char* pathTopic = "/PathDrawer/path3";
 const char* pionnerHandle = "Pionner_LX";
-const int32_t sim_objfloatparam_modelbbox_min_x = 15;
-const int32_t sim_objfloatparam_modelbbox_max_x = 18;
-const int32_t sim_objfloatparam_modelbbox_min_y = 16;
-const int32_t sim_objfloatparam_modelbbox_max_y = 19;
-const int8_t occupiedCell = 100;
-const int8_t unknownCell = -1;
-const int8_t freeCell = 0;
+const char* timerRobotPath = "robotPathTimer";
+const char* timerRobotPosition = "robotPositionTimer";
 
 class PathDrawer : public BaseRosNode {
 
@@ -58,26 +38,19 @@ class PathDrawer : public BaseRosNode {
 		//Atttributes
 		ros::NodeHandle nodeHandler;
 		std::map<std::string,int32_t> signalObjectMap;
-		nav_msgs::OccupancyGrid occupancyGrid;
-		float angleTolerance;
-		double wakeUpTime;
-		AStar aStar;
+		nav_msgs::Path path;
+		float robotPathDelay;
+		float robotPositionDelay;
 
 		//Methods
 		bool createServiceClients();
 		bool createServiceServers();
 		int infoFailAndExit(const char* topicName);
-		bool getMinimumXYObjectCoordinate(int32_t objecthandle,
-			common::simRosGetObjectPose &simRosGetObjectPose,common::Position &position);
-		void callGetFloatParameterService(int32_t objectHandle, int32_t parameterID,
-			path_planner::simRosGetObjectFloatParameter &simRosGetObjectFloatParameter);
-		bool getObjectWidthHeight(int32_t objectHandle,	path_planner::ObjectInfo &objectInfo);
-		bool addObjectToOccupancyMap(int32_t childHandle);
 
 	public:
 		//Constructor
-		PathDrawer(int argc, char **argv, int cellArea, int mapWidth,
-			int mapHeight, float angleTolerance, double wakeUpTime);
+		PathDrawer(int argc, char **argv,float robotPathDelay,
+			float robotPositionDelay);
 
 		//Destructor
 		virtual ~PathDrawer() {};
@@ -87,11 +60,10 @@ class PathDrawer : public BaseRosNode {
 		bool createServices();
 		bool subscribeToTopics();
 		bool createPublishers();
+		bool createTimers();
+		void publishPath(const ros::TimerEvent& timerEvent);
+		void getPosition(const ros::TimerEvent& timerEvent);
 };
 
-#endif /* INCLUDE_PATH_PLANNER_PATHPLANNER_H_ */
-
-
-
-
+#endif /* INCLUDE_PATH_PLANNER_PATHDRAWER_H_ */
 #endif /* INCLUDE_PATH_PLANNER_PATHDRAWER_H_ */

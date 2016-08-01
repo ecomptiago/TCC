@@ -20,6 +20,8 @@ class RosNodeInterface {
 		virtual bool subscribeToTopics() = 0;
 		virtual bool createPublishers() = 0;
 		virtual bool createServices() = 0;
+		virtual bool createTimers() = 0;
+
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_ROSNODEINTERFACE_H_ */
