@@ -66,7 +66,7 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         function rotateRight(instance)
             send(instance.publisherMap(instance.constants.cmdVelTopic),...
                 instance.createCmdVelMsg(0,-0.1));
-        end   
+        end
         
         function runNode(instance)
             instance.stop();
@@ -75,10 +75,10 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                 meanValues = mean(matrix30x6,'double');
                 meanValues(meanValues > 3.5) = 3.5;
                 turnRate = evalfis(meanValues,instance.fuzzySystem);
-                if(instance.robotPose < 9.75)
+                if(instance.robotPose < 9.75) 
                     fprintf('robotAngle: %f\n', instance.robotAngle);
                     fprintf('turnRate %f \n', turnRate / 100);
-                    if(instance.robotAngle < 0 && instance.robotAngle > -90)
+                    if(instance.robotAngle < 0 && instance.robotAngle > -90) 
                         instance.rotateLeft();
                         while(~(instance.robotAngle<110 && instance.robotAngle ...
                             >90)) 
@@ -86,16 +86,16 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                             pause(0.1);
                         end        
                     elseif(instance.robotAngle > -180 && instance.robotAngle ...
-                        < -130)
+                        < -130) 
                             instance.rotateRight();
                             while(~(instance.robotAngle<110 && instance.robotAngle ...
                             >90)) 
                                 fprintf('robotAngle while: %f\n', instance.robotAngle);
                                 pause(0.1);
                             end
-                    elseif(turnRate >= 0.1 || turnRate <= -0.1)
+                    elseif(turnRate >= 0.1 || turnRate <= -0.1) 
                          instance.turn(turnRate / 100);
-                    else
+                    else 
                          instance.moveForward();
                     end
                 else
@@ -104,7 +104,8 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                   pause(0.5);
             end
         end
-        
+
+
         %Callback
         function laserTopicCallbackFunction(instance,~,msg)
             instance.laserValues = msg.Ranges;
