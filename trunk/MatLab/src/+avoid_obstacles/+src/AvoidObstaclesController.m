@@ -6,6 +6,9 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         fuzzySystem
         robotPose
         robotAngle
+        rulesArray
+        rulesNumber
+        rulesActivationCounter
     end
     
     methods
@@ -13,11 +16,27 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
         function avoidObstaclesInstance = AvoidObstaclesController 
             avoidObstaclesInstance = ...
                 avoidObstaclesInstance@common.src.BaseRosNode...
-                (avoid_obstacles.src.constants.AvoidObstaclesConstants.nodeName);
+                (avoid_obstacles.src.constants.AvoidObstaclesConstants...
+                .nodeName);
             avoidObstaclesInstance.constants = ...
                 avoid_obstacles.src.constants.AvoidObstaclesConstants;
             avoidObstaclesInstance.fuzzySystem = ...
                 readfis('fuzzy_desvio_objeto.fis');
+            avoidObstaclesInstance.rulesNumber = ... 
+                size(avoidObstaclesInstance.fuzzySystem.rule);
+            avoidObstaclesInstance.rulesNumber = avoidObstaclesInstance...
+                .rulesNumber(2);
+            avoidObstaclesInstance.rulesActivationCounter = ...
+                zeros(1,avoidObstaclesInstance.rulesNumber);
+            avoidObstaclesInstance.rulesArray = avoid_obstacles...
+                    .src.FuzzyRule.empty(0,avoidObstaclesInstance...
+                    .rulesNumber);
+            for i = 1.0:avoidObstaclesInstance.rulesNumber
+                avoidObstaclesInstance.rulesArray(i) = avoid_obstacles...
+                    .src.FuzzyRule(avoidObstaclesInstance.fuzzySystem...
+                    .rule(i).antecedent,avoidObstaclesInstance.fuzzySystem...
+                    .input);
+            end
         end
         
         %Methods
@@ -95,12 +114,22 @@ classdef AvoidObstaclesController <  common.src.BaseRosNode
                             end
                     elseif(turnRate >= 0.1 || turnRate <= -0.1) 
                          instance.turn(turnRate / 100);
+%                          for i=1:instance.rulesNumber
+%                             activated = instance.rulesArray(1,i)...
+%                                 .wasActivated(meanValues);
+%                             if(activated)
+%                                 instance.rulesActivationCounter(1,i) = ...
+%                                     instance.rulesActivationCounter(1,i) ...
+%                                     + 1;
+%                             end
+%                          end
                     else 
                          instance.moveForward();
                     end
                 else
                     instance.stop();
                 end
+                  disp(instance.rulesActivationCounter);  
                   pause(0.5);
             end
         end
