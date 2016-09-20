@@ -1,4 +1,0 @@
-Move_robot moveRobotPosition
----
-bool serviceIsLocked
-bool arrivedInPosition

@@ -1,2 +1,0 @@
-common/Position coordinateToMove
-string whyCantMove

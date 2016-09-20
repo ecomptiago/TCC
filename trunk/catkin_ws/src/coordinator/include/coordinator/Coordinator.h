@@ -9,12 +9,21 @@
 #define SRC_COORDINATOR_H_
 
 #include "algorithm"
-#include "iostream"
 #include "common/BaseRosNode.h"
 #include "common/utils/NumericUtils.h"
+#include "common/Move_robot.h"
 #include "sensor_msgs/LaserScan.h"
+#include "geometry_msgs/Twist.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "std_msgs/Float32.h"
 
 const char* laserTopic = "/RosAria/laser";
+const char* cmdVelTopic = "/RosAria/cmd_vel";
+const char* poseTopic = "/RosAria/pose";
+const char* targetPositionTopic = "/MovimentationExecutor/target";
+const char*	velTopic = "/MovimentationExecutor/velocity";
+const char*	errorTopic = "/MovimentationExecutor/error";
+const char* turnAngleTopic = "AvoidObstacles/turnAngle";
 
 class Coordinator : public BaseRosNode{
 
@@ -22,7 +31,10 @@ class Coordinator : public BaseRosNode{
 		//Atttributes
 		ros::NodeHandle nodeHandler;
 		std::vector<float> laserValues;
-
+		geometry_msgs::Twist proportionalVelocity;
+		std_msgs::Float32 proportionalError;
+		geometry_msgs::PoseStamped robotPose;
+		std_msgs::Float32 fuzzyTurnAngle;
 		//Methods
 
 	public:
@@ -37,6 +49,15 @@ class Coordinator : public BaseRosNode{
 			const sensor_msgs::LaserScan::ConstPtr& laserReading);
 		int runNode();
 		bool subscribeToTopics();
+		bool createPublishers();
+		void receivedProportionalControlerVelocity(
+			const geometry_msgs::Twist::ConstPtr& proportionalVelocity);
+		void receivedProportionalControlerError(
+			const std_msgs::Float32::ConstPtr& proportionalError);
+		void receivedRobotPose(
+			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
+		void receivedFuzzyTurnAngle(
+			const std_msgs::Float32::ConstPtr& fuzzyTurnAngle);
 };
 
 #endif /* SRC_COORDINATOR_H_ */
