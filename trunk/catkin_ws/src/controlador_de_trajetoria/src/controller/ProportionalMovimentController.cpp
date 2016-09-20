@@ -5,7 +5,7 @@
  *      Author: tiago
  */
 
-#include "controlador_de_trajetoria/movimentation/controller/ProportionalMovimentController.h"
+#include "controlador_de_trajetoria/controller/ProportionalMovimentController.h"
 
 //Constructor
 ProportionalMovimentController::ProportionalMovimentController() {

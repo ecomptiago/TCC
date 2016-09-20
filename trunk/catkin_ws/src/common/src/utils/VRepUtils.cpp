@@ -15,6 +15,10 @@ bool VRepUtils::getObjectHandle(const char* objectHandleName,
 			<common::simRosGetObjectHandle>("/vrep/simRosGetObjectHandle");
 		client.call(simRosGetObjectHandle);
 		if(simRosGetObjectHandle.response.handle != responseError) {
+			if(simRosGetObjectHandle.response.handle == 0) {
+				ROS_WARN("Got %d int handle for %s", simRosGetObjectHandle.response.handle,
+					objectHandleName);
+			}
 			ROS_DEBUG("Got %d int handle for %s", simRosGetObjectHandle.response.handle,
 				objectHandleName);
 			signalObjectMap[objectHandleName] = simRosGetObjectHandle.response.handle;

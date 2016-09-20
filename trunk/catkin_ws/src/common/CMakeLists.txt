@@ -50,6 +50,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    Position.msg
+   Move_robot.msg
 #   Message2.msg
  )
 

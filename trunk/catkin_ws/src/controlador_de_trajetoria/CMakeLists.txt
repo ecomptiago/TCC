@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   common
-  message_generation
+#  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -47,19 +47,15 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  Move_robot.msg
-  Move_robot_multi_array.msg
-  Movimentation_error.msg
-)
+#add_message_files(
+#  FILES
+#)
 
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  Move_robot_service.srv
-)
+#add_service_files(
+#  FILES
+#)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -69,12 +65,12 @@ add_service_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs
-   geometry_msgs
-   common
- )
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs
+#   geometry_msgs
+#   common
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -149,23 +145,13 @@ include_directories(
 # )
 
 set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/error/MethodNotImplemented.cpp 
-	../common/src/utils/OdometryUtils.cpp ../common/src/utils/NumericUtils.cpp src/movimentation/MovimentationErrorEnum.cpp 
-	src/movimentation/controller/ProportionalMovimentController.cpp src/utils/MovimentationUtils.cpp 
-	src/messages/MoveRobotWrapper.cpp)
+	../common/src/utils/OdometryUtils.cpp ../common/src/utils/NumericUtils.cpp  
+	src/controller/ProportionalMovimentController.cpp)
 set (MSG_GENERATION controlador_de_trajetoria_generate_messages_cpp)
 
-#add_executable(MessagesHandler ${SOURCEFILES} src/messages/MessagesHandler.cpp)
-#target_link_libraries(MessagesHandler ${catkin_LIBRARIES})
-#add_dependencies(MessagesHandler ${MSG_GENERATION})
-
-add_executable(MovimentationExecutor ${SOURCEFILES} src/movimentation/MovimentationExecutor.cpp)
+add_executable(MovimentationExecutor ${SOURCEFILES} src/MovimentationExecutor.cpp)
 target_link_libraries(MovimentationExecutor ${catkin_LIBRARIES})
 add_dependencies(MovimentationExecutor ${MSG_GENERATION})
-
-add_executable(PositionHandler ${SOURCEFILES} src/position/PositionHandler.cpp)
-target_link_libraries(PositionHandler ${catkin_LIBRARIES})
-add_dependencies(PositionHandler ${MSG_GENERATION})
-
 
 #############
 ## Install ###############
