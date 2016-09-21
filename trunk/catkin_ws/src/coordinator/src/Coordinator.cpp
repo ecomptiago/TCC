@@ -15,40 +15,29 @@ Coordinator::Coordinator(int argc, char **argv) :
 //Methods
 int Coordinator::runNode() {
 	ROS_INFO("Running node");
-	ros::Rate rate(1);
+	ros::Rate rate(1/0.75);
 	while(ros::ok()) {
-		if(laserValues.capacity() != 0 && NumericUtils::isFirstLess<float>(robotPose.pose.position.y, 8.0)) {
-			float smallestLaserReading = *std::min_element(laserValues.begin(),
-				laserValues.end());
-			ROS_DEBUG("The smallest element is %f",smallestLaserReading);
-
-			if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 3.5)) {
-					geometry_msgs::Twist move;
-					float linearVelocity = smallestLaserReading / 10;
-					if(NumericUtils::isFirstGreaterEqual<float>(linearVelocity,0.01)) {
-						move.linear.x = linearVelocity;
-					} else {
-						move.linear.x = 0.01;
-					}
-
-					if(NumericUtils::isFirstGreaterEqual<float>(fuzzyTurnAngle.data,0.1) ||
-						NumericUtils::isFirstLessEqual<float>(fuzzyTurnAngle.data,-0.1)) {
-							move.angular.z = fuzzyTurnAngle.data / 100;
-					} else {
-						move.angular.z = 0;
-					}
-					publisherMap[cmdVelTopic].publish(move);
-			}
-		} else {
-			geometry_msgs::Twist stop;
-			stop.angular.x = 0;
-			stop.angular.y = 0;
-			stop.angular.z = 0;
-			stop.linear.x = 0;
-			stop.linear.y = 0;
-			stop.linear.z = 0;
-			publisherMap[cmdVelTopic].publish(stop);
-		}
+//		if(laserValues.capacity() != 0 && NumericUtils::isFirstLess<float>(robotPose.pose.position.y, 8.0)) {
+//			float smallestLaserReading = *std::min_element(laserValues.begin(),
+//				laserValues.end());
+//			ROS_DEBUG("The smallest element is %f",smallestLaserReading);
+//
+//			if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 3.5)) {
+//				geometry_msgs::Twist move;
+//				move.linear.x = 0.15 * smallestLaserReading;
+//				move.angular.z = 0.01 * fuzzyTurnAngle.data ;
+//				publisherMap[cmdVelTopic].publish(move);
+//			}
+//		} else {
+//			geometry_msgs::Twist stop;
+//			stop.angular.x = 0;
+//			stop.angular.y = 0;
+//			stop.angular.z = 0;
+//			stop.linear.x = 0;
+//			stop.linear.y = 0;
+//			stop.linear.z = 0;
+//			publisherMap[cmdVelTopic].publish(stop);
+//		}
 
 //		if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.2)) {
 //			publisherMap[cmdVelTopic].publish(proportionalVelocity);
