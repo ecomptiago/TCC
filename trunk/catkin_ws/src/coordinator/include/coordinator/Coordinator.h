@@ -45,11 +45,11 @@ class Coordinator : public BaseRosNode{
 		virtual ~Coordinator() {};
 
 		//Methods
-		void receivedLaserValues(
-			const sensor_msgs::LaserScan::ConstPtr& laserReading);
 		int runNode();
 		bool subscribeToTopics();
 		bool createPublishers();
+		void receivedLaserValues(
+			const sensor_msgs::LaserScan::ConstPtr& laserReading);
 		void receivedProportionalControlerVelocity(
 			const geometry_msgs::Twist::ConstPtr& proportionalVelocity);
 		void receivedProportionalControlerError(

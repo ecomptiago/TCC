@@ -87,6 +87,20 @@ class BaseRosNode : public RosNodeInterface{
 				}
 		}
 
+		template<class T>
+		bool addPublisherClient(ros::NodeHandle nodeHandler,
+			char const* topicName, int queueSize, bool latch) {
+				ros::Publisher pub =
+					nodeHandler.advertise<T>(topicName, queueSize,latch);
+				if(pub) {
+					publisherMap[topicName] = pub;
+					return true;
+				} else {
+					ROS_DEBUG("Could not create publisher %s",topicName);
+					return false;
+				}
+		}
+
 		template <class M, class T>
 		bool addSubscribedTopic(ros::NodeHandle nodeHandler, const char* topicName,
 			void (T::*topicCallback)(const M), T* instance){
