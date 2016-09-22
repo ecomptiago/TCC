@@ -7,3 +7,4 @@ log4j.logger.ros.common=DEBUG
 log4j.logger.ros.rosaria_v_rep=DEBUG
 log4j.logger.ros.path_planner=DEBUG
 log4j.logger.ros.coordinator=DEBUG
+log4j.logger.ros.neural_network=DEBUG
