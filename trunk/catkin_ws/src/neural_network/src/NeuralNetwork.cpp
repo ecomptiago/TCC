@@ -12,7 +12,7 @@ NeuralNetwork::NeuralNetwork(int argc, char **argv) :
 	    std::string neuralNetowrkFile = get_current_dir_name();
 	    neuralNetowrkFile =
 	    	neuralNetowrkFile.erase(neuralNetowrkFile.find("catkin_ws") + 9)
-			.append("/src/neural_network/rna2.net");
+			.append("/src/neural_network/rna.net");
 		ann = fann_create_from_file(neuralNetowrkFile.c_str());
 		output = NULL;
 		outputSize= fann_get_num_output(ann);
@@ -26,7 +26,7 @@ int NeuralNetwork::runNode() {
 		std_msgs::Float32MultiArray grid;
 		grid.data.clear();
 		for(int i = 0; i < outputSize ; i++) {
-			grid.data.push_back(laserValues[i]);
+			grid.data.push_back(output[i]);
 		}
 		publisherMap[gridTopic].publish(grid);
 		sleepAndSpin(rate);
