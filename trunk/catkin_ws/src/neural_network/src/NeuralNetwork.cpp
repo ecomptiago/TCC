@@ -70,6 +70,8 @@ void NeuralNetwork::receivedLaserValues(
 		}
 }
 
+
+//Para treinar e configurar a rede devo comentar as linhas 77 a 87! Isto evita publicações no ROS.
 int main(int argc, char **argv) {
 
 	NeuralNetwork neuralNetwork(argc,argv);
