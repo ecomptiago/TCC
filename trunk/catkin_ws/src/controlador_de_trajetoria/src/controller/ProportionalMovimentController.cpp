@@ -53,20 +53,18 @@ geometry_msgs::Twist ProportionalMovimentController::calculateVelocities() {
 			twist.linear.x = kRho * rho;
 			twist.angular.z =
 				(kAlpha * alpha) + (kBeta * beta);
-	} else if((NumericUtils::isFirstGreater<float>(alpha,-M_PI) &&
-		NumericUtils::isFirstLessEqual<float>(alpha, -M_PI/2)) ||
-		(NumericUtils::isFirstGreater<float>(alpha,M_PI/2) &&
-		NumericUtils::isFirstLessEqual<float>(alpha, M_PI))){
-			twist.linear.x = -kRho * rho;
-			twist.angular.z =
-				-(kAlpha * alpha) - (kBeta * beta);
-	} else {
+	}
+//	else if((NumericUtils::isFirstGreater<float>(alpha,-M_PI) &&
+//		NumericUtils::isFirstLessEqual<float>(alpha, -M_PI/2)) ||
+//		(NumericUtils::isFirstGreater<float>(alpha,M_PI/2) &&
+//		NumericUtils::isFirstLessEqual<float>(alpha, M_PI))){
+//			twist.linear.x = -kRho * rho;
+//			twist.angular.z =
+//				-(kAlpha * alpha) - (kBeta * beta);
+//	}
+	else {
 		twist.linear.x = 0;
-		if(alpha > 0) {
-			twist.angular.z = -0.2;
-		} else {
-			twist.angular.z = 0.2;
-		}
+		twist.angular.z = -0.05 * alpha;
 	}
 	ROS_DEBUG("Setting velocities linear:%f angular:%f", twist.linear.x,
 		twist.angular.z);

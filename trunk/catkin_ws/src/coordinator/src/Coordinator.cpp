@@ -17,40 +17,33 @@ int Coordinator::runNode() {
 	ROS_INFO("Running node");
 	ros::Rate rate(1/0.75);
 	while(ros::ok()) {
-//		if(laserValues.capacity() != 0 && NumericUtils::isFirstLess<float>(robotPose.pose.position.y, 8.0)) {
-//			float smallestLaserReading = *std::min_element(laserValues.begin(),
-//				laserValues.end());
-//			ROS_DEBUG("The smallest element is %f",smallestLaserReading);
-//
-//			if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 3.5)) {
-//				geometry_msgs::Twist move;
-//				move.linear.x = 0.15 * smallestLaserReading;
-//				move.angular.z = 0.01 * fuzzyTurnAngle.data ;
-//				publisherMap[cmdVelTopic].publish(move);
-//			}
-//		} else {
-//			geometry_msgs::Twist stop;
-//			stop.angular.x = 0;
-//			stop.angular.y = 0;
-//			stop.angular.z = 0;
-//			stop.linear.x = 0;
-//			stop.linear.y = 0;
-//			stop.linear.z = 0;
-//			publisherMap[cmdVelTopic].publish(stop);
-//		}
-
-//		if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.2)) {
-//			publisherMap[cmdVelTopic].publish(proportionalVelocity);
-//		} else {
-//			geometry_msgs::Twist stop;
-//			stop.angular.x = 0;
-//			stop.angular.y = 0;
-//			stop.angular.z = 0;
-//			stop.linear.x = 0;
-//			stop.linear.y = 0;
-//			stop.linear.z = 0;
-//			publisherMap[cmdVelTopic].publish(stop);
-//		}
+		if(laserValues.capacity() != 0 && NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.2)) {
+			float smallestLaserReading = *std::min_element(laserValues.begin(),
+				laserValues.end());
+			ROS_DEBUG("The smallest element is %f",smallestLaserReading);
+			if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 0.5)) {
+				geometry_msgs::Twist move;
+				move.linear.x = 0.75 * smallestLaserReading;
+				ROS_DEBUG("fuzzyTurnAngle %f",fuzzyTurnAngle.data);
+				move.angular.z = 0.02 * fuzzyTurnAngle.data ;
+				publisherMap[cmdVelTopic].publish(move);
+				ROS_DEBUG("Setting velocity liner %f and angular %f",move.linear.x,move.angular.z);
+			} else {
+				publisherMap[cmdVelTopic].publish(proportionalVelocity);
+				ROS_DEBUG("Setting velocity liner %f and angular %f",
+					proportionalVelocity.linear.x,proportionalVelocity.angular.z);
+			}
+		} else {
+			geometry_msgs::Twist stop;
+			stop.angular.x = 0;
+			stop.angular.y = 0;
+			stop.angular.z = 0;
+			stop.linear.x = 0;
+			stop.linear.y = 0;
+			stop.linear.z = 0;
+			publisherMap[cmdVelTopic].publish(stop);
+			ROS_DEBUG("Setting velocity liner 0 and angular 0");
+		}
 
 		sleepAndSpin(rate);
 	}
