@@ -10,40 +10,35 @@
 //Methods
 int PathPlannerUtils::getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGrid,
 	common::Position &position) {
+		float xMax = occupancyGrid.info.origin.position.x
+			+ (occupancyGrid.info.width * occupancyGrid.info.resolution);
+		float yMax = occupancyGrid.info.origin.position.y
+			+ (occupancyGrid.info.height * occupancyGrid.info.resolution);
+		float xMin = occupancyGrid.info.origin.position.x;
+		float yMin = occupancyGrid.info.origin.position.y;
+		float cellSize = occupancyGrid.info.resolution;
 
-		double cellResolution = occupancyGrid.info.resolution;
-
-		//TODO - This should be improved
-		int yCell = 0;
-		double yStartInterval = occupancyGrid.info.origin.position.y;
-		double yStopInterval = yStartInterval + cellResolution;
-		double yObjectPosition = position.y;
-		double yLastStopInterval = occupancyGrid.info.origin.position.y +
-			occupancyGrid.info.height / cellResolution;
-		while( !NumericUtils::isFirstGreaterEqualWithPrecision(yStopInterval,yLastStopInterval,2) &&
-			!(NumericUtils::isFirstGreaterEqualWithPrecision(yObjectPosition,yStartInterval,2) &&
-			  NumericUtils::isFirstLessWithPrecision(yObjectPosition,yStopInterval,2))) {
-				yStartInterval = yStopInterval;
-				yStopInterval = yStartInterval + cellResolution;
-				yCell++;
+		if(NumericUtils::isFirstLessEqual<float>(position.x, xMin) ||
+			NumericUtils::isFirstGreaterEqual<float>(position.x, xMax) ||
+			NumericUtils::isFirstLessEqual<float>(position.y, yMin) ||
+			NumericUtils::isFirstGreaterEqual<float>(position.y,yMax)) {
+				return -1;
+		} else {
+			int cellPosition = 0;
+			for (float y = yMin; NumericUtils::isFirstLess<float>(y, yMax); y = y + cellSize) {
+				for (float x = xMin; NumericUtils::isFirstLess<float>(x, xMax); x = x + cellSize) {
+					bool posXGreaterCelX = NumericUtils::isFirstGreaterEqual<float>(position.x, x);
+					bool posXLessCelX = NumericUtils::isFirstLessEqual<float>(position.x, x + cellSize);
+					bool posYGreaterCelY = NumericUtils::isFirstGreaterEqual<float>(position.y, y);
+					bool posYLessCelY = NumericUtils::isFirstLessEqual<float>(position.y, y + cellSize);
+					if(posXGreaterCelX &&  posXLessCelX && posYGreaterCelY && posYLessCelY) {
+						return cellPosition;
+					}
+					cellPosition++;
+				}
+			}
 		}
-
-		//TODO - This should be improved
-		int xCell = 0;
-		double xStartInterval = occupancyGrid.info.origin.position.x;
-		double xStopInterval = xStartInterval + cellResolution;
-		double xObjectPosition = position.x;
-		double xLastStopInterval = occupancyGrid.info.origin.position.x +
-			occupancyGrid.info.width / cellResolution;
-		while(!NumericUtils::isFirstGreaterEqualWithPrecision(xStopInterval,xLastStopInterval,2) &&
-			!(NumericUtils::isFirstGreaterEqualWithPrecision(xObjectPosition,xStartInterval,2) &&
-			  NumericUtils::isFirstLessWithPrecision(xObjectPosition,xStopInterval,2))) {
-				xStartInterval = xStopInterval;
-				xStopInterval = xStartInterval + cellResolution;
-				xCell++;
-		}
-
-		return ((occupancyGrid.info.width / cellResolution) * yCell) + xCell;
+		return -1;
 }
 
 void PathPlannerUtils::getCoordinatesFromDataVectorPosition(

@@ -15,7 +15,7 @@ PathPlanner::PathPlanner(int argc, char **argv, int cellArea, int mapWidth, int 
 		this->occupancyGrid.info.height = mapHeight;
 		this->occupancyGrid.header.frame_id = "LaserScannerBody_2D";
 		for(int i = 0; i < (mapWidth * mapHeight) / cellArea; i++) {
-			this->occupancyGrid.data.insert(this->occupancyGrid.data.begin(),unknownCell);
+			this->occupancyGrid.data.insert(this->occupancyGrid.data.begin(),freeCell);
 		}
 		this->angleTolerance = angleTolerance;
 		this->wakeUpTime = wakeUpTime;
@@ -33,88 +33,66 @@ int PathPlanner::runNode() {
 
 
 	//Getting origin coordinates
-//	if(VRepUtils::getObjectHandle(floorHandle,nodeHandler,signalObjectMap)) {
-//		geometry_msgs::PoseStamped origin;
-//		do{
-//			simRosGetObjectChild.request.handle = signalObjectMap[floorHandle];
-//			simRosGetObjectChild.request.index = index;
-//			serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
-//			int32_t childHandle = simRosGetObjectChild.response.childHandle;
-//			if (childHandle != responseError) {
-//				common::simRosGetObjectPose simRosGetObjectPose;
-//				if(VRepUtils::getObjectPose(simRosGetObjectChild.response.childHandle,
-//					nodeHandler,simRosGetObjectPose)) {
-//						if(firstLoop || (
-//							simRosGetObjectPose.response.pose.pose.position.x < origin.pose.position.x &&
-//							simRosGetObjectPose.response.pose.pose.position.y < origin.pose.position.y)) {
-//								origin = simRosGetObjectPose.response.pose;
-//								firstLoop = false;
-//						}
-//				} else {
-//					ROS_ERROR("Could not get pose of a children from object %s",floorHandle);
-//					return shutdownAndExit();
-//				}
-//			}
-//			index++;
-//		} while(simRosGetObjectChild.response.childHandle != responseError);
-//		occupancyGrid.info.origin.orientation = origin.pose.orientation;
-//		occupancyGrid.info.origin.position.x = origin.pose.position.x - 2.5;
-//		occupancyGrid.info.origin.position.y = origin.pose.position.y - 2.5;
-//	} else {
-//		ROS_ERROR("Could not found handle for object %s",floorHandle);
-//		return shutdownAndExit();
-//	}
-
-/*
-	if(VRepUtils::getObjectHandle(cuboidHandle,nodeHandler,signalObjectMap)) {
-		index = 0;
-		addObjectToOccupancyMap(signalObjectMap[cuboidHandle]);
-		simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
-		simRosGetObjectChild.request.index = index;
-		serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
+	if(VRepUtils::getObjectHandle(floorHandle,nodeHandler,signalObjectMap)) {
+		geometry_msgs::PoseStamped origin;
 		do{
-			int32_t childHandle = simRosGetObjectChild.response.childHandle;
-			if(addObjectToOccupancyMap(childHandle)) {
-				index++;
-			} else {
-				return shutdownAndExit();
-
-			}
-			simRosGetObjectChild.request.handle = signalObjectMap[cuboidHandle];
+			simRosGetObjectChild.request.handle = signalObjectMap[floorHandle];
 			simRosGetObjectChild.request.index = index;
 			serviceClientsMap[getObjectChildService].call(simRosGetObjectChild);
+			int32_t childHandle = simRosGetObjectChild.response.childHandle;
+			if (childHandle != responseError) {
+				common::simRosGetObjectPose simRosGetObjectPose;
+				if(VRepUtils::getObjectPose(simRosGetObjectChild.response.childHandle,
+					nodeHandler,simRosGetObjectPose)) {
+						if(firstLoop || (
+							simRosGetObjectPose.response.pose.pose.position.x < origin.pose.position.x &&
+							simRosGetObjectPose.response.pose.pose.position.y < origin.pose.position.y)) {
+								origin = simRosGetObjectPose.response.pose;
+								firstLoop = false;
+						}
+				} else {
+					ROS_ERROR("Could not get pose of a children from object %s",floorHandle);
+					return shutdownAndExit();
+				}
+			}
+			index++;
 		} while(simRosGetObjectChild.response.childHandle != responseError);
+		occupancyGrid.info.origin.orientation = origin.pose.orientation;
+		occupancyGrid.info.origin.position.x = origin.pose.position.x - 2.5;
+		occupancyGrid.info.origin.position.y = origin.pose.position.y - 2.5;
 	} else {
-		ROS_ERROR("Could not found handle for object %s",cuboidHandle);
+		ROS_ERROR("Could not found handle for object %s",floorHandle);
 		return shutdownAndExit();
 	}
 
-*/
-	/*std::vector<int8_t>::iterator it;
-	it = occupancyGrid.data.begin();
-	char buffer [occupancyGrid.data.size() * 6];
-	int charsWrote = 0;
+	occupancyGrid.data[20] = occupiedCell;
+	occupancyGrid.data[21] = occupiedCell;
+	occupancyGrid.data[22] = occupiedCell;
+	occupancyGrid.data[23] = occupiedCell;
+	occupancyGrid.data[24] = occupiedCell;
+	occupancyGrid.data[25] = occupiedCell;
 
-	while(it != occupancyGrid.data.end()) {
-		for(int i = 0;
-			i < ceil(occupancyGrid.info.width / occupancyGrid.info.resolution);
-			i++) {
-				charsWrote += sprintf(buffer + charsWrote, "| %d |",*it);
-				it++;
-		}
-		charsWrote += sprintf(buffer + charsWrote, "\n");
-	}
+	occupancyGrid.data[43] = occupiedCell;
+	occupancyGrid.data[44] = occupiedCell;
+	occupancyGrid.data[45] = occupiedCell;
+	occupancyGrid.data[46] = occupiedCell;
+	occupancyGrid.data[47] = occupiedCell;
 
-	ROS_DEBUG("Map of static objects: \n%s",buffer);
-*/
-/*
+	occupancyGrid.data[71] = occupiedCell;
+	occupancyGrid.data[72] = occupiedCell;
+	occupancyGrid.data[73] = occupiedCell;
+	occupancyGrid.data[74] = occupiedCell;
+	occupancyGrid.data[75] = occupiedCell;
+	occupancyGrid.data[76] = occupiedCell;
+
+
 	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
 		common::simRosGetObjectPose simRosGetObjectPose;
 		aStar.setOccupancyGrid(occupancyGrid);
 		if(VRepUtils::getObjectPose(signalObjectMap[pionnerHandle], nodeHandler,simRosGetObjectPose)) {
 			common::Position targetPosition;
-			targetPosition.x = 4.35;
-			targetPosition.y = 10.14;
+			targetPosition.x = -1.57;
+			targetPosition.y = 9.6;
 
 			common::Position initialPosition;
 			initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
@@ -124,6 +102,8 @@ int PathPlanner::runNode() {
 				std::vector<AStarGridCell> path;
 				aStar.reconstructPath(path, targetPosition,initialPosition);
 
+				int charsWrote = 0;
+				char buffer [occupancyGrid.data.size() * 6];
 				std::vector<AStarGridCell>::iterator it;
 				it = path.begin();
 				charsWrote = 0;
@@ -139,73 +119,70 @@ int PathPlanner::runNode() {
 		}
 	}
 
-*/
+
 	ros::Rate rate(1/wakeUpTime);
-
-	occupancyGrid.info.resolution = 1;
-	occupancyGrid.info.width = 10;
-	occupancyGrid.info.height = 10;
-	occupancyGrid.info.origin.position.x = -6.15000009537;
-	occupancyGrid.info.origin.position.y = 0.724999427795;
-	occupancyGrid.info.origin.orientation.x = 0;
-	occupancyGrid.info.origin.orientation.y = 0;
-	occupancyGrid.info.origin.orientation.z = 0;
-	occupancyGrid.info.origin.orientation.w = 1;
-
-//	tf::Quaternion quaternion = tf::createQuaternionFromYaw(32.5 * (M_PI / 180));
-//	occupancyGrid.info.origin.orientation.x = quaternion.getX();
-//	occupancyGrid.info.origin.orientation.y = quaternion.getY();
-//	occupancyGrid.info.origin.orientation.z = quaternion.getZ();
-//	occupancyGrid.info.origin.orientation.w = quaternion.getW();
-
-//	for(int i = 0 ; i < 100; i++) {
-//		occupancyGrid.data[i] = unknownCell;
-//	}
 
  	while(ros::ok()) {
 		sleepAndSpin(rate);
+//		double angle = OdometryUtils::getAngleFromQuaternation(
+// 	 		tf::Quaternion(0,0,
+// 			robotPose.pose.orientation.z,
+// 			robotPose.pose.orientation.w),false);
+// 		if(NumericUtils::isFirstLess<float>(angle,0.0)) {
+// 			angle = angle + 360;
+// 		}
+//
+// 		ROS_DEBUG("Angle %f",angle);
+// 		if(NumericUtils::isFirstGreaterEqual<float>(angle,80) &&
+// 			NumericUtils::isFirstLessEqual<float>(angle, 100)) {
+// 				angle = 90;
+// 		} else if(NumericUtils::isFirstGreaterEqual<float>(angle,170) &&
+// 			NumericUtils::isFirstLessEqual<float>(angle, 190)) {
+// 				angle = 180;
+// 		} else if(NumericUtils::isFirstGreaterEqual<float>(angle,260) &&
+// 	 		NumericUtils::isFirstLessEqual<float>(angle, 280)) {
+// 			 angle = 270;
+// 		} else if((NumericUtils::isFirstGreaterEqual<float>(angle,0) &&
+// 			NumericUtils::isFirstLessEqual<float>(angle, 10)) ||
+// 			(NumericUtils::isFirstGreaterEqual<float>(angle,350) &&
+// 			NumericUtils::isFirstLessEqual<float>(angle, 360))) {
+// 				angle = 0;
+// 		}
+//
+// 		angle = (angle * M_PI) / 180;
+//
+// 		int i = 0;
+//
+// 		for(double u = 1; u < 8; u++ ) {
+// 			for(double v = 3; v > -4; v--) {
+// 				float x = (u * cos(angle)) - (v * sin(angle));
+// 				float y = (u * sin(angle)) + (v * cos(angle));
+// 				x = x + robotPose.pose.position.x;
+// 				y = y + robotPose.pose.position.y;
+// 				float cellValue;
+// 				common::Position position;
+// 				position.x = x;
+// 				position.y = y;
+// 				int cellPosition =
+// 					PathPlannerUtils::getDataVectorPosition(occupancyGrid,position);
+// 				ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d", x, y, cellPosition);
+// 				if(cellPosition != -1) {
+//					if(NumericUtils::isFirstLess<float>(neuralGrid.data[i],0.0)) {
+//						cellValue = neuralGrid.data[i] * -1;
+//					} else {
+//						cellValue = neuralGrid.data[i];
+//					}
+//					if(NumericUtils::isFirstLessEqual<float>(cellValue, 0.5)) {
+//						occupancyGrid.data[cellPosition] = freeCell;
+//					} else {
+//						occupancyGrid.data[cellPosition] = occupiedCell;
+//					}
+// 				}
+//				i++;
+// 			}
+// 		}
+
 		publisherMap[mapTopic].publish(occupancyGrid);
- 		float angle = OdometryUtils::getAngleFromQuaternation(
- 	 		tf::Quaternion(0,0,
- 			robotPose.pose.orientation.z,
- 			robotPose.pose.orientation.w),false);
- 		if(NumericUtils::isFirstLess<float>(angle,0.0)) {
- 			angle = angle + 360;
- 		}
- 		ROS_DEBUG("Angle %f",angle);
- 		angle = (angle * M_PI) / 180;
-
- 		int i = 0;
-
- 		for(float u = 1; u < 8; u++ ) {
- 			for(float v = 3; v > -4; v--) {
- 				float x = (u * cos(angle)) - (v * sin(angle));
- 				float y = (u * sin(angle)) + (v * cos(angle));
- 				x = x + robotPose.pose.position.x;
- 				y = y + robotPose.pose.position.y;
-// 				if(NumericUtils::isFirstLess<float>())
- 				float cellValue;
- 				common::Position position;
- 				position.x = x;
- 				position.y = y;
- 				int cellPosition =
- 					PathPlannerUtils::getDataVectorPosition(occupancyGrid,position);
- 				ROS_DEBUG("Position.x %f , Position.y %f , cellPositio %d", x, y, cellPosition);
- 				if(NumericUtils::isFirstLess<float>(neuralGrid.data[i],0.0)) {
- 					cellValue = neuralGrid.data[i] * -1;
- 				} else {
- 					cellValue = neuralGrid.data[i];
- 				}
- 				if(NumericUtils::isFirstLessEqual<float>(cellValue, 0.5)) {
- 					occupancyGrid.data[cellPosition] = freeCell;
- 				} else {
- 					occupancyGrid.data[cellPosition] = occupiedCell;
- 				}
- 				i++;
- 				publisherMap[mapTopic].publish(occupancyGrid);
- 			}
- 		}
-//		publisherMap[mapTopic].publish(occupancyGrid);
 	}
 
 	return shutdownAndExit();
@@ -362,7 +339,7 @@ bool PathPlanner::createServiceClients() {
 }
 
 bool PathPlanner::createServiceServers() {
-	return true;
+	return addServiceServer(nodeHandler,bestPathService,)
 }
 
 bool PathPlanner::createPublishers() {
@@ -380,6 +357,8 @@ void PathPlanner::receivedNeuralGrid(const std_msgs::Float32MultiArray::ConstPtr
 		this->neuralGrid.data[i] = neuralGrid->data[i];
 	}
 }
+
+
 
 
 //Main

@@ -96,7 +96,7 @@ std::vector<int> AStar::optimizePath(std::vector<AStarGridCell>& path) {
 			/ occupancyGridPointer->info.resolution;
 	int freeCell = 0;
 	std::vector<int> cellsToEliminate(path.size());
-	while (i < path.size() - 1) {
+	while (i < path.size() - 2) {
 		AStarGridCell actualCell = path.at(i);
 		AStarGridCell nextCell = path.at(i + 1);
 		AStarGridCell nextNextCell = path.at(i + 2);

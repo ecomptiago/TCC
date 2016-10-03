@@ -22,16 +22,14 @@ int NeuralNetwork::runNode() {
 	ROS_INFO("Running node");
     ros::Rate rate(1/0.5);
 	while(ros::ok()) {
+		sleepAndSpin(rate);
 	    output = fann_run(ann, laserValues);
 		std_msgs::Float32MultiArray grid;
-//		grid.data.clear();
 		grid.data.resize(outputSize);
 		for(int i = 0; i < outputSize ; i++) {
-//			grid.data.push_back(output[i]);]
 			grid.data[i] = output[i];
 		}
 		publisherMap[gridTopic].publish(grid);
-		sleepAndSpin(rate);
 	}
 	return shutdownAndExit();
 }

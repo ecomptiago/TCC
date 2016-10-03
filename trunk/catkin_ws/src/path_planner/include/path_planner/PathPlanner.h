@@ -34,6 +34,7 @@ const char* getObjectChildService = "/vrep/simRosGetObjectChild";
 const char* mapTopic = "/PathPlanner/map";
 const char* poseTopic = "/RosAria/pose";
 const char* neuralGridTopic = "/NeuralNetwork/grid";
+const char* bestPathService = "/PathPlanner/bestPath";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
 const char* pionnerHandle = "Pionner_LX";
@@ -86,6 +87,7 @@ class PathPlanner : public BaseRosNode {
 			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
 		void receivedNeuralGrid(
 			const std_msgs::Float32MultiArray::ConstPtr& neuralGrid);
+		bool bestPathService(const)
 
 };
 
