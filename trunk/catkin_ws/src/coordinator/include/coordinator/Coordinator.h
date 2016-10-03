@@ -23,7 +23,8 @@ const char* poseTopic = "/RosAria/pose";
 const char* targetPositionTopic = "/MovimentationExecutor/target";
 const char*	velTopic = "/MovimentationExecutor/velocity";
 const char*	errorTopic = "/MovimentationExecutor/error";
-const char* turnAngleTopic = "AvoidObstacles/turnAngle";
+const char* turnAngleTopic = "/AvoidObstacles/turnAngle";
+const char* rvizPoseTopic = "/Coordinator/pose";
 
 class Coordinator : public BaseRosNode{
 
@@ -36,7 +37,7 @@ class Coordinator : public BaseRosNode{
 		geometry_msgs::PoseStamped robotPose;
 		std_msgs::Float32 fuzzyTurnAngle;
 		//Methods
-
+		void wallFollowing();
 	public:
 		//Constructor
 		Coordinator(int argc, char **argv);

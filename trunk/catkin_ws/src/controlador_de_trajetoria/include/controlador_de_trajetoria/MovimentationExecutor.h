@@ -35,7 +35,7 @@
 #include "tf/transform_datatypes.h"
 
 const char* poseTopic = "/RosAria/pose";
-const char* targetPositionTopic = "/MovimentationExecutor/target";
+const char* targetPositionProportionalControllerTopic = "/MovimentationExecutor/target";
 const char*	velTopic = "/MovimentationExecutor/velocity";
 const char*	errorTopic = "/MovimentationExecutor/error";
 

@@ -45,6 +45,14 @@ int Coordinator::runNode() {
 			ROS_DEBUG("Setting velocity liner 0 and angular 0");
 		}
 
+		geometry_msgs::PoseStamped rvizPose;
+
+		rvizPose.header = robotPose.header;
+		rvizPose.pose = robotPose.pose;
+		rvizPose.header.frame_id = "LaserScannerBody_2D";
+
+		publisherMap[rvizPoseTopic].publish(rvizPose);
+
 		sleepAndSpin(rate);
 	}
 	return shutdownAndExit();
@@ -75,7 +83,10 @@ bool Coordinator::createPublishers() {
 		nodeHandler, targetPositionTopic, false) &&
 
 		addPublisherClient<geometry_msgs::Twist>(
-			nodeHandler,cmdVelTopic,false);
+			nodeHandler,cmdVelTopic,false) &&
+
+		addPublisherClient<geometry_msgs::PoseStamped>(
+			nodeHandler,rvizPoseTopic,false);
 }
 
 

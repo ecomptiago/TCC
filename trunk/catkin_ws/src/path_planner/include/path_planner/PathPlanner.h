@@ -10,6 +10,7 @@
 
 #include "vector"
 #include "stdio.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -31,6 +32,8 @@ const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
 const char* getObjectChildService = "/vrep/simRosGetObjectChild";
 const char* mapTopic = "/PathPlanner/map";
+const char* poseTopic = "/RosAria/pose";
+const char* neuralGridTopic = "/NeuralNetwork/grid";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
 const char* pionnerHandle = "Pionner_LX";
@@ -52,6 +55,8 @@ class PathPlanner : public BaseRosNode {
 		float angleTolerance;
 		double wakeUpTime;
 		AStar aStar;
+		geometry_msgs::PoseStamped robotPose;
+		std_msgs::Float32MultiArray neuralGrid;
 
 		//Methods
 		bool createServiceClients();
@@ -77,6 +82,11 @@ class PathPlanner : public BaseRosNode {
 		bool createServices();
 		bool subscribeToTopics();
 		bool createPublishers();
+		void receivedRobotPose(
+			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
+		void receivedNeuralGrid(
+			const std_msgs::Float32MultiArray::ConstPtr& neuralGrid);
+
 };
 
 #endif /* INCLUDE_PATH_PLANNER_PATHPLANNER_H_ */

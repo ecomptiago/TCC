@@ -4,9 +4,9 @@ classdef AvoidObstaclesConstants
         nodeName = 'Avoid_obstacles_controller';
         
         %Topics
-        laserTopic =  'RosAria/laser';
+        laserTopic =  '/RosAria/laser';
         laserTopicMsgType = 'sensor_msgs/LaserScan';
-        turnAngleTopic = 'AvoidObstacles/turnAngle';
+        turnAngleTopic = '/AvoidObstacles/turnAngle';
         turnAngleTopicMsgType = 'std_msgs/Float32';
         %Services
         

@@ -54,7 +54,7 @@ double MovimentationExecutor::getActualAngle(int sleepBeforeActualize) {
 bool MovimentationExecutor::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
 	return addSubscribedTopic<const common::Move_robot::ConstPtr&,
-		   MovimentationExecutor>(nodeHandler,targetPositionTopic, &MovimentationExecutor::receivedTargetPosition,this) &&
+		   MovimentationExecutor>(nodeHandler,targetPositionProportionalControllerTopic, &MovimentationExecutor::receivedTargetPosition,this) &&
 
 		   #ifdef VREP_SIMULATION
 			   addSubscribedTopic<const geometry_msgs::PoseStamped::ConstPtr&, MovimentationExecutor>(nodeHandler,poseTopic,
