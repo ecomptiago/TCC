@@ -23,8 +23,8 @@
 #include "nav_msgs/Path.h"
 #include "common/BaseRosNode.h"
 #include "common/v_repConst.h"
-#include "common/utils/VRepUtils.h"
 #include "common/simRosGetObjectPose.h"
+#include "common/utils/VRepUtils.h"
 #include "path_planner/utils/PathPlannerUtils.h"
 
 const char* pathTopic = "/PathDrawer/path3";

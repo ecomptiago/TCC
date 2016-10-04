@@ -10,8 +10,10 @@
 
 #include "algorithm"
 #include "common/BaseRosNode.h"
+#include "common/Position.h"
+#include "common/pathToTarget.h"
+#include "common/cellGridPosition.h"
 #include "common/utils/NumericUtils.h"
-#include "common/Move_robot.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -25,6 +27,8 @@ const char*	velTopic = "/MovimentationExecutor/velocity";
 const char*	errorTopic = "/MovimentationExecutor/error";
 const char* turnAngleTopic = "/AvoidObstacles/turnAngle";
 const char* rvizPoseTopic = "/Coordinator/pose";
+const char* bestPathService = "/PathPlanner/bestPath";
+const char* cellGridPositionService = "/PathPlanner/cellGrid";
 
 class Coordinator : public BaseRosNode{
 
@@ -36,6 +40,10 @@ class Coordinator : public BaseRosNode{
 		std_msgs::Float32 proportionalError;
 		geometry_msgs::PoseStamped robotPose;
 		std_msgs::Float32 fuzzyTurnAngle;
+		bool triedToFindPath;
+		bool reachedFinalGoal;
+		bool recalculatePath;
+		int pathPosition;
 		//Methods
 		void wallFollowing();
 	public:
@@ -49,6 +57,7 @@ class Coordinator : public BaseRosNode{
 		int runNode();
 		bool subscribeToTopics();
 		bool createPublishers();
+		bool createServices();
 		void receivedLaserValues(
 			const sensor_msgs::LaserScan::ConstPtr& laserReading);
 		void receivedProportionalControlerVelocity(

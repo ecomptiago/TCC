@@ -21,12 +21,14 @@
 #include "common/utils/MatrixUtils.h"
 #include "common/simRosGetObjectPose.h"
 #include "common/Position.h"
+#include "common/pathToTarget.h"
+#include "common/cellGridPosition.h"
 #include "path_planner/ObjectInfo.h"
 #include "path_planner/simRosGetObjectGroupData.h"
 #include "path_planner/simRosGetObjectFloatParameter.h"
 #include "path_planner/simRosGetObjectChild.h"
-#include "path_planner/search/AStar/AStar.h"
 #include "path_planner/utils/PathPlannerUtils.h"
+#include "path_planner/search/AStar/AStar.h"
 
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
@@ -35,6 +37,7 @@ const char* mapTopic = "/PathPlanner/map";
 const char* poseTopic = "/RosAria/pose";
 const char* neuralGridTopic = "/NeuralNetwork/grid";
 const char* bestPathService = "/PathPlanner/bestPath";
+const char* cellGridPositionService = "/PathPlanner/cellGrid";
 const char* cuboidHandle = "Cuboid";
 const char* floorHandle = "ResizableFloor_5_25";
 const char* pionnerHandle = "Pionner_LX";
@@ -87,7 +90,10 @@ class PathPlanner : public BaseRosNode {
 			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
 		void receivedNeuralGrid(
 			const std_msgs::Float32MultiArray::ConstPtr& neuralGrid);
-		bool bestPathService(const)
+		bool bestPath(common::pathToTarget::Request  &req,
+			common::pathToTarget::Response &res);
+		bool cellGridPosition(common::cellGridPosition::Request  &req,
+			common::cellGridPosition::Response &res);
 
 };
 

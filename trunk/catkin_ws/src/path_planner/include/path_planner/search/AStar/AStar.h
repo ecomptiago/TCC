@@ -16,8 +16,8 @@
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "path_planner/search/SearchAlgorithmInterface.h"
-#include "path_planner/search/AStar/AStarGridCell.h"
 #include "path_planner/utils/PathPlannerUtils.h"
+#include "path_planner/search/AStar/AStarGridCell.h"
 
 class AStar: public SearchAlgorithmInterface{
 

@@ -28,7 +28,7 @@
 #include "common/BaseRosNode.h"
 #include "common/utils/OdometryUtils.h"
 #include "common/Position.h"
-#include "common/Move_robot.h"
+#include "common/Position.h"
 #include "controlador_de_trajetoria/Movimentation_error.h"
 #include "controller/MovimentControllerInterface.h"
 #include "controller/ProportionalMovimentController.h"
@@ -90,7 +90,7 @@ class MovimentationExecutor :public BaseRosNode{
 		#endif
 
 		void receivedTargetPosition(const
-			common::Move_robot::ConstPtr& targetPositionPointer);
+			common::Position::ConstPtr& targetPositionPointer);
 };
 
 #endif /* INCLUDE_CONTROLADOR_DE_TRAJETORIA_MOVIMENTATION_MOVIMENTATIONEXECUTOR_H_ */

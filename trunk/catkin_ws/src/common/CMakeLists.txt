@@ -50,7 +50,6 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    Position.msg
-   Move_robot.msg
 #   Message2.msg
  )
 
@@ -59,6 +58,8 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    simRosGetObjectPose.srv
    simRosGetObjectHandle.srv
+   pathToTarget.srv
+   cellGridPosition.srv
  )
 
 ## Generate actions in the 'action' folder
