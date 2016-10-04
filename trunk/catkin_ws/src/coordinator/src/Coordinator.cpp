@@ -10,6 +10,10 @@
 //Constructor
 Coordinator::Coordinator(int argc, char **argv) :
 	BaseRosNode(argc, argv, "Coordinator"){
+		triedToFindPath = false;
+		reachedFinalGoal = false;
+		recalculatePath =- false;
+		pathPosition = -1;
 }
 
 //Methods
@@ -17,9 +21,36 @@ int Coordinator::runNode() {
 	ROS_INFO("Running node");
 	ros::Rate rate(1/0.75);
 	while(ros::ok()) {
-		if(laserValues.capacity() != 0 && NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.2)) {
-			float smallestLaserReading = *std::min_element(laserValues.begin(),
-				laserValues.end());
+		sleepAndSpin(rate);
+		float smallestLaserReading = *std::min_element(laserValues.begin(),
+			laserValues.end());
+		common::pathToTarget pathToTarget;
+		pathToTarget.request.x = -1.57;
+		pathToTarget.request.y = 9.6;
+		if(!reachedFinalGoal) {
+			if(!triedToFindPath ||
+				(recalculatePath && NumericUtils::isFirstGreater<float>(smallestLaserReading, 0.5))) {
+					serviceClientsMap[bestPathService].call(pathToTarget);
+					pathPosition = 0;
+					recalculatePath = false;
+			} else {
+				common::Position position;
+				if(pathToTarget.response.path.size() == 0) {
+					position.x = pathToTarget.request.x;
+					position.y = pathToTarget.request.y;
+					publisherMap[targetPositionTopic].publish(position);
+				} else {
+					common::cellGridPosition cellGridPosition;
+					cellGridPosition.request.gridPosition = pathToTarget.response.path[pathPosition];
+					serviceClientsMap[cellGridPositionService].call(cellGridPosition);
+					common::Position position;
+					position.x = cellGridPosition.response.x;
+					position.y = cellGridPosition.response.y;
+					publisherMap[targetPositionTopic].publish(position);
+				}
+			}
+		}
+		if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.2)) {
 			ROS_DEBUG("The smallest element is %f",smallestLaserReading);
 			if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 0.5)) {
 				geometry_msgs::Twist move;
@@ -28,21 +59,33 @@ int Coordinator::runNode() {
 				move.angular.z = 0.02 * fuzzyTurnAngle.data ;
 				publisherMap[cmdVelTopic].publish(move);
 				ROS_DEBUG("Setting velocity liner %f and angular %f",move.linear.x,move.angular.z);
+				recalculatePath = true;
 			} else {
 				publisherMap[cmdVelTopic].publish(proportionalVelocity);
 				ROS_DEBUG("Setting velocity liner %f and angular %f",
 					proportionalVelocity.linear.x,proportionalVelocity.angular.z);
 			}
 		} else {
-			geometry_msgs::Twist stop;
-			stop.angular.x = 0;
-			stop.angular.y = 0;
-			stop.angular.z = 0;
-			stop.linear.x = 0;
-			stop.linear.y = 0;
-			stop.linear.z = 0;
-			publisherMap[cmdVelTopic].publish(stop);
-			ROS_DEBUG("Setting velocity liner 0 and angular 0");
+			if(!reachedFinalGoal) {
+				geometry_msgs::Twist stop;
+				stop.angular.x = 0;
+				stop.angular.y = 0;
+				stop.angular.z = 0;
+				stop.linear.x = 0;
+				stop.linear.y = 0;
+				stop.linear.z = 0;
+				if(pathToTarget.response.path.size() == 0) {
+					publisherMap[cmdVelTopic].publish(stop);
+					ROS_DEBUG("Setting velocity liner 0 and angular 0");
+				} else {
+					if(pathPosition == pathToTarget.response.path.size()) {
+						publisherMap[cmdVelTopic].publish(stop);
+						ROS_DEBUG("Setting velocity liner 0 and angular 0");
+					} else {
+						pathPosition++;
+					}
+				}
+			}
 		}
 
 		geometry_msgs::PoseStamped rvizPose;
@@ -53,7 +96,6 @@ int Coordinator::runNode() {
 
 		publisherMap[rvizPoseTopic].publish(rvizPose);
 
-		sleepAndSpin(rate);
 	}
 	return shutdownAndExit();
 }
@@ -79,7 +121,7 @@ bool Coordinator::subscribeToTopics() {
 
 bool Coordinator::createPublishers() {
 	ROS_INFO("Creating publishers");
-	return addPublisherClient<common::Move_robot>(
+	return addPublisherClient<common::Position>(
 		nodeHandler, targetPositionTopic, false) &&
 
 		addPublisherClient<geometry_msgs::Twist>(
@@ -89,6 +131,11 @@ bool Coordinator::createPublishers() {
 			nodeHandler,rvizPoseTopic,false);
 }
 
+bool Coordinator::createServices() {
+	return addServiceClient<common::pathToTarget>(nodeHandler,bestPathService) &&
+
+		addServiceClient<common::cellGridPosition>(nodeHandler,cellGridPositionService);
+}
 
 //Callback
 void Coordinator::receivedLaserValues(
@@ -128,7 +175,8 @@ int main(int argc, char **argv) {
 	Coordinator coordinator(argc,argv);
 	try{
 		if(coordinator.subscribeToTopics() &&
-			coordinator.createPublishers()) {
+			coordinator.createPublishers() &&
+			coordinator.createServices()) {
 				return coordinator.runNode();
 		} else {
 			 return coordinator.shutdownAndExit();

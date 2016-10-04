@@ -85,41 +85,6 @@ int PathPlanner::runNode() {
 	occupancyGrid.data[75] = occupiedCell;
 	occupancyGrid.data[76] = occupiedCell;
 
-
-	if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
-		common::simRosGetObjectPose simRosGetObjectPose;
-		aStar.setOccupancyGrid(occupancyGrid);
-		if(VRepUtils::getObjectPose(signalObjectMap[pionnerHandle], nodeHandler,simRosGetObjectPose)) {
-			common::Position targetPosition;
-			targetPosition.x = -1.57;
-			targetPosition.y = 9.6;
-
-			common::Position initialPosition;
-			initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
-			initialPosition.y = simRosGetObjectPose.response.pose.pose.position.y;
-
-			if(aStar.findPathToGoal(initialPosition ,targetPosition)) {
-				std::vector<AStarGridCell> path;
-				aStar.reconstructPath(path, targetPosition,initialPosition);
-
-				int charsWrote = 0;
-				char buffer [occupancyGrid.data.size() * 6];
-				std::vector<AStarGridCell>::iterator it;
-				it = path.begin();
-				charsWrote = 0;
-
-				while(it != path.end()) {
-					charsWrote += sprintf(buffer + charsWrote,
-						" %d,",((AStarGridCell)*it).cellGridPosition);
-					geometry_msgs::PoseStamped poseStamped;
-					it++;
-				}
-				ROS_DEBUG("Optimized path: [%s]",buffer);
-			}
-		}
-	}
-
-
 	ros::Rate rate(1/wakeUpTime);
 
  	while(ros::ok()) {
@@ -164,7 +129,7 @@ int PathPlanner::runNode() {
 // 				position.x = x;
 // 				position.y = y;
 // 				int cellPosition =
-// 					PathPlannerUtils::getDataVectorPosition(occupancyGrid,position);
+// 					GridUtils::getDataVectorPosition(occupancyGrid,position);
 // 				ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d", x, y, cellPosition);
 // 				if(cellPosition != -1) {
 //					if(NumericUtils::isFirstLess<float>(neuralGrid.data[i],0.0)) {
@@ -339,7 +304,11 @@ bool PathPlanner::createServiceClients() {
 }
 
 bool PathPlanner::createServiceServers() {
-	return addServiceServer(nodeHandler,bestPathService,)
+	return addServiceServer<common::pathToTarget::Request&,
+		common::pathToTarget::Response&, PathPlanner>(nodeHandler,bestPathService, &PathPlanner::bestPath,this) &&
+
+		addServiceServer<common::cellGridPosition::Request&,
+		common::cellGridPosition::Response&, PathPlanner>(nodeHandler,cellGridPositionService, &PathPlanner::cellGridPosition,this);
 }
 
 bool PathPlanner::createPublishers() {
@@ -358,8 +327,59 @@ void PathPlanner::receivedNeuralGrid(const std_msgs::Float32MultiArray::ConstPtr
 	}
 }
 
+bool PathPlanner::bestPath(common::pathToTarget::Request  &req,
+	common::pathToTarget::Response &res) {
+		if (VRepUtils::getObjectHandle(pionnerHandle,nodeHandler,signalObjectMap)) {
+			common::simRosGetObjectPose simRosGetObjectPose;
+			aStar.setOccupancyGrid(occupancyGrid);
+			if(VRepUtils::getObjectPose(signalObjectMap[pionnerHandle], nodeHandler,simRosGetObjectPose)) {
+				common::Position targetPosition;
+				targetPosition.x = req.x;
+				targetPosition.y = req.y;
 
+				common::Position initialPosition;
+				initialPosition.x = simRosGetObjectPose.response.pose.pose.position.x;
+				initialPosition.y = simRosGetObjectPose.response.pose.pose.position.y;
 
+				if(aStar.findPathToGoal(initialPosition ,targetPosition)) {
+					std::vector<AStarGridCell> path;
+					aStar.reconstructPath(path, targetPosition,initialPosition);
+
+					int charsWrote = 0;
+					char buffer [occupancyGrid.data.size() * 6];
+					res.path.resize(path.size());
+
+					for(int i = 0; i < path.size();i++) {
+						int cellPosition = path[i].cellGridPosition;
+						res.path[i] = cellPosition;
+						charsWrote += sprintf(buffer + charsWrote,
+							" %d,",cellPosition);
+					}
+					ROS_DEBUG("Optimized path: [%s]",buffer);
+					ROS_INFO("Found path to (%f,%f)",req.x,req.y);
+				} else {
+					res.path.clear();
+					ROS_INFO("Could not find path to (%f,%f)",req.x,req.y);
+				}
+			} else {
+				res.path.clear();
+				ROS_INFO("Could not get robot position");
+			}
+		} else {
+			res.path.clear();
+			ROS_INFO("Could not get robot v-rep handler");
+		}
+		return true;
+}
+
+bool PathPlanner::cellGridPosition(common::cellGridPosition::Request  &req,
+	common::cellGridPosition::Response &res) {
+		common::Position position;
+		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,position,req.gridPosition);
+		res.x = position.x;
+		res.y = position.y;
+		return true;
+}
 
 //Main
 int main(int argc, char **argv) {

@@ -29,6 +29,8 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 			aStarGridCell.setGCost(0);
 			aStarGridCell.calculateCellCoordinates(*occupancyGridPointer);
 			aStarGridCell.calculateCellCost();
+			openNodes.clear();
+			closedNodes.clear();
 			openNodes[initialCell] = aStarGridCell;
 
 			while(!openNodes.empty()) {
@@ -96,8 +98,11 @@ std::vector<int> AStar::optimizePath(std::vector<AStarGridCell>& path) {
 			/ occupancyGridPointer->info.resolution;
 	int freeCell = 0;
 	std::vector<int> cellsToEliminate(path.size());
-	while (i < path.size() - 2) {
+	while (i < path.size()) {
 		AStarGridCell actualCell = path.at(i);
+		if(i + 1 >= path.size() || i + 2 >= path.size()) {
+			break;
+		}
 		AStarGridCell nextCell = path.at(i + 1);
 		AStarGridCell nextNextCell = path.at(i + 2);
 		int upperCellFromActualCell = actualCell.cellGridPosition + gridLengh;

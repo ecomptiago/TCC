@@ -53,7 +53,7 @@ double MovimentationExecutor::getActualAngle(int sleepBeforeActualize) {
 
 bool MovimentationExecutor::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
-	return addSubscribedTopic<const common::Move_robot::ConstPtr&,
+	return addSubscribedTopic<const common::Position::ConstPtr&,
 		   MovimentationExecutor>(nodeHandler,targetPositionProportionalControllerTopic, &MovimentationExecutor::receivedTargetPosition,this) &&
 
 		   #ifdef VREP_SIMULATION
@@ -89,7 +89,7 @@ bool MovimentationExecutor::createPublishers() {
 #endif
 
 void MovimentationExecutor::receivedTargetPosition(
-	const common::Move_robot::ConstPtr& targetPositionPointer) {
+	const common::Position::ConstPtr& targetPositionPointer) {
 		ROS_DEBUG("Received target position x:%f y:%f ",
 			targetPositionPointer->x,targetPositionPointer->y);
 		targetPosition.x = targetPositionPointer->x;
