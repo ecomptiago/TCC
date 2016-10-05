@@ -70,7 +70,6 @@ int PathPlanner::runNode() {
 	occupancyGrid.data[22] = occupiedCell;
 	occupancyGrid.data[23] = occupiedCell;
 	occupancyGrid.data[24] = occupiedCell;
-	occupancyGrid.data[25] = occupiedCell;
 
 	occupancyGrid.data[43] = occupiedCell;
 	occupancyGrid.data[44] = occupiedCell;
@@ -83,7 +82,6 @@ int PathPlanner::runNode() {
 	occupancyGrid.data[73] = occupiedCell;
 	occupancyGrid.data[74] = occupiedCell;
 	occupancyGrid.data[75] = occupiedCell;
-	occupancyGrid.data[76] = occupiedCell;
 
 	ros::Rate rate(1/wakeUpTime);
 
