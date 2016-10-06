@@ -14,12 +14,14 @@ Coordinator::Coordinator(int argc, char **argv) :
 		reachedFinalGoal = false;
 		recalculatePath =- false;
 		pathPosition = -1;
+		proportionalError.data = -1;
+
 }
 
 //Methods
 int Coordinator::runNode() {
 	ROS_INFO("Running node");
-	ros::Rate rate(1/0.5);
+	ros::Rate rate(1/0.75);
 	common::pathToTarget pathToTarget;
 	geometry_msgs::Twist stop;
 	stop.angular.x = 0;
@@ -52,26 +54,32 @@ int Coordinator::runNode() {
 						position.x = pathToTarget.request.x;
 						position.y = pathToTarget.request.y;
 						publisherMap[targetPositionTopic].publish(position);
-					} else {
-						ROS_DEBUG("Found a path to x:%f y:%f",
-							pathToTarget.request.x,pathToTarget.request.y);
-						int charsWrote = 0;
-						char buffer [pathToTarget.response.path.size() * 6];
+					} else if(pathToTarget.response.path.size() == 1 &&
+						pathToTarget.response.path[0] == -2){
+							ROS_ERROR("Could not retrieve data from V-Rep");
+							return shutdownAndExit();
+					} else if(pathToTarget.response.path.size() > 1 ||
+						(pathToTarget.response.path.size() == 1 &&
+						pathToTarget.response.path[0] != -2)){
+							ROS_DEBUG("Found a path to x:%f y:%f",
+								pathToTarget.request.x,pathToTarget.request.y);
+							int charsWrote = 0;
+							char buffer [pathToTarget.response.path.size() * 6];
 
-						for(int i = 0; i < pathToTarget.response.path.size();i++) {
-							charsWrote += sprintf(buffer + charsWrote,
-								" %d,",pathToTarget.response.path[i]);
-						}
-						ROS_DEBUG("Optimized path: [%s]",buffer);
+							for(int i = 0; i < pathToTarget.response.path.size();i++) {
+								charsWrote += sprintf(buffer + charsWrote,
+									" %d,",pathToTarget.response.path[i]);
+							}
+							ROS_DEBUG("Optimized path: [%s]",buffer);
 
-						common::cellGridPosition cellGridPosition;
-						cellGridPosition.request.gridPosition = pathToTarget.response.path[pathPosition];
-						serviceClientsMap[cellGridPositionService].call(cellGridPosition);
-						common::Position position;
-						position.x = cellGridPosition.response.x;
-						position.y = cellGridPosition.response.y;
-						ROS_DEBUG("Going to cell %d",cellGridPosition.request.gridPosition);
-						publisherMap[targetPositionTopic].publish(position);
+							common::cellGridPosition cellGridPosition;
+							cellGridPosition.request.gridPosition = pathToTarget.response.path[pathPosition];
+							serviceClientsMap[cellGridPositionService].call(cellGridPosition);
+							common::Position position;
+							position.x = cellGridPosition.response.x;
+							position.y = cellGridPosition.response.y;
+							ROS_DEBUG("Going to cell %d",cellGridPosition.request.gridPosition);
+							publisherMap[targetPositionTopic].publish(position);
 					}
 				}
 				if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.75)) {
@@ -92,12 +100,14 @@ int Coordinator::runNode() {
 					}
 				} else {
 					if(!reachedFinalGoal) {
-						if(pathToTarget.response.path.size() == 0) {
-							publisherMap[cmdVelTopic].publish(stop);
-							ROS_DEBUG("Setting velocity liner 0 and angular 0");
-							reachedFinalGoal = true;
-							triedToFindPath = false;
-						} else {
+						if(pathToTarget.response.path.size() == 0 &&
+							NumericUtils::isFirstLessEqual<float>(proportionalError.data,0.75) &&
+							NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0)) {
+								publisherMap[cmdVelTopic].publish(stop);
+								ROS_DEBUG("Setting velocity liner 0 and angular 0");
+								reachedFinalGoal = true;
+								triedToFindPath = false;
+						} else if(pathToTarget.response.path.size() > 0){
 							ROS_DEBUG("pathPosition %d pathToTarget.response.path.size() %lu",
 								pathPosition,pathToTarget.response.path.size());
 							if(pathPosition == pathToTarget.response.path.size() + 1) {

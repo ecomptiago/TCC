@@ -44,8 +44,8 @@ class Coordinator : public BaseRosNode{
 		bool reachedFinalGoal;
 		bool recalculatePath;
 		int pathPosition;
+
 		//Methods
-		void wallFollowing();
 	public:
 		//Constructor
 		Coordinator(int argc, char **argv);

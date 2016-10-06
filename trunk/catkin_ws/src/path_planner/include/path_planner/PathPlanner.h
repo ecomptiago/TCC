@@ -45,9 +45,6 @@ const int32_t sim_objfloatparam_modelbbox_min_x = 15;
 const int32_t sim_objfloatparam_modelbbox_max_x = 18;
 const int32_t sim_objfloatparam_modelbbox_min_y = 16;
 const int32_t sim_objfloatparam_modelbbox_max_y = 19;
-const int8_t occupiedCell = 100;
-const int8_t unknownCell = -1;
-const int8_t freeCell = 0;
 
 class PathPlanner : public BaseRosNode {
 

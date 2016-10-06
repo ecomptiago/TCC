@@ -25,51 +25,55 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, targetCoordinates);
 			ROS_DEBUG("initial cell: %d target cell: %d",initialCell,targetCell);
 
-			AStarGridCell aStarGridCell(targetCoordinates,initialCell);
-			aStarGridCell.setGCost(0);
-			aStarGridCell.calculateCellCoordinates(*occupancyGridPointer);
-			aStarGridCell.calculateCellCost();
-			openNodes.clear();
-			closedNodes.clear();
-			openNodes[initialCell] = aStarGridCell;
+			if(occupancyGridPointer->data[targetCell] == 0) { // 0 = freeCell
+ 				AStarGridCell aStarGridCell(targetCoordinates,initialCell);
+				aStarGridCell.setGCost(0);
+				aStarGridCell.calculateCellCoordinates(*occupancyGridPointer);
+				aStarGridCell.calculateCellCost();
+				openNodes.clear();
+				closedNodes.clear();
+				openNodes[initialCell] = aStarGridCell;
 
-			while(!openNodes.empty()) {
+				while(!openNodes.empty()) {
 
-				AStarGridCell aStarGridCellSmallerCost;
-				getCellWithSmallerCostOpenNodes(aStarGridCellSmallerCost);
+					AStarGridCell aStarGridCellSmallerCost;
+					getCellWithSmallerCostOpenNodes(aStarGridCellSmallerCost);
 
-				std::vector<AStarGridCell> neighbours;
-				aStarGridCellSmallerCost.getCellNeighbours(neighbours,*occupancyGridPointer);
-				aStarGridCellSmallerCost.setSuccessors(neighbours);
-				aStarGridCellSmallerCost.setTargetCoordinates(targetCoordinates);
-				aStarGridCellSmallerCost.calculateCellCoordinates(*occupancyGridPointer);
+					std::vector<AStarGridCell> neighbours;
+					aStarGridCellSmallerCost.getCellNeighbours(neighbours,*occupancyGridPointer);
+					aStarGridCellSmallerCost.setSuccessors(neighbours);
+					aStarGridCellSmallerCost.setTargetCoordinates(targetCoordinates);
+					aStarGridCellSmallerCost.calculateCellCoordinates(*occupancyGridPointer);
 
-				ROS_DEBUG("Got node with position %d and cost %f",aStarGridCellSmallerCost.cellGridPosition, aStarGridCellSmallerCost.cost);
-				closedNodes[aStarGridCellSmallerCost.cellGridPosition] =
-					aStarGridCellSmallerCost;
-				openNodes.erase(aStarGridCellSmallerCost.cellGridPosition);
-				if(aStarGridCellSmallerCost.cellGridPosition ==  targetCell) {
-					return true;
-				} else {
-					for(int i = 0; i < aStarGridCellSmallerCost.getSuccessors().size(); i++) {
-						AStarGridCell aStarGridCellNeighbour = aStarGridCellSmallerCost.getSuccessors()[i];
-						std::map<int,AStarGridCell>::iterator closedNodesIterator =
-							closedNodes.find(aStarGridCellNeighbour.cellGridPosition);
-						if(closedNodesIterator != closedNodes.end()) {
-							continue;
-						} else {
-							if(occupancyGridPointer->data[aStarGridCellNeighbour.cellGridPosition] == 100) {
-								aStarGridCellNeighbour.setGCost(infiniteCost);
+					ROS_DEBUG("Got node with position %d and cost %f",aStarGridCellSmallerCost.cellGridPosition, aStarGridCellSmallerCost.cost);
+					closedNodes[aStarGridCellSmallerCost.cellGridPosition] =
+						aStarGridCellSmallerCost;
+					openNodes.erase(aStarGridCellSmallerCost.cellGridPosition);
+					if(aStarGridCellSmallerCost.cellGridPosition ==  targetCell) {
+						return true;
+					} else {
+						for(int i = 0; i < aStarGridCellSmallerCost.getSuccessors().size(); i++) {
+							AStarGridCell aStarGridCellNeighbour = aStarGridCellSmallerCost.getSuccessors()[i];
+							std::map<int,AStarGridCell>::iterator closedNodesIterator =
+								closedNodes.find(aStarGridCellNeighbour.cellGridPosition);
+							if(closedNodesIterator != closedNodes.end()) {
+								continue;
 							} else {
-								aStarGridCellNeighbour.setGCost(aStarGridCellSmallerCost.getGCost() + 1);
+								if(occupancyGridPointer->data[aStarGridCellNeighbour.cellGridPosition] == 100) {
+									aStarGridCellNeighbour.setGCost(infiniteCost);
+								} else {
+									aStarGridCellNeighbour.setGCost(aStarGridCellSmallerCost.getGCost() + 1);
+								}
+								aStarGridCellNeighbour.setTargetCoordinates(targetCoordinates);
+								aStarGridCellNeighbour.calculateCellCoordinates(*occupancyGridPointer);
+								aStarGridCellNeighbour.calculateCellCost();
+								openNodes[aStarGridCellNeighbour.cellGridPosition] = aStarGridCellNeighbour;
 							}
-							aStarGridCellNeighbour.setTargetCoordinates(targetCoordinates);
-							aStarGridCellNeighbour.calculateCellCoordinates(*occupancyGridPointer);
-							aStarGridCellNeighbour.calculateCellCost();
-							openNodes[aStarGridCellNeighbour.cellGridPosition] = aStarGridCellNeighbour;
 						}
 					}
 				}
+			} else {
+				ROS_DEBUG("Target cell is occupied or unknown");
 			}
 		}
 		return false;

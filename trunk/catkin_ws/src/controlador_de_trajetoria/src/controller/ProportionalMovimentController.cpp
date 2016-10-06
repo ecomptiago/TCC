@@ -46,20 +46,19 @@ void ProportionalMovimentController::setTargetPosition(
 		this->pointerTargetPosition = &targetPosition;
 }
 
-geometry_msgs::Twist ProportionalMovimentController::calculateVelocities() {
+const geometry_msgs::Twist ProportionalMovimentController::calculateVelocities() {
 	geometry_msgs::Twist twist;
 	if(NumericUtils::isFirstGreater<float>(alpha, -M_PI / 2) &&
 		NumericUtils::isFirstLessEqual<float>(alpha, M_PI / 2)) {
 			twist.linear.x = kRho * rho;
 			twist.angular.z =
 				(kAlpha * alpha) + (kBeta * beta);
-	}
-	else {
+	} else {
 		twist.linear.x = 0;
-		if(alpha > 0) {
-			twist.angular.z = -0.05 * alpha;
+		if(NumericUtils::isFirstGreater<float>(-1 * alpha * beta,0)) {
+			twist.angular.z = 0.2;
 		} else {
-			twist.angular.z = 0.05 * alpha;
+			twist.angular.z = -0.2;
 		}
 	}
 	ROS_DEBUG("Setting velocities linear:%f angular:%f", twist.linear.x,

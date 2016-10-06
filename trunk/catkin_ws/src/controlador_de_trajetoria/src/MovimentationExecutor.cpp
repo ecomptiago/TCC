@@ -6,7 +6,7 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 	BaseRosNode(argc,argv,"Movimentation_executor") {
 		this->pointerTargetPosition = NULL;
 		this->wakeUpTime = wakeUpTime;
-		this->proportionalController = ProportionalMovimentController(0.1,0.6,-0.05);
+		this->proportionalController = ProportionalMovimentController(0.15,0.3,-0.025);
 }
 
 //Methods
@@ -22,7 +22,8 @@ int MovimentationExecutor::runNode() {
 				getActualAngle(false));
 			proportionalController.setTargetPosition(*pointerTargetPosition);
 			proportionalController.calculateRhoAlphaBeta(actualOdometryPosition);
-			publisherMap[velTopic].publish(proportionalController.calculateVelocities());
+			geometry_msgs::Twist twist = proportionalController.calculateVelocities();
+			publisherMap[velTopic].publish(twist);
 			std_msgs::Float32 float32;
 			float32.data = proportionalController.calculateError();
 			publisherMap[errorTopic].publish(float32);
@@ -32,8 +33,22 @@ int MovimentationExecutor::runNode() {
 	return shutdownAndExit();
 }
 
+int MovimentationExecutor::getQuadrant(double angle) {
+	if(NumericUtils::isFirstGreaterEqual<double>(angle,0) &&
+	    NumericUtils::isFirstLessEqual<double>(angle,90)) {
+			return 1;
+	} else if(NumericUtils::isFirstGreater<double>(angle,90) &&
+		NumericUtils::isFirstLessEqual<double>(angle,180)) {
+			return 2;
+	} else if(NumericUtils::isFirstGreater<double>(angle,180) &&
+	    NumericUtils::isFirstLessEqual<double>(angle,270)) {
+			return 3;
+	} else {
+		return 4;
+	}
+}
 
-double MovimentationExecutor::getActualAngle(int sleepBeforeActualize) {
+double MovimentationExecutor::getActualAngle(bool sleepBeforeActualize) {
 	if(sleepBeforeActualize) {
 		sleepAndSpin(100);
 	}

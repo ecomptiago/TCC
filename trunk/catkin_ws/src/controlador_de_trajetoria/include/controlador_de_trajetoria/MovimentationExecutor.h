@@ -66,7 +66,8 @@ class MovimentationExecutor :public BaseRosNode{
 		double wakeUpTime; // wakeUp in seconds
 
 		//Methods
-		double getActualAngle(int sleepBeforeActualize);
+		double getActualAngle(bool sleepBeforeActualize);
+		int getQuadrant(double angle);
 
 	public:
 		//Constructors

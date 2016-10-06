@@ -15,9 +15,13 @@
 #include "vector"
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
-#include "path_planner/search/SearchAlgorithmInterface.h"
 #include "path_planner/utils/PathPlannerUtils.h"
+#include "path_planner/search/SearchAlgorithmInterface.h"
 #include "path_planner/search/AStar/AStarGridCell.h"
+
+const int8_t occupiedCell = 100;
+const int8_t unknownCell = -1;
+const int8_t freeCell = 0;
 
 class AStar: public SearchAlgorithmInterface{
 
@@ -32,7 +36,7 @@ class AStar: public SearchAlgorithmInterface{
 		void getCellWithSmallerCostOpenNodes(AStarGridCell &aStarGridCell);
 		bool successorsContainsCell(std::pair<const int, AStarGridCell> &aStarGridCell, int targetCell);
 		void getCellWithSmallerCostAndSuccessor(int targetCell, std::vector<AStarGridCell> &path);
-	std::vector<int> optimizePath(std::vector<AStarGridCell>& path);
+		std::vector<int> optimizePath(std::vector<AStarGridCell>& path);
 
 	public:
 		//Constructor

@@ -16,7 +16,7 @@ class MovimentControllerInterface {
 		virtual ~MovimentControllerInterface() {};
 
 		//Methods
-		virtual geometry_msgs::Twist calculateVelocities() = 0;
+		virtual const geometry_msgs::Twist calculateVelocities() = 0;
 		virtual float calculateError() = 0;
 };
 

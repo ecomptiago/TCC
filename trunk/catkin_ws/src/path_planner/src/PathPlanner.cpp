@@ -356,14 +356,22 @@ bool PathPlanner::bestPath(common::pathToTarget::Request  &req,
 					ROS_DEBUG("Optimized path: [%s]",buffer);
 					ROS_INFO("Found path to (%f,%f)",req.x,req.y);
 				} else {
-					res.path.clear();
-					ROS_INFO("Could not find path to (%f,%f)",req.x,req.y);
+					int targetCellPosition =
+						PathPlannerUtils::getDataVectorPosition(occupancyGrid, targetPosition);
+					if(occupancyGrid.data[targetCellPosition] == unknownCell) {
+						res.path.clear();
+						ROS_INFO("Could not find path to (%f,%f)",req.x,req.y);
+					} else  {
+						res.path[0] = -2;
+					}
 				}
 			} else {
+				res.path[0] = -3;
 				res.path.clear();
 				ROS_INFO("Could not get robot position");
 			}
 		} else {
+			res.path[0] = -3;
 			res.path.clear();
 			ROS_INFO("Could not get robot v-rep handler");
 		}

@@ -10,6 +10,7 @@
 #define VREP_SIMULATION
 
 #include "math.h"
+#include "cmath"
 #include "MovimentControllerInterface.h"
 
 #ifdef VREP_SIMULATION
@@ -51,7 +52,7 @@ class ProportionalMovimentController : public MovimentControllerInterface {
 			const common::Position& targetPosition);
 
 		//Methods
-		virtual geometry_msgs::Twist calculateVelocities();
+		virtual const geometry_msgs::Twist calculateVelocities();
 		virtual float calculateError();
 
 		#ifdef VREP_SIMULATION
