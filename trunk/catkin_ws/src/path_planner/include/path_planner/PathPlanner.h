@@ -19,27 +19,15 @@
 #include "common/utils/VRepUtils.h"
 #include "common/utils/OdometryUtils.h"
 #include "common/utils/MatrixUtils.h"
+#include "common/utils/GridUtils.h"
 #include "common/simRosGetObjectPose.h"
 #include "common/Position.h"
 #include "common/pathToTarget.h"
-#include "common/cellGridPosition.h"
-#include "path_planner/ObjectInfo.h"
-#include "path_planner/simRosGetObjectGroupData.h"
-#include "path_planner/simRosGetObjectFloatParameter.h"
-#include "path_planner/simRosGetObjectChild.h"
-#include "path_planner/utils/PathPlannerUtils.h"
 #include "path_planner/search/AStar/AStar.h"
 
-const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
-const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
-const char* getObjectChildService = "/vrep/simRosGetObjectChild";
-const char* mapTopic = "/PathPlanner/map";
 const char* poseTopic = "/RosAria/pose";
-const char* neuralGridTopic = "/NeuralNetwork/grid";
+const char* occupancyGridTopic = "/NeuralNetwork/grid";
 const char* bestPathService = "/PathPlanner/bestPath";
-const char* cellGridPositionService = "/PathPlanner/cellGrid";
-const char* cuboidHandle = "Cuboid";
-const char* floorHandle = "ResizableFloor_5_25";
 const char* pionnerHandle = "Pionner_LX";
 const int32_t sim_objfloatparam_modelbbox_min_x = 15;
 const int32_t sim_objfloatparam_modelbbox_max_x = 18;
@@ -53,11 +41,8 @@ class PathPlanner : public BaseRosNode {
 		ros::NodeHandle nodeHandler;
 		std::map<std::string,int32_t> signalObjectMap;
 		nav_msgs::OccupancyGrid occupancyGrid;
-		float angleTolerance;
-		double wakeUpTime;
 		AStar aStar;
 		geometry_msgs::PoseStamped robotPose;
-		std_msgs::Float32MultiArray neuralGrid;
 
 		//Methods
 		bool createServiceClients();
@@ -66,8 +51,7 @@ class PathPlanner : public BaseRosNode {
 
 	public:
 		//Constructor
-		PathPlanner(int argc, char **argv, int cellArea, int mapWidth,
-			int mapHeight, float angleTolerance, double wakeUpTime);
+		PathPlanner(int argc, char **argv);
 
 		//Destructor
 		virtual ~PathPlanner() {};
@@ -79,12 +63,10 @@ class PathPlanner : public BaseRosNode {
 		bool createPublishers();
 		void receivedRobotPose(
 			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
-		void receivedNeuralGrid(
-			const std_msgs::Float32MultiArray::ConstPtr& neuralGrid);
+		void receivedOccupancyGrid(
+			const nav_msgs::OccupancyGrid::ConstPtr& occupancyGrid);
 		bool bestPath(common::pathToTarget::Request  &req,
 			common::pathToTarget::Response &res);
-		bool cellGridPosition(common::cellGridPosition::Request  &req,
-			common::cellGridPosition::Response &res);
 
 };
 

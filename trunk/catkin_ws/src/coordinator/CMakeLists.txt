@@ -129,7 +129,9 @@ include_directories(
 ## either from message generation or dynamic reconfigure
 # add_dependencies(coordinator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/utils/OdometryUtils.cpp ../common/src/utils/MatrixUtils.cpp ../common/src/error/MethodNotImplemented.cpp)
+set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/utils/OdometryUtils.cpp 
+	../common/src/utils/MatrixUtils.cpp ../common/src/error/MethodNotImplemented.cpp
+	../common/src/utils/GridUtils.cpp)
 
 ## Declare a C++ executable
 add_executable(Coordinator ${SOURCEFILES} src/Coordinator.cpp)

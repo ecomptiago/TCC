@@ -20,9 +20,9 @@ bool AStar::findPathToGoal(common::Position &initialCoordinates,
 		} else {
 
 			int initialCell =
-				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, initialCoordinates);
+				GridUtils::getDataVectorPosition(*occupancyGridPointer, initialCoordinates);
 			int targetCell =
-				PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, targetCoordinates);
+				GridUtils::getDataVectorPosition(*occupancyGridPointer, targetCoordinates);
 			ROS_DEBUG("initial cell: %d target cell: %d",initialCell,targetCell);
 
 			if(occupancyGridPointer->data[targetCell] == 0) { // 0 = freeCell
@@ -166,8 +166,8 @@ std::vector<int> AStar::optimizePath(std::vector<AStarGridCell>& path) {
 
 //TODO- This should be optimized
 void AStar::reconstructPath(std::vector<AStarGridCell> &path, common::Position &targetCoordinates, common::Position &initialCoordinates) {
-	int initialCell = PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, initialCoordinates);
-	int targetCell = PathPlannerUtils::getDataVectorPosition(*occupancyGridPointer, targetCoordinates);
+	int initialCell = GridUtils::getDataVectorPosition(*occupancyGridPointer, initialCoordinates);
+	int targetCell = GridUtils::getDataVectorPosition(*occupancyGridPointer, targetCoordinates);
 
 	std::map<int,AStarGridCell>::iterator closedNodesIterator =
 		closedNodes.find(targetCell);

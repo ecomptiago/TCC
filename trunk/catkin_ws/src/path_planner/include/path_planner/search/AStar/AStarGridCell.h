@@ -10,9 +10,9 @@
 
 #include "math.h"
 #include "common/Position.h"
+#include "common/utils/GridUtils.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "path_planner/search/BaseGridCell.h"
-#include "path_planner/utils/PathPlannerUtils.h"
 
 const int infiniteCost = 1000000;
 

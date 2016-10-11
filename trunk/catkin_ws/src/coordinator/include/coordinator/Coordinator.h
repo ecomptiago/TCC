@@ -15,10 +15,12 @@
 #include "common/pathToTarget.h"
 #include "common/cellGridPosition.h"
 #include "common/utils/NumericUtils.h"
+#include "common/utils/GridUtils.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "std_msgs/Float32.h"
+#include "nav_msgs/OccupancyGrid.h"
 
 const char* laserTopic = "/RosAria/laser";
 const char* cmdVelTopic = "/RosAria/cmd_vel";
@@ -29,7 +31,7 @@ const char*	errorTopic = "/MovimentationExecutor/error";
 const char* turnAngleTopic = "/AvoidObstacles/turnAngle";
 const char* rvizPoseTopic = "/Coordinator/pose";
 const char* bestPathService = "/PathPlanner/bestPath";
-const char* cellGridPositionService = "/PathPlanner/cellGrid";
+const char* occupancyGridTopic = "/NeuralNetwork/grid";
 
 class Coordinator : public BaseRosNode{
 
@@ -46,9 +48,10 @@ class Coordinator : public BaseRosNode{
 		bool recalculatePath;
 		int pathPosition;
 		std::vector<common::Position> targetPositions;
+		nav_msgs::OccupancyGrid occupancyGrid;
 
 		//Methods
-
+		const common::Position cellGridPosition(int cellGrid);
 
 	public:
 		//Constructor
@@ -72,6 +75,9 @@ class Coordinator : public BaseRosNode{
 			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
 		void receivedFuzzyTurnAngle(
 			const std_msgs::Float32::ConstPtr& fuzzyTurnAngle);
+		void receivedOccupancyGrid(
+			const nav_msgs::OccupancyGrid::ConstPtr& occupancyGrid);
+
 };
 
 #endif /* SRC_COORDINATOR_H_ */

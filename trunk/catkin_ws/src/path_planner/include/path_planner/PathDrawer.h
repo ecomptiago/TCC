@@ -25,7 +25,7 @@
 #include "common/v_repConst.h"
 #include "common/simRosGetObjectPose.h"
 #include "common/utils/VRepUtils.h"
-#include "path_planner/utils/PathPlannerUtils.h"
+#include "common/utils/GridUtils.h"
 
 const char* pathTopic = "/PathDrawer/path3";
 const char* pionnerHandle = "Pionner_LX";

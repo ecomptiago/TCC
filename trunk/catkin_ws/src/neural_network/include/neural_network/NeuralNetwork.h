@@ -17,12 +17,35 @@
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
+#include "common/Position.h"
 #include "common/BaseRosNode.h"
+#include "common/utils/VRepUtils.h"
+#include "common/utils/OdometryUtils.h"
+#include "common/utils/NumericUtils.h"
+#include "common/utils/GridUtils.h"
 #include "sensor_msgs/LaserScan.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "nav_msgs/OccupancyGrid.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "neural_network/simRosGetObjectGroupData.h"
+#include "neural_network/simRosGetObjectFloatParameter.h"
+#include "neural_network/simRosGetObjectChild.h"
 
+const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
+const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
+const char* getObjectChildService = "/vrep/simRosGetObjectChild";
 const char* laserTopic = "/RosAria/laser";
-const char* gridTopic = "/NeuralNetwork/grid";
+const char* occupancyGridTopic = "/NeuralNetwork/grid";
+const char* floorHandle = "ResizableFloor_5_25";
+const char* pionnerHandle = "Pionner_LX";
+const int32_t sim_objfloatparam_modelbbox_min_x = 15;
+const int32_t sim_objfloatparam_modelbbox_max_x = 18;
+const int32_t sim_objfloatparam_modelbbox_min_y = 16;
+const int32_t sim_objfloatparam_modelbbox_max_y = 19;
+const int8_t occupiedCell = 100;
+const int8_t unknownCell = -1;
+const int8_t freeCell = 0;
+
 
 class NeuralNetwork : public BaseRosNode{
 
@@ -33,14 +56,20 @@ class NeuralNetwork : public BaseRosNode{
 		fann_type *output;
 		struct fann *ann;
 		int outputSize;
+		nav_msgs::OccupancyGrid occupancyGrid;
+		std::map<std::string,int32_t> signalObjectMap;
+		geometry_msgs::PoseStamped robotPose;
 
 		//Methods
 		void destroyNeuralNetwork();
+		bool createServiceClients();
+		bool createServiceServers();
 
 	public:
 
 		//Constructor
-		NeuralNetwork(int argc, char **argv);
+		NeuralNetwork(int argc, char **argv, int cellArea,
+			int mapWidth, int mapHeight);
 
 		//Destructor
 		virtual ~NeuralNetwork() {};
@@ -49,10 +78,13 @@ class NeuralNetwork : public BaseRosNode{
 		int runNode();
 		bool subscribeToTopics();
 		bool createPublishers();
+		bool createServices();
 		int shutdownAndExit();
 		int shutdownAndExit(std::exception &e);
 		void receivedLaserValues(
 			const sensor_msgs::LaserScan::ConstPtr& laserReading);
+		void receivedRobotPose(
+			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
 
 };
 

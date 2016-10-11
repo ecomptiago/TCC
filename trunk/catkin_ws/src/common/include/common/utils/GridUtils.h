@@ -1,24 +1,24 @@
 /*
- * PathPlannerUtils.h
+ * GridUtils.h
  *
- *  Created on: Jan 28, 2016
+ *  Created on: Oct 11, 2016
  *      Author: tcoelho
  */
 
-#ifndef PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_UTILS_PATHPLANNERUTILS_H_
-#define PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_UTILS_PATHPLANNERUTILS_H_
+#ifndef INCLUDE_COMMON_UTILS_GRIDUTILS_H_
+#define INCLUDE_COMMON_UTILS_GRIDUTILS_H_
 
 #include "math.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "common/Position.h"
 #include "common/utils/NumericUtils.h"
 
-class PathPlannerUtils {
+class GridUtils {
 
 	public:
 
 		//Destructor
-		virtual ~PathPlannerUtils() {};
+		virtual ~GridUtils() {};
 
 		//Methods
 		static int getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGrid,
@@ -28,4 +28,5 @@ class PathPlannerUtils {
 
 };
 
-#endif /* PATH_PLANNER_SRC_INCLUDE_PATH_PLANNER_UTILS_PATHPLANNERUTILS_H_ */
+
+#endif /* INCLUDE_COMMON_UTILS_GRIDUTILS_H_ */

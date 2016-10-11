@@ -69,6 +69,7 @@ int Coordinator::runNode() {
 				laserValues.end());
 			pathToTarget.request.x = targetPositions.back().x;
 			pathToTarget.request.y = targetPositions.back().y;
+			int cellGridIndex;
 			if(!reachedFinalGoal) {
 				if(!triedToFindPath ||
 					(recalculatePath && NumericUtils::isFirstGreater<float>(smallestLaserReading, 0.5))) {
@@ -86,6 +87,7 @@ int Coordinator::runNode() {
 						position.x = pathToTarget.request.x;
 						position.y = pathToTarget.request.y;
 						publisherMap[targetPositionTopic].publish(position);
+						cellGridIndex = GridUtils::getDataVectorPosition(occupancyGrid,position);
 						for(int i = 0; i < 20; i++) {
 							sleepAndSpin(50);
 						}
@@ -101,14 +103,10 @@ int Coordinator::runNode() {
 						}
 						ROS_DEBUG("Optimized path: [%s]",buffer);
 
-						common::cellGridPosition cellGridPosition;
-						cellGridPosition.request.gridPosition = pathToTarget.response.path[pathPosition];
-						serviceClientsMap[cellGridPositionService].call(cellGridPosition);
-						common::Position position;
-						position.x = cellGridPosition.response.x;
-						position.y = cellGridPosition.response.y;
-						ROS_DEBUG("Going to cell %d",cellGridPosition.request.gridPosition);
+						common::Position position = cellGridPosition(pathToTarget.response.path[pathPosition]);
+						ROS_DEBUG("Going to cell %d",pathToTarget.response.path[pathPosition]);
 						publisherMap[targetPositionTopic].publish(position);
+						cellGridIndex = GridUtils::getDataVectorPosition(occupancyGrid,position);
 						for(int i = 0; i < 20; i++) {
 							sleepAndSpin(50);
 						}
@@ -125,7 +123,8 @@ int Coordinator::runNode() {
 						}
 					}
 
-					if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.75) && !reachedFinalGoal) {
+					if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.75) && !reachedFinalGoal
+						&& occupancyGrid.data[cellGridIndex] != 100) {
 						ROS_DEBUG("The smallest element is %f",smallestLaserReading);
 						ROS_DEBUG("Proportional error %f",proportionalError.data);
 						if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 0.5)) {
@@ -171,16 +170,15 @@ int Coordinator::runNode() {
 				}
 			}
 
-//			geometry_msgs::PoseStamped rvizPose;
-//
-//			rvizPose.header = robotPose.header;
-//			rvizPose.pose = robotPose.pose;
-//			rvizPose.header.frame_id = "LaserScannerBody_2D";
-//
-//			publisherMap[rvizPoseTopic].publish(rvizPose);
 		}
 	}
 	return shutdownAndExit();
+}
+
+const common::Position Coordinator::cellGridPosition(int cellGrid) {
+	common::Position position;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,position,cellGrid);
+	return position;
 }
 
 bool Coordinator::subscribeToTopics() {
@@ -194,11 +192,11 @@ bool Coordinator::subscribeToTopics() {
 		addSubscribedTopic<const std_msgs::Float32::ConstPtr&,Coordinator>(nodeHandler,errorTopic,
 			&Coordinator::receivedProportionalControlerError,this) &&
 
-//		addSubscribedTopic<const geometry_msgs::PoseStamped::ConstPtr&,Coordinator>(nodeHandler,poseTopic,
-//			&Coordinator::receivedRobotPose,this) &&
-
 		addSubscribedTopic<const std_msgs::Float32::ConstPtr&,Coordinator>(nodeHandler,turnAngleTopic,
 			&Coordinator::receivedFuzzyTurnAngle,this);
+
+		addSubscribedTopic<const nav_msgs::OccupancyGrid::ConstPtr&,Coordinator>(nodeHandler,occupancyGridTopic,
+			&Coordinator::receivedOccupancyGrid,this);
 
 }
 
@@ -215,9 +213,7 @@ bool Coordinator::createPublishers() {
 }
 
 bool Coordinator::createServices() {
-	return addServiceClient<common::pathToTarget>(nodeHandler,bestPathService) &&
-
-		addServiceClient<common::cellGridPosition>(nodeHandler,cellGridPositionService);
+	return addServiceClient<common::pathToTarget>(nodeHandler,bestPathService);
 }
 
 //Callback
@@ -251,6 +247,12 @@ void Coordinator::receivedRobotPose(
 void Coordinator::receivedFuzzyTurnAngle(
 	const std_msgs::Float32::ConstPtr& fuzzyTurnAngle){
 		this->fuzzyTurnAngle.data = fuzzyTurnAngle->data;
+}
+
+void Coordinator::receivedOccupancyGrid(const nav_msgs::OccupancyGrid::ConstPtr& occupancyGrid) {
+	this->occupancyGrid.info = occupancyGrid->info;
+	this->occupancyGrid.header = occupancyGrid->header;
+	this->occupancyGrid.data = occupancyGrid->data;
 }
 
 //Main

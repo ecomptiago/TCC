@@ -15,7 +15,7 @@
 #include "vector"
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
-#include "path_planner/utils/PathPlannerUtils.h"
+#include "common/utils/GridUtils.h"
 #include "path_planner/search/SearchAlgorithmInterface.h"
 #include "path_planner/search/AStar/AStarGridCell.h"
 

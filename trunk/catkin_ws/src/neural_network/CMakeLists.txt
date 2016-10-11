@@ -5,9 +5,11 @@ project(neural_network)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  common
   roscpp
   rospy
   std_msgs
+  message_generation 
 )
 
 ## System dependencies are found with CMake's conventions
@@ -51,11 +53,12 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+ add_service_files(
+   FILES
+   simRosGetObjectFloatParameter.srv
+   simRosGetObjectGroupData.srv
+   simRosGetObjectChild.srv
+ )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -65,10 +68,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -129,7 +132,9 @@ include_directories(
 ## either from message generation or dynamic reconfigure
 # add_dependencies(neural_network ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/utils/OdometryUtils.cpp ../common/src/utils/MatrixUtils.cpp ../common/src/error/MethodNotImplemented.cpp)
+set (SOURCEFILES ../common/src/BaseRosNode.cpp ../common/src/utils/OdometryUtils.cpp 
+	../common/src/utils/MatrixUtils.cpp ../common/src/error/MethodNotImplemented.cpp
+	../common/src/utils/GridUtils.cpp ../common/src/utils/VRepUtils.cpp)
 
 ## Declare a C++ executable
 add_executable(NeuralNetwork ${SOURCEFILES} src/NeuralNetwork.cpp)

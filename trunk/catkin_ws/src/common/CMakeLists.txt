@@ -59,7 +59,6 @@ find_package(catkin REQUIRED COMPONENTS
    simRosGetObjectPose.srv
    simRosGetObjectHandle.srv
    pathToTarget.srv
-   cellGridPosition.srv
  )
 
 ## Generate actions in the 'action' folder

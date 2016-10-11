@@ -45,7 +45,7 @@ void AStarGridCell::copy(AStarGridCell& aStarGridCell) {
 void AStarGridCell::calculateCellCoordinates(nav_msgs::OccupancyGrid& occupancyGrid) {
 	if(cellGridPosition != -1) {
 		common::Position cellCoordinates;
-		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,cellCoordinates,cellGridPosition);
+		GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,cellCoordinates,cellGridPosition);
 		this->cellCoordinates = cellCoordinates;
 	}
 }
@@ -53,7 +53,7 @@ void AStarGridCell::calculateCellCoordinates(nav_msgs::OccupancyGrid& occupancyG
 void AStarGridCell::addNodeToNeighbours(int cellGridPosition,nav_msgs::OccupancyGrid& occupancyGrid,
 	std::vector<AStarGridCell>& neighbours) {
 		common::Position position;
-		PathPlannerUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
+		GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
 			position, cellGridPosition);
 		neighbours.push_back(AStarGridCell(targetCoordinates, cellGridPosition));
 }

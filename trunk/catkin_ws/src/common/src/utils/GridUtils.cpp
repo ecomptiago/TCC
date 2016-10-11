@@ -1,14 +1,14 @@
 /*
- * PathPlannerUtils.cpp
+ * GirdUtils.cpp
  *
- *  Created on: Jan 28, 2016
+ *  Created on: Oct 11, 2016
  *      Author: tcoelho
  */
 
-#include "path_planner/utils/PathPlannerUtils.h"
+#include "../../include/common/utils/GridUtils.h"
 
 //Methods
-int PathPlannerUtils::getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGrid,
+int GridUtils::getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGrid,
 	common::Position &position) {
 		float xMax = occupancyGrid.info.origin.position.x
 			+ (occupancyGrid.info.width * occupancyGrid.info.resolution);
@@ -41,7 +41,7 @@ int PathPlannerUtils::getDataVectorPosition(nav_msgs::OccupancyGrid &occupancyGr
 		return -1;
 }
 
-void PathPlannerUtils::getCoordinatesFromDataVectorPosition(
+void GridUtils::getCoordinatesFromDataVectorPosition(
 	nav_msgs::OccupancyGrid& occupancyGrid, common::Position& position,
 	int dataVectorPosition) {
 		int totalRows = (occupancyGrid.info.height / occupancyGrid.info.resolution);
@@ -59,3 +59,6 @@ void PathPlannerUtils::getCoordinatesFromDataVectorPosition(
 			position.x = occupancyGrid.info.origin.position.x + (column * occupancyGrid.info.resolution) + halfCell;
 		}
 }
+
+
+
