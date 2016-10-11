@@ -224,6 +224,7 @@ void AStar::getCellWithSmallerCostAndSuccessor(int targetCell, std::vector<AStar
 				tempAStarGridCell.copy(aStarGridCellMapPair.second);
 			}
 		}
+		ROS_DEBUG("Smaller cost is %f from cell %d",tempAStarGridCell.cost, tempAStarGridCell.cellGridPosition);
 		closedNodesIterator++;
 	}
 	path.push_back(tempAStarGridCell);

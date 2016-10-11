@@ -54,6 +54,12 @@ class NumericUtils {
 		}
 
 		template<class T>
+		static bool isFirstEqual(T a, T b) {
+			return std::equal_to<T>().operator()(a,b);
+		}
+
+
+		template<class T>
 		static T mod(T number) {
 			if(number < 0) {
 				return number * -1;

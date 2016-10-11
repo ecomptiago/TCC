@@ -12,16 +12,48 @@ Coordinator::Coordinator(int argc, char **argv) :
 	BaseRosNode(argc, argv, "Coordinator"){
 		triedToFindPath = false;
 		reachedFinalGoal = false;
-		recalculatePath =- false;
+		recalculatePath = false;
 		pathPosition = -1;
 		proportionalError.data = -1;
+
+		float originX = -6.15;
+		float originY = 0.72;
+		common::Position targetPosition;
+
+//		targetPosition.x = originX + 0.5;
+//		targetPosition.y = originY + 0.5;
+//		targetPositions.push_back(targetPosition);
+//
+//		targetPosition.x = originX + 0.5 + 9;
+//		targetPosition.y = originY + 0.5;
+//		targetPositions.push_back(targetPosition);
+//
+//		targetPosition.x = originX + 0.5;
+//		targetPosition.y = originY + 0.5;
+//		targetPositions.push_back(targetPosition);
+//
+//		targetPosition.x = originX + 0.5;
+//		targetPosition.y = originY + 0.5 + 9;
+//		targetPositions.push_back(targetPosition);
+
+//		targetPosition.x = originX + 1.5;
+//		targetPosition.y = originY + 1.5;
+//		targetPositions.push_back(targetPosition);
+
+		targetPosition.x = originX + 0.5 + 9;
+		targetPosition.y = originY + 0.5 + 9;
+		targetPositions.push_back(targetPosition);
+
+//		targetPosition.x = originX + 0.5;
+//		targetPosition.y = originY + 0.5;
+//		targetPositions.push_back(targetPosition);
 
 }
 
 //Methods
 int Coordinator::runNode() {
 	ROS_INFO("Running node");
-	ros::Rate rate(1/0.75);
+	ros::Rate rate(1/0.5);
 	common::pathToTarget pathToTarget;
 	geometry_msgs::Twist stop;
 	stop.angular.x = 0;
@@ -35,8 +67,8 @@ int Coordinator::runNode() {
 		if(laserValues.capacity() != 0) {
 			float smallestLaserReading = *std::min_element(laserValues.begin(),
 				laserValues.end());
-			pathToTarget.request.x = -1.57;
-			pathToTarget.request.y = 9.6;
+			pathToTarget.request.x = targetPositions.back().x;
+			pathToTarget.request.y = targetPositions.back().y;
 			if(!reachedFinalGoal) {
 				if(!triedToFindPath ||
 					(recalculatePath && NumericUtils::isFirstGreater<float>(smallestLaserReading, 0.5))) {
@@ -54,60 +86,70 @@ int Coordinator::runNode() {
 						position.x = pathToTarget.request.x;
 						position.y = pathToTarget.request.y;
 						publisherMap[targetPositionTopic].publish(position);
-					} else if(pathToTarget.response.path.size() == 1 &&
-						pathToTarget.response.path[0] == -2){
+						for(int i = 0; i < 20; i++) {
+							sleepAndSpin(50);
+						}
+					} else if(pathToTarget.response.path.size() > 1){
+						ROS_DEBUG("Found a path to x:%f y:%f",
+							pathToTarget.request.x,pathToTarget.request.y);
+						int charsWrote = 0;
+						char buffer [pathToTarget.response.path.size() * 6];
+
+						for(int i = 0; i < pathToTarget.response.path.size();i++) {
+							charsWrote += sprintf(buffer + charsWrote,
+								" %d,",pathToTarget.response.path[i]);
+						}
+						ROS_DEBUG("Optimized path: [%s]",buffer);
+
+						common::cellGridPosition cellGridPosition;
+						cellGridPosition.request.gridPosition = pathToTarget.response.path[pathPosition];
+						serviceClientsMap[cellGridPositionService].call(cellGridPosition);
+						common::Position position;
+						position.x = cellGridPosition.response.x;
+						position.y = cellGridPosition.response.y;
+						ROS_DEBUG("Going to cell %d",cellGridPosition.request.gridPosition);
+						publisherMap[targetPositionTopic].publish(position);
+						for(int i = 0; i < 20; i++) {
+							sleepAndSpin(50);
+						}
+					} else if(pathToTarget.response.path.size() == 1){
+						if(pathToTarget.response.path[0] == -3) {
 							ROS_ERROR("Could not retrieve data from V-Rep");
 							return shutdownAndExit();
-					} else if(pathToTarget.response.path.size() > 1 ||
-						(pathToTarget.response.path.size() == 1 &&
-						pathToTarget.response.path[0] != -2)){
-							ROS_DEBUG("Found a path to x:%f y:%f",
-								pathToTarget.request.x,pathToTarget.request.y);
-							int charsWrote = 0;
-							char buffer [pathToTarget.response.path.size() * 6];
-
-							for(int i = 0; i < pathToTarget.response.path.size();i++) {
-								charsWrote += sprintf(buffer + charsWrote,
-									" %d,",pathToTarget.response.path[i]);
-							}
-							ROS_DEBUG("Optimized path: [%s]",buffer);
-
-							common::cellGridPosition cellGridPosition;
-							cellGridPosition.request.gridPosition = pathToTarget.response.path[pathPosition];
-							serviceClientsMap[cellGridPositionService].call(cellGridPosition);
-							common::Position position;
-							position.x = cellGridPosition.response.x;
-							position.y = cellGridPosition.response.y;
-							ROS_DEBUG("Going to cell %d",cellGridPosition.request.gridPosition);
-							publisherMap[targetPositionTopic].publish(position);
+						} else {
+							ROS_DEBUG("Cell is occupied");
+							publisherMap[cmdVelTopic].publish(stop);
+							ROS_DEBUG("Setting velocity liner 0 and angular 0");
+							reachedFinalGoal = true;
+							triedToFindPath = false;
+						}
 					}
-				}
-				if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.75)) {
-					ROS_DEBUG("The smallest element is %f",smallestLaserReading);
-					ROS_DEBUG("Proportional error %f",proportionalError.data);
-					if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 0.5)) {
-						geometry_msgs::Twist move;
-						move.linear.x = 0.75 * smallestLaserReading;
-						ROS_DEBUG("fuzzyTurnAngle %f",fuzzyTurnAngle.data);
-						move.angular.z = 0.02 * fuzzyTurnAngle.data ;
-						publisherMap[cmdVelTopic].publish(move);
-						ROS_DEBUG("Setting velocity liner %f and angular %f",move.linear.x,move.angular.z);
-						recalculatePath = true;
+
+					if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.75) && !reachedFinalGoal) {
+						ROS_DEBUG("The smallest element is %f",smallestLaserReading);
+						ROS_DEBUG("Proportional error %f",proportionalError.data);
+						if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 0.5)) {
+							geometry_msgs::Twist move;
+							move.linear.x = 0.75 * smallestLaserReading;
+							ROS_DEBUG("fuzzyTurnAngle %f",fuzzyTurnAngle.data);
+							move.angular.z = 0.02 * fuzzyTurnAngle.data ;
+							publisherMap[cmdVelTopic].publish(move);
+							ROS_DEBUG("Setting velocity liner %f and angular %f",move.linear.x,move.angular.z);
+							recalculatePath = true;
+						} else {
+							publisherMap[cmdVelTopic].publish(proportionalVelocity);
+							ROS_DEBUG("Setting velocity liner %f and angular %f",
+								proportionalVelocity.linear.x,proportionalVelocity.angular.z);
+						}
 					} else {
-						publisherMap[cmdVelTopic].publish(proportionalVelocity);
-						ROS_DEBUG("Setting velocity liner %f and angular %f",
-							proportionalVelocity.linear.x,proportionalVelocity.angular.z);
-					}
-				} else {
-					if(!reachedFinalGoal) {
-						if(pathToTarget.response.path.size() == 0 &&
+						if((pathToTarget.response.path.size() == 0 &&
 							NumericUtils::isFirstLessEqual<float>(proportionalError.data,0.75) &&
-							NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0)) {
+							NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0))) {
 								publisherMap[cmdVelTopic].publish(stop);
 								ROS_DEBUG("Setting velocity liner 0 and angular 0");
 								reachedFinalGoal = true;
 								triedToFindPath = false;
-						} else if(pathToTarget.response.path.size() > 0){
+						} else if(pathToTarget.response.path.size() > 1){
 							ROS_DEBUG("pathPosition %d pathToTarget.response.path.size() %lu",
 								pathPosition,pathToTarget.response.path.size());
 							if(pathPosition == pathToTarget.response.path.size() + 1) {
@@ -122,15 +164,20 @@ int Coordinator::runNode() {
 						}
 					}
 				}
+			} else {
+				if(targetPositions.size() != 0) {
+					reachedFinalGoal = false;
+					targetPositions.pop_back();
+				}
 			}
 
-			geometry_msgs::PoseStamped rvizPose;
-
-			rvizPose.header = robotPose.header;
-			rvizPose.pose = robotPose.pose;
-			rvizPose.header.frame_id = "LaserScannerBody_2D";
-
-			publisherMap[rvizPoseTopic].publish(rvizPose);
+//			geometry_msgs::PoseStamped rvizPose;
+//
+//			rvizPose.header = robotPose.header;
+//			rvizPose.pose = robotPose.pose;
+//			rvizPose.header.frame_id = "LaserScannerBody_2D";
+//
+//			publisherMap[rvizPoseTopic].publish(rvizPose);
 		}
 	}
 	return shutdownAndExit();
@@ -147,8 +194,8 @@ bool Coordinator::subscribeToTopics() {
 		addSubscribedTopic<const std_msgs::Float32::ConstPtr&,Coordinator>(nodeHandler,errorTopic,
 			&Coordinator::receivedProportionalControlerError,this) &&
 
-		addSubscribedTopic<const geometry_msgs::PoseStamped::ConstPtr&,Coordinator>(nodeHandler,poseTopic,
-			&Coordinator::receivedRobotPose,this) &&
+//		addSubscribedTopic<const geometry_msgs::PoseStamped::ConstPtr&,Coordinator>(nodeHandler,poseTopic,
+//			&Coordinator::receivedRobotPose,this) &&
 
 		addSubscribedTopic<const std_msgs::Float32::ConstPtr&,Coordinator>(nodeHandler,turnAngleTopic,
 			&Coordinator::receivedFuzzyTurnAngle,this);

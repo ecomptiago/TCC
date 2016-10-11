@@ -15,7 +15,7 @@ PathDrawer::PathDrawer(int argc, char **argv, float robotPathDelay,float robotPo
 		path = nav_msgs::Path();
 		path.header = std_msgs::Header();
 		path.header.stamp = ros::Time::now();
-		path.header.frame_id = "my_map";
+		path.header.frame_id = "LaserScannerBody_2D";
 }
 
 //Methods

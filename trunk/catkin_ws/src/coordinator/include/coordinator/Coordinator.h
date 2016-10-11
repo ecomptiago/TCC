@@ -9,6 +9,7 @@
 #define SRC_COORDINATOR_H_
 
 #include "algorithm"
+#include "vector"
 #include "common/BaseRosNode.h"
 #include "common/Position.h"
 #include "common/pathToTarget.h"
@@ -44,8 +45,11 @@ class Coordinator : public BaseRosNode{
 		bool reachedFinalGoal;
 		bool recalculatePath;
 		int pathPosition;
+		std::vector<common::Position> targetPositions;
 
 		//Methods
+
+
 	public:
 		//Constructor
 		Coordinator(int argc, char **argv);

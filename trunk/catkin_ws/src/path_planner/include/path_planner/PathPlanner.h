@@ -63,12 +63,6 @@ class PathPlanner : public BaseRosNode {
 		bool createServiceClients();
 		bool createServiceServers();
 		int infoFailAndExit(const char* topicName);
-		bool getMinimumXYObjectCoordinate(int32_t objecthandle,
-			common::simRosGetObjectPose &simRosGetObjectPose,common::Position &position);
-		void callGetFloatParameterService(int32_t objectHandle, int32_t parameterID,
-			path_planner::simRosGetObjectFloatParameter &simRosGetObjectFloatParameter);
-		bool getObjectWidthHeight(int32_t objectHandle,	path_planner::ObjectInfo &objectInfo);
-		bool addObjectToOccupancyMap(int32_t childHandle);
 
 	public:
 		//Constructor
