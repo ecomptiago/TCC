@@ -25,6 +25,7 @@
 #include "common/utils/GridUtils.h"
 #include "sensor_msgs/LaserScan.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Bool.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "neural_network/simRosGetObjectGroupData.h"
@@ -34,8 +35,11 @@
 const char* getObjectGroupDataService = "/vrep/simRosGetObjectGroupData";
 const char* getObjectFloatParameterService = "/vrep/simRosGetObjectFloatParameter";
 const char* getObjectChildService = "/vrep/simRosGetObjectChild";
+const char* updateWorldTopic = "/NeuralNetwork/updateWorld";
 const char* laserTopic = "/RosAria/laser";
 const char* occupancyGridTopic = "/NeuralNetwork/grid";
+const char* neuralGridTopic = "/NeuralNetwork/neuralGrid";
+const char* poseTopic = "/RosAria/pose";
 const char* floorHandle = "ResizableFloor_5_25";
 const char* pionnerHandle = "Pionner_LX";
 const int32_t sim_objfloatparam_modelbbox_min_x = 15;
@@ -59,6 +63,7 @@ class NeuralNetwork : public BaseRosNode{
 		nav_msgs::OccupancyGrid occupancyGrid;
 		std::map<std::string,int32_t> signalObjectMap;
 		geometry_msgs::PoseStamped robotPose;
+		bool updateWorld;
 
 		//Methods
 		void destroyNeuralNetwork();
@@ -85,7 +90,8 @@ class NeuralNetwork : public BaseRosNode{
 			const sensor_msgs::LaserScan::ConstPtr& laserReading);
 		void receivedRobotPose(
 			const geometry_msgs::PoseStamped::ConstPtr& robotPose);
-
+		void receivedUpdateWorld(
+			const std_msgs::Bool::ConstPtr& updateWorld);
 };
 
 #endif /* INCLUDE_NEURAL_NETWORK_NEURALNETWORK_H_ */

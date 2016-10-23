@@ -20,6 +20,7 @@
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Bool.h"
 #include "nav_msgs/OccupancyGrid.h"
 
 const char* laserTopic = "/RosAria/laser";
@@ -30,8 +31,9 @@ const char*	velTopic = "/MovimentationExecutor/velocity";
 const char*	errorTopic = "/MovimentationExecutor/error";
 const char* turnAngleTopic = "/AvoidObstacles/turnAngle";
 const char* rvizPoseTopic = "/Coordinator/pose";
-const char* bestPathService = "/PathPlanner/bestPath";
 const char* occupancyGridTopic = "/NeuralNetwork/grid";
+const char* updateWorldTopic = "/NeuralNetwork/updateWorld";
+const char* bestPathService = "/PathPlanner/bestPath";
 
 class Coordinator : public BaseRosNode{
 
@@ -47,7 +49,8 @@ class Coordinator : public BaseRosNode{
 		bool reachedFinalGoal;
 		bool recalculatePath;
 		int pathPosition;
-		std::vector<common::Position> targetPositions;
+		std::vector<common::Position> targetPositionsSlam;
+		std::vector<common::Position> targetPositionsGuided;
 		nav_msgs::OccupancyGrid occupancyGrid;
 
 		//Methods
