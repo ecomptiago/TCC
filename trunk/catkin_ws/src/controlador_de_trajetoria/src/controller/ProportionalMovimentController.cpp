@@ -64,7 +64,7 @@ const geometry_msgs::Twist ProportionalMovimentController::calculateVelocities()
 //	}
 	else {
 		twist.linear.x = 0;
-		if(alpha > 0) {
+		if(NumericUtils::isFirstGreater<float>(alpha,0.0)) {
 			twist.angular.z = -0.2;
 		} else {
 			twist.angular.z = 0.2;

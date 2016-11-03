@@ -27,13 +27,13 @@ NeuralNetwork::NeuralNetwork(int argc, char **argv, int cellArea,
 }
 
 int NeuralNetwork::runNode() {
+
 	ROS_INFO("Running node");
     ros::Rate rate(1/0.5);
 
 	neural_network::simRosGetObjectChild simRosGetObjectChild;
 	bool firstLoop = true;
 	int index = 0;
-
 
 	//Getting origin coordinates
 	if(VRepUtils::getObjectHandle(floorHandle,nodeHandler,signalObjectMap)) {
@@ -87,7 +87,9 @@ int NeuralNetwork::runNode() {
 //	occupancyGrid.data[75] = occupiedCell;
 
 	while(ros::ok()) {
-		sleepAndSpin(rate);
+//		for(int i = 0; i < 10; i++) {
+			sleepAndSpin(rate);
+//		}
 	    if(updateWorld) {
 			output = fann_run(ann, laserValues);
 
@@ -103,59 +105,64 @@ int NeuralNetwork::runNode() {
 			if(NumericUtils::isFirstGreaterEqual<float>(angle,80) &&
 				NumericUtils::isFirstLessEqual<float>(angle, 100)) {
 					angle = 90;
+					fillWorldgrid(angle);
 			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,170) &&
 				NumericUtils::isFirstLessEqual<float>(angle, 190)) {
 					angle = 180;
+					fillWorldgrid(angle);
 			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,260) &&
 				NumericUtils::isFirstLessEqual<float>(angle, 280)) {
 					angle = 270;
+					fillWorldgrid(angle);
 			} else if((NumericUtils::isFirstGreaterEqual<float>(angle,0) &&
 				NumericUtils::isFirstLessEqual<float>(angle, 10)) ||
 				(NumericUtils::isFirstGreaterEqual<float>(angle,350) &&
 				NumericUtils::isFirstLessEqual<float>(angle, 360))) {
 					angle = 0;
+					fillWorldgrid(angle);
 			}
 
-			angle = (angle * M_PI) / 180;
+//			fillWorldgrid(angle);
 
-			int i = 0;
-
-			for(double u = 7; u > 0; u-- ) {
-				for(double v = 3; v > -4; v--) {
-					float x = (u * cos(angle)) - (v * sin(angle));
-					float y = (u * sin(angle)) + (v * cos(angle));
-					x = x + robotPose.pose.position.x;
-					y = y + robotPose.pose.position.y;
-					common::Position position;
-					position.x = x;
-					position.y = y;
-					int cellPosition =
-						GridUtils::getDataVectorPosition(occupancyGrid,position);
-//					ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d, neuralCellValue %f",
-//						x, y, cellPosition,output[i]);
-					if(cellPosition != -1) {
-						if(NumericUtils::isFirstLessEqual<float>(output[i], 0.3)) {
-							occupancyGrid.data[cellPosition] = freeCell;
-						} else{// if(occupancyGrid.data[cellPosition] != freeCell){
-							occupancyGrid.data[cellPosition] = occupiedCell;
-						}
-					}
-					i++;
-				}
-			}
-
-			output = fann_run(ann, laserValues);
-			std_msgs::Float32MultiArray grid;
-			grid.data.resize(outputSize);
-			for(int i = 0; i < outputSize ; i++) {
-				grid.data[i] = output[i];
-			}
-			publisherMap[neuralGridTopic].publish(grid);
+//			std_msgs::Float32MultiArray grid;
+//			grid.data.resize(outputSize);
+//			for(int i = 0; i < outputSize ; i++) {
+//				grid.data[i] = output[i];
+//			}
+//			publisherMap[neuralGridTopic].publish(grid);
 	    }
 
 		publisherMap[occupancyGridTopic].publish(occupancyGrid);
 	}
 	return shutdownAndExit();
+}
+
+void NeuralNetwork::fillWorldgrid(double angle) {
+	int i = 0;
+	angle = (angle * M_PI) / 180;
+	for(double u = 7; u > 0; u-- ) {
+		for(double v = 3; v > -4; v--) {
+			float x = (u * cos(angle)) - (v * sin(angle));
+			float y = (u * sin(angle)) + (v * cos(angle));
+			x = x + robotPose.pose.position.x;
+			y = y + robotPose.pose.position.y;
+			common::Position position;
+			position.x = x;
+			position.y = y;
+			int cellPosition =
+				GridUtils::getDataVectorPosition(occupancyGrid,position);
+//					ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d, neuralCellValue %f, "
+//						"output %d", x, y, cellPosition,output[i], i);
+			if(cellPosition != -1) {
+				if(NumericUtils::isFirstLessEqual<float>(output[i], 0.000000001)) {
+					occupancyGrid.data[cellPosition] = freeCell;
+				} else if(occupancyGrid.data[cellPosition] != freeCell){
+					occupancyGrid.data[cellPosition] = occupiedCell;
+				}
+			}
+			i++;
+		}
+	}
 }
 
 bool NeuralNetwork::subscribeToTopics() {
@@ -226,51 +233,50 @@ void NeuralNetwork::receivedUpdateWorld(const std_msgs::Bool::ConstPtr& updateWo
 	this->updateWorld = updateWorld;
 }
 
-//Para treinar e configurar a rede devo comentar as linhas 77 a 87! Isto evita publicações no ROS.
 int main(int argc, char **argv) {
 
-//	NeuralNetwork neuralNetwork(argc,argv,1,10,10);
-//	try{
-//		if(neuralNetwork.subscribeToTopics() &&
-//			neuralNetwork.createPublishers() &&
-//			neuralNetwork.createServices()) {
-//				return neuralNetwork.runNode();
-//		} else {
-//			 return neuralNetwork.shutdownAndExit();
-//		}
-//	} catch (std::exception &e) {
-//		return neuralNetwork.shutdownAndExit(e);
-//	}
+	NeuralNetwork neuralNetwork(argc,argv,1,10,10);
+	try{
+		if(neuralNetwork.subscribeToTopics() &&
+			neuralNetwork.createPublishers() &&
+			neuralNetwork.createServices()) {
+				return neuralNetwork.runNode();
+		} else {
+			 return neuralNetwork.shutdownAndExit();
+		}
+	} catch (std::exception &e) {
+		return neuralNetwork.shutdownAndExit(e);
+	}
 
+//	 const unsigned int num_input = 180;
+//	 const unsigned int num_output = 49;
+//	 const unsigned int num_layers = 4;
+//	 const unsigned int num_neurons_hidden = 361;
+//	 const float desired_error = (const float) 0.001;
+//	 const unsigned int max_epochs = 500000;
+//	 const unsigned int epochs_between_reports = 100;
+//
+//	 struct fann *ann = fann_create_standard(num_layers, num_input, num_neurons_hidden,num_neurons_hidden, num_output);
+//
+//	 fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
+//	 fann_set_activation_function_output(ann, FANN_SIGMOID);
+//
+//	 std::string neuralNetworkDataFile = get_current_dir_name();
+//	 neuralNetworkDataFile =
+//		neuralNetworkDataFile.erase(neuralNetworkDataFile.find("catkin_ws") + 9)
+//	    .append("/src/neural_network/rnaTrain.data");
+//
+//	 fann_train_on_file(ann, neuralNetworkDataFile.c_str(), max_epochs, epochs_between_reports, desired_error);
+//
+//	 std::string neuralNetowrkFile = get_current_dir_name();
+//	 neuralNetowrkFile =
+//		neuralNetowrkFile.erase(neuralNetowrkFile.find("catkin_ws") + 9)
+//	    .append("/src/neural_network/rna.net");
+//
+//	 fann_save(ann, neuralNetowrkFile.c_str());
+//
+//	 fann_destroy(ann);
+//
+//	 return 0;
 
-    const unsigned int num_input = 180;
-    const unsigned int num_output = 49;
-    const unsigned int num_layers = 3;
-    const unsigned int num_neurons_hidden = 361;
-    const float desired_error = (const float) 0.0001;
-    const unsigned int max_epochs = 500000;
-    const unsigned int epochs_between_reports = 100;
-
-    struct fann *ann = fann_create_standard(num_layers, num_input, num_neurons_hidden, num_output);
-
-    fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
-    fann_set_activation_function_output(ann, FANN_SIGMOID);
-
-    std::string neuralNetworkDataFile = get_current_dir_name();
-    neuralNetworkDataFile =
-    	neuralNetworkDataFile.erase(neuralNetworkDataFile.find("catkin_ws") + 9)
-       	.append("/src/neural_network/rnaTrain.data");
-
-    fann_train_on_file(ann, neuralNetworkDataFile.c_str(), max_epochs, epochs_between_reports, desired_error);
-
-    std::string neuralNetowrkFile = get_current_dir_name();
-    neuralNetowrkFile =
-    	neuralNetowrkFile.erase(neuralNetowrkFile.find("catkin_ws") + 9)
-    	.append("/src/neural_network/rna.net");
-
-    fann_save(ann, neuralNetowrkFile.c_str());
-
-    fann_destroy(ann);
-
-    return 0;
 }

@@ -69,6 +69,7 @@ class NeuralNetwork : public BaseRosNode{
 		void destroyNeuralNetwork();
 		bool createServiceClients();
 		bool createServiceServers();
+		void fillWorldgrid(double angle);
 
 	public:
 

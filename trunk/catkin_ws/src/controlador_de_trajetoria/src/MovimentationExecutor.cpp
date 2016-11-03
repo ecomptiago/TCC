@@ -114,7 +114,7 @@ void MovimentationExecutor::receivedTargetPosition(
 
 //Main
 int main(int argc,char **argv) {
-	MovimentationExecutor movimentationExecutor(argc, argv, 0.75);
+	MovimentationExecutor movimentationExecutor(argc, argv, 0.5);
 	try {
 		if(movimentationExecutor.subscribeToTopics() &&
 			movimentationExecutor.createPublishers()) {

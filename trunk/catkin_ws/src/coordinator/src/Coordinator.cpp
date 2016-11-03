@@ -20,38 +20,40 @@ Coordinator::Coordinator(int argc, char **argv) :
 		float originY = 0.72;
 		common::Position targetPosition;
 
-//		targetPosition.x = originX + 0.5;
-//		targetPosition.y = originY + 0.5;
-//		targetPositions.push_back(targetPosition);
-//
-//
-//		targetPosition.x = originX + 0.5;
-//		targetPosition.y = originY + 0.5;
-//		targetPositions.push_back(targetPosition);
-//
-		targetPosition.x = originX + 0.5 + 1;
-		targetPosition.y = originY + 0.5 + 9;
+//		targetPosition.x = originX + 0.5 + 1;
+//		targetPosition.y = originY + 0.5 + 1;
+//		targetPositionsSlam.push_back(targetPosition);
+//		targetPositionsGuided.push_back(targetPosition);
+
+
+//		targetPosition.x = originX + 0.5 + 1;
+//		targetPosition.y = originY + 0.5 + 1;
+//		targetPositionsSlam.push_back(targetPosition);
+//		targetPositionsGuided.push_back(targetPosition);
+
+		targetPosition.x = originX + 0.5 + 9;
+		targetPosition.y = originY + 0.5;
 		targetPositionsSlam.push_back(targetPosition);
-		targetPositionsGuided.push_back(targetPosition);
+//		targetPositionsGuided.push_back(targetPosition);
 
 		targetPosition.x = originX + 0.5 + 9;
 		targetPosition.y = originY + 0.5 + 9;
 		targetPositionsSlam.push_back(targetPosition);
-		targetPositionsGuided.push_back(targetPosition);
+//		targetPositionsGuided.push_back(targetPosition);
 
-		targetPosition.x = originX + 0.5 + 9;
-		targetPosition.y = originY + 0.5 + 1;
+		targetPosition.x = originX + 0.5;
+		targetPosition.y = originY + 0.5 + 9;
 		targetPositionsSlam.push_back(targetPosition);
-		targetPositionsGuided.push_back(targetPosition);
+//		targetPositionsGuided.push_back(targetPosition);
 
 //		targetPosition.x = originX + 1.5;
 //		targetPosition.y = originY + 1.5;
 //		targetPositions.push_back(targetPosition);
 
-		targetPosition.x = originX + 0.5 + 1;
-		targetPosition.y = originY + 0.5 + 1;
-		targetPositionsSlam.push_back(targetPosition);
-		targetPositionsGuided.push_back(targetPosition);
+//		targetPosition.x = originX + 0.5 + 1;
+//		targetPosition.y = originY + 0.5 + 1;
+//		targetPositionsSlam.push_back(targetPosition);
+//		targetPositionsGuided.push_back(targetPosition);
 
 }
 
@@ -79,7 +81,7 @@ int Coordinator::runNode() {
 			if(targetPositionsSlam.size() != 0) {
 				pathToTarget.request.x = targetPositionsSlam.back().x;
 				pathToTarget.request.y = targetPositionsSlam.back().y;
-			} else {
+			} else if(targetPositionsGuided.size() != 0){
 				pathToTarget.request.x = targetPositionsGuided.back().x;
 				pathToTarget.request.y = targetPositionsGuided.back().y;
 			}
@@ -101,7 +103,7 @@ int Coordinator::runNode() {
 						position.y = pathToTarget.request.y;
 						publisherMap[targetPositionTopic].publish(position);
 						cellGridIndex = GridUtils::getDataVectorPosition(occupancyGrid,position);
-						for(int i = 0; i < 20; i++) {
+						for(int i = 0; i < 60; i++) {
 							sleepAndSpin(50);
 						}
 					} else if(pathToTarget.response.path.size() > 1){
@@ -120,7 +122,7 @@ int Coordinator::runNode() {
 						ROS_DEBUG("Going to cell %d",pathToTarget.response.path[pathPosition]);
 						publisherMap[targetPositionTopic].publish(position);
 						cellGridIndex = GridUtils::getDataVectorPosition(occupancyGrid,position);
-						for(int i = 0; i < 20; i++) {
+						for(int i = 0; i < 60; i++) {
 							sleepAndSpin(50);
 						}
 					} else if(pathToTarget.response.path.size() == 1){
@@ -143,7 +145,7 @@ int Coordinator::runNode() {
 							geometry_msgs::Twist move;
 							move.linear.x = 0.75 * smallestLaserReading;
 							ROS_DEBUG("fuzzyTurnAngle %f",fuzzyTurnAngle.data);
-							move.angular.z = 0.02 * fuzzyTurnAngle.data ;
+							move.angular.z = 0.04 * fuzzyTurnAngle.data ;
 							publisherMap[cmdVelTopic].publish(move);
 							ROS_DEBUG("Setting velocity liner %f and angular %f",move.linear.x,move.angular.z);
 							if(targetPositionsSlam.size() == 0) {
@@ -167,6 +169,9 @@ int Coordinator::runNode() {
 								pathPosition,pathToTarget.response.path.size());
 							if(pathPosition == pathToTarget.response.path.size() + 1) {
 								publisherMap[cmdVelTopic].publish(stop);
+								for(int i = 0; i < 60; i++) {
+									sleepAndSpin(50);
+								}
 								ROS_DEBUG("Setting velocity liner 0 and angular 0");
 								reachedFinalGoal = true;
 								triedToFindPath = false;
@@ -178,10 +183,18 @@ int Coordinator::runNode() {
 					}
 				}
 			} else {
+//				int unknownCell = occupancyGrid.data.at(-1);
 				if(targetPositionsSlam.size() != 0) {
 					reachedFinalGoal = false;
 					targetPositionsSlam.pop_back();
-				} else {
+				}
+//				else if(unknownCell != -1)  {
+//					common::Position unknownCellPosition;
+//					GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
+//						unknownCellPosition,unknownCell);
+//					targetPositionsSlam.push_back(unknownCellPosition);
+//				} else if(unknownCell == -1){
+				else {
 					updateWorld.data = false;
 					if(targetPositionsGuided.size() != 0 ) {
 						reachedFinalGoal = false;
