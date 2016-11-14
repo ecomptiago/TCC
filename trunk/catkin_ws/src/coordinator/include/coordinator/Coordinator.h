@@ -34,6 +34,7 @@ const char* rvizPoseTopic = "/Coordinator/pose";
 const char* occupancyGridTopic = "/NeuralNetwork/grid";
 const char* updateWorldTopic = "/NeuralNetwork/updateWorld";
 const char* bestPathService = "/PathPlanner/bestPath";
+const char* targetTopic = "/Coordinator/target";
 
 class Coordinator : public BaseRosNode{
 
@@ -80,6 +81,8 @@ class Coordinator : public BaseRosNode{
 			const std_msgs::Float32::ConstPtr& fuzzyTurnAngle);
 		void receivedOccupancyGrid(
 			const nav_msgs::OccupancyGrid::ConstPtr& occupancyGrid);
+		void receiveTarget(
+			const common::Position::ConstPtr& target);
 
 };
 

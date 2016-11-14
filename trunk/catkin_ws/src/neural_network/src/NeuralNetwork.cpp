@@ -24,6 +24,10 @@ NeuralNetwork::NeuralNetwork(int argc, char **argv, int cellArea,
 			this->occupancyGrid.data.insert(this->occupancyGrid.data.begin(),unknownCell);
 		}
 		updateWorld = true;
+		for(int i = 0; i <100; i++) {
+			freeCellVector[i] = 0;
+			occupiedCellVector[i] = 0;
+		}
 }
 
 int NeuralNetwork::runNode() {
@@ -89,6 +93,7 @@ int NeuralNetwork::runNode() {
 	while(ros::ok()) {
 //		for(int i = 0; i < 10; i++) {
 			sleepAndSpin(rate);
+			publisherMap[occupancyGridTopic].publish(occupancyGrid);
 //		}
 	    if(updateWorld) {
 			output = fann_run(ann, laserValues);
@@ -101,38 +106,37 @@ int NeuralNetwork::runNode() {
 				angle = angle + 360;
 			}
 
-			ROS_DEBUG("Angle %f",angle);
-			if(NumericUtils::isFirstGreaterEqual<float>(angle,80) &&
-				NumericUtils::isFirstLessEqual<float>(angle, 100)) {
-					angle = 90;
-					fillWorldgrid(angle);
-			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,170) &&
-				NumericUtils::isFirstLessEqual<float>(angle, 190)) {
-					angle = 180;
-					fillWorldgrid(angle);
-			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,260) &&
-				NumericUtils::isFirstLessEqual<float>(angle, 280)) {
-					angle = 270;
-					fillWorldgrid(angle);
-			} else if((NumericUtils::isFirstGreaterEqual<float>(angle,0) &&
-				NumericUtils::isFirstLessEqual<float>(angle, 10)) ||
-				(NumericUtils::isFirstGreaterEqual<float>(angle,350) &&
-				NumericUtils::isFirstLessEqual<float>(angle, 360))) {
-					angle = 0;
-					fillWorldgrid(angle);
-			}
-
-//			fillWorldgrid(angle);
-
-//			std_msgs::Float32MultiArray grid;
-//			grid.data.resize(outputSize);
-//			for(int i = 0; i < outputSize ; i++) {
-//				grid.data[i] = output[i];
+//			ROS_DEBUG("Angle %f",angle);
+//			if(NumericUtils::isFirstGreaterEqual<float>(angle,80) &&
+//				NumericUtils::isFirstLessEqual<float>(angle, 100)) {
+//					angle = 90;
+//					fillWorldgrid(angle);
+//			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,170) &&
+//				NumericUtils::isFirstLessEqual<float>(angle, 190)) {
+//					angle = 180;
+//					fillWorldgrid(angle);
+//			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,260) &&
+//				NumericUtils::isFirstLessEqual<float>(angle, 280)) {
+//					angle = 270;
+//					fillWorldgrid(angle);
+//			} else if((NumericUtils::isFirstGreaterEqual<float>(angle,0) &&
+//				NumericUtils::isFirstLessEqual<float>(angle, 10)) ||
+//				(NumericUtils::isFirstGreaterEqual<float>(angle,350) &&
+//				NumericUtils::isFirstLessEqual<float>(angle, 360))) {
+//					angle = 0;
+//					fillWorldgrid(angle);
 //			}
-//			publisherMap[neuralGridTopic].publish(grid);
+
+			fillWorldgrid(angle);
+
+			std_msgs::Float32MultiArray grid;
+			grid.data.resize(outputSize);
+			for(int i = 0; i < outputSize ; i++) {
+				grid.data[i] = output[i];
+			}
+			publisherMap[neuralGridTopic].publish(grid);
 	    }
 
-		publisherMap[occupancyGridTopic].publish(occupancyGrid);
 	}
 	return shutdownAndExit();
 }
@@ -140,27 +144,62 @@ int NeuralNetwork::runNode() {
 void NeuralNetwork::fillWorldgrid(double angle) {
 	int i = 0;
 	angle = (angle * M_PI) / 180;
-	for(double u = 7; u > 0; u-- ) {
-		for(double v = 3; v > -4; v--) {
-			float x = (u * cos(angle)) - (v * sin(angle));
-			float y = (u * sin(angle)) + (v * cos(angle));
-			x = x + robotPose.pose.position.x;
-			y = y + robotPose.pose.position.y;
-			common::Position position;
-			position.x = x;
-			position.y = y;
-			int cellPosition =
-				GridUtils::getDataVectorPosition(occupancyGrid,position);
-//					ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d, neuralCellValue %f, "
-//						"output %d", x, y, cellPosition,output[i], i);
-			if(cellPosition != -1) {
-				if(NumericUtils::isFirstLessEqual<float>(output[i], 0.000000001)) {
-					occupancyGrid.data[cellPosition] = freeCell;
-				} else if(occupancyGrid.data[cellPosition] != freeCell){
-					occupancyGrid.data[cellPosition] = occupiedCell;
+	for(int v = -1; v < 2; v++) {
+		for(int u = 0 ;u < 3; u++ ) {
+			if(u != 0 || v != 0) {
+				float x = ((robotPose.pose.position.x + u) * cos(angle)) - ((robotPose.pose.position.y + v) * sin(angle));
+				float y = ((robotPose.pose.position.x + u) * sin(angle)) + ((robotPose.pose.position.y + v) * cos(angle));
+				common::Position position;
+				position.x = x;
+				position.y = y;
+				int cellPosition =
+					GridUtils::getDataVectorPosition(occupancyGrid,position);
+//						ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d, neuralCellValue %f, "
+//							"output %d", x, y, cellPosition,output[i], i);
+				if(cellPosition != -1) {
+					if(NumericUtils::isFirstLessEqual<float>(output[i], 0.7)) {
+	//					occupancyGrid.data[cellPosition] = freeCell;
+						freeCellVector[cellPosition]=freeCellVector[cellPosition]+1;
+					} else {//if(occupancyGrid.data[cellPosition] != freeCell){
+	//					occupancyGrid.data[cellPosition] = occupiedCell;
+						occupiedCellVector[cellPosition]++;
+					}
+
+	//				int charsWrote = 0;
+	//				char buffer [400];
+	//
+	//				for(int i = 0; i < 100;i++) {
+	//					charsWrote += sprintf(buffer + charsWrote,
+	//						" %d,",freeCellVector[i]);
+	//				}
+	//				ROS_DEBUG("freeCellVector: [%s]",buffer);
+	//
+	//				charsWrote = 0;
+	//				char buffer2 [400];
+	//
+	//				for(int i = 0; i < 100;i++) {
+	//					charsWrote += sprintf(buffer2 + charsWrote,
+	//						" %d,",occupiedCellVector[i]);
+	//				}
+	//				ROS_DEBUG("occupiedCellVector: [%s]",buffer2);
+
+					float i;
+					if(occupiedCellVector[cellPosition] != 0) {
+						i = freeCellVector[cellPosition] / occupiedCellVector[cellPosition];
+					} else {
+						i = freeCellVector[cellPosition];
+					}
+
+					if(NumericUtils::isFirstGreaterEqual<float>(i,1)) {
+						occupancyGrid.data[cellPosition] = freeCell;
+					} else {
+						occupancyGrid.data[cellPosition] = occupiedCell;
+					}
+	//				occupancyGrid.data[cellPosition] = output[i];
 				}
+				i++;
 			}
-			i++;
+
 		}
 	}
 }
@@ -249,22 +288,25 @@ int main(int argc, char **argv) {
 	}
 
 //	 const unsigned int num_input = 180;
-//	 const unsigned int num_output = 49;
-//	 const unsigned int num_layers = 4;
+//	 const unsigned int num_output = 8;
+//	 const unsigned int num_layers = 3;
 //	 const unsigned int num_neurons_hidden = 361;
 //	 const float desired_error = (const float) 0.001;
 //	 const unsigned int max_epochs = 500000;
 //	 const unsigned int epochs_between_reports = 100;
 //
-//	 struct fann *ann = fann_create_standard(num_layers, num_input, num_neurons_hidden,num_neurons_hidden, num_output);
+//	 struct fann *ann = fann_create_standard(num_layers, num_input, num_neurons_hidden, num_output);
 //
 //	 fann_set_activation_function_hidden(ann, FANN_SIGMOID_SYMMETRIC);
 //	 fann_set_activation_function_output(ann, FANN_SIGMOID);
 //
+//	 fann_set_learning_rate(ann,0.1);
+//	 fann_set_learning_momentum(ann,0.5);
+//
 //	 std::string neuralNetworkDataFile = get_current_dir_name();
 //	 neuralNetworkDataFile =
 //		neuralNetworkDataFile.erase(neuralNetworkDataFile.find("catkin_ws") + 9)
-//	    .append("/src/neural_network/rnaTrain.data");
+//	    .append("/src/neural_network/NewRNATrain.data");
 //
 //	 fann_train_on_file(ann, neuralNetworkDataFile.c_str(), max_epochs, epochs_between_reports, desired_error);
 //

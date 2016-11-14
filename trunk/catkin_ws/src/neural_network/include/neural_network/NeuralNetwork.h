@@ -64,6 +64,8 @@ class NeuralNetwork : public BaseRosNode{
 		std::map<std::string,int32_t> signalObjectMap;
 		geometry_msgs::PoseStamped robotPose;
 		bool updateWorld;
+		int freeCellVector[100];
+		int occupiedCellVector[100];
 
 		//Methods
 		void destroyNeuralNetwork();
