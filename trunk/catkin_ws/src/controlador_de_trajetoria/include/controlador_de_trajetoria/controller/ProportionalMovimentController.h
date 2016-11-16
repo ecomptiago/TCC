@@ -34,6 +34,8 @@ class ProportionalMovimentController : public MovimentControllerInterface {
 		float rho;
 		float alpha;
 		float beta;
+		double angleToGoal;
+		double theta;
 		common::Position targetPosition;
 
 		//TODO - Use shared_ptr instead of raw pointer
