@@ -16,10 +16,12 @@
 #include "common/cellGridPosition.h"
 #include "common/utils/NumericUtils.h"
 #include "common/utils/GridUtils.h"
+#include "common/utils/OdometryUtils.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "std_msgs/Float32.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "std_msgs/Bool.h"
 #include "nav_msgs/OccupancyGrid.h"
 
@@ -35,6 +37,7 @@ const char* occupancyGridTopic = "/NeuralNetwork/grid";
 const char* updateWorldTopic = "/NeuralNetwork/updateWorld";
 const char* bestPathService = "/PathPlanner/bestPath";
 const char* targetTopic = "/Coordinator/target";
+const char* neuralGridTopic = "/NeuralNetwork/neuralGrid";
 
 class Coordinator : public BaseRosNode{
 
@@ -53,9 +56,19 @@ class Coordinator : public BaseRosNode{
 		std::vector<common::Position> targetPositionsSlam;
 		std::vector<common::Position> targetPositionsGuided;
 		nav_msgs::OccupancyGrid occupancyGrid;
+		std_msgs::Float32MultiArray neuralGrid;
+		std::vector<int> cellsInThePath;
 
 		//Methods
 		const common::Position cellGridPosition(int cellGrid);
+		void moveToCell(int targetCell);
+		void turnRobot(int targetAngle);
+		bool isFree(int neuralGridCell);
+		int getRobotCell();
+		void moveForward();
+		void stop();
+		bool isCellInPath(int robotCell);
+
 
 	public:
 		//Constructor
@@ -83,6 +96,8 @@ class Coordinator : public BaseRosNode{
 			const nav_msgs::OccupancyGrid::ConstPtr& occupancyGrid);
 		void receiveTarget(
 			const common::Position::ConstPtr& target);
+		void receiveNeuralNetworkGrid(
+			const std_msgs::Float32MultiArray::ConstPtr& neuralGrid);
 
 };
 

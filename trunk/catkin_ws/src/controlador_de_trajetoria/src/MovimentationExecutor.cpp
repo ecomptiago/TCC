@@ -6,7 +6,7 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 	BaseRosNode(argc,argv,"Movimentation_executor") {
 		this->pointerTargetPosition = NULL;
 		this->wakeUpTime = wakeUpTime;
-		this->proportionalController = ProportionalMovimentController(0.15,0.3,-0.025);
+		this->proportionalController = ProportionalMovimentController(0.15,0.45,-0.05);
 }
 
 //Methods

@@ -66,6 +66,7 @@ class NeuralNetwork : public BaseRosNode{
 		bool updateWorld;
 		int freeCellVector[100];
 		int occupiedCellVector[100];
+		int visitedCell[100];
 
 		//Methods
 		void destroyNeuralNetwork();

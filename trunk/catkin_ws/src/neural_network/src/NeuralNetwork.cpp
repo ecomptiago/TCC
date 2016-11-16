@@ -27,6 +27,7 @@ NeuralNetwork::NeuralNetwork(int argc, char **argv, int cellArea,
 		for(int i = 0; i <100; i++) {
 			freeCellVector[i] = 0;
 			occupiedCellVector[i] = 0;
+			visitedCell[i] = 0;
 		}
 }
 
@@ -147,8 +148,10 @@ void NeuralNetwork::fillWorldgrid(double angle) {
 	for(int v = -1; v < 2; v++) {
 		for(int u = 0 ;u < 3; u++ ) {
 			if(u != 0 || v != 0) {
-				float x = ((robotPose.pose.position.x + u) * cos(angle)) - ((robotPose.pose.position.y + v) * sin(angle));
-				float y = ((robotPose.pose.position.x + u) * sin(angle)) + ((robotPose.pose.position.y + v) * cos(angle));
+				float x = ((u) * cos(angle)) - ((v) * sin(angle));
+				float y = ((u) * sin(angle)) + ((v) * cos(angle));
+				x = x + robotPose.pose.position.x;
+				y = y + robotPose.pose.position.y;
 				common::Position position;
 				position.x = x;
 				position.y = y;
@@ -192,12 +195,27 @@ void NeuralNetwork::fillWorldgrid(double angle) {
 
 					if(NumericUtils::isFirstGreaterEqual<float>(i,1)) {
 						occupancyGrid.data[cellPosition] = freeCell;
-					} else {
+					} else if(visitedCell[cellPosition] != 1){
 						occupancyGrid.data[cellPosition] = occupiedCell;
 					}
 	//				occupancyGrid.data[cellPosition] = output[i];
 				}
 				i++;
+			} else {
+				float x = ((u) * cos(angle)) - ((v) * sin(angle));
+				float y = ((u) * sin(angle)) + ((v) * cos(angle));
+				x = x + robotPose.pose.position.x;
+				y = y + robotPose.pose.position.y;
+				common::Position position;
+				position.x = x;
+				position.y = y;
+				int cellPosition =
+					GridUtils::getDataVectorPosition(occupancyGrid,position);
+				if(cellPosition != -1) {
+					visitedCell[cellPosition] = 1;
+					freeCellVector[cellPosition]++;
+					occupancyGrid.data[cellPosition] = freeCell;
+				}
 			}
 
 		}
