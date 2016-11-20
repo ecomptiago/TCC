@@ -54,8 +54,11 @@ bool BaseRosNode::hasPublisher(const char* topicName) {
 }
 
 void BaseRosNode::sleepAndSpin(double miliSeconds) {
-	usleep(miliSeconds * 1000);
-	ros::spinOnce();
+	int temp = miliSeconds / 20;
+	for(int i = temp; i < miliSeconds; i = i + temp) {
+		usleep(temp * 1000);
+		ros::spinOnce();
+	}
 }
 
 void BaseRosNode::sleepAndSpin(ros::Rate& rate) {

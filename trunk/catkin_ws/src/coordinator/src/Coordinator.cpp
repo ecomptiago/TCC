@@ -15,144 +15,22 @@ Coordinator::Coordinator(int argc, char **argv) :
 		recalculatePath = false;
 		pathPosition = -1;
 		proportionalError.data = -1;
-
-		float originX = -6.15;
-		float originY = 0.72;
-		common::Position targetPosition;
-
-//		targetPosition.x = originX + 0.5 + 1;
-//		targetPosition.y = originY + 0.5 + 1;
-//		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = originX + 0.5 + 1;
-//		targetPosition.y = originY + 0.5 + 1;
-//		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = originX + 0.5 + 1;
-//		targetPosition.y = originY + 0.5 + 1;
-//		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = originX + 0.5 + 9;
-//		targetPosition.y = originY + 0.5 + 6;
-//		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = originX + 0.5 + 1;
-//		targetPosition.y = originY + 0.5 + 5;
-//		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = originX + 0.5;
-//		targetPosition.y = originY + 0.5 + 8;
-//		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = originX + 0.5 + 8;
-//		targetPosition.y = originY + 0.5 + 8;
-//		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = 1.2;
-//		targetPosition.y = 7.5;
-//		targetPositionsSlam.push_back(targetPosition);
-//
-//		targetPosition.x = -2.2;
-//		targetPosition.y = 7.5;
-//		targetPositionsSlam.push_back(targetPosition);
-//
-//		targetPosition.x = -2.2;
-//		targetPosition.y = 5.5;
-//		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 15
-		targetPosition.x = -0.5;
-		targetPosition.y = 5.0;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 14
-		targetPosition.x = -3.5;
-		targetPosition.y = 7.0;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 13
-		targetPosition.x = 2.2;
-		targetPosition.y = 7.0;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 12
-		targetPosition.x = 2.2;
-		targetPosition.y = 3.5;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 11
-		targetPosition.x = -3.5;
-		targetPosition.y = 3.5;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 10
-		targetPosition.x = -5.8;
-		targetPosition.y = 2;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 9
-		targetPosition.x = -5.8;
-		targetPosition.y = 3.5;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 8
-		targetPosition.x = -5.8;
-		targetPosition.y = 7.0;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 7
-		targetPosition.x = -5.3;
-		targetPosition.y = 10;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 6
-		targetPosition.x = -0.5;
-		targetPosition.y = 10;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 5
-		targetPosition.x = 3.2;
-		targetPosition.y = 10;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 4
-		targetPosition.x = 3.2;
-		targetPosition.y = 7.0;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 3
-		targetPosition.x = 3.2;
-		targetPosition.y = 3.5;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto2
-		targetPosition.x = 3.2;
-		targetPosition.y = 1.2;
-		targetPositionsSlam.push_back(targetPosition);
-
-		//ponto 1
-		targetPosition.x = -0.5;
-		targetPosition.y = 1.2;
-		targetPositionsSlam.push_back(targetPosition);
-//		targetPositionsGuided.push_back(targetPosition);
-
-//		targetPosition.x = originX + 1.5;
-//		targetPosition.y = originY + 1.5;
-//		targetPositions.push_back(targetPosition);
-
 }
 
+//Methods
 int Coordinator::runNode() {
 	ROS_INFO("Running node");
-	ros::Rate rate(1/0.5);
+	bool firstTime = true;
+	bool comingBack = true;
+	bool updateWorld = true;
+	int count = 0;
+	float fuzzyTresholdToAct = 0.4;
+	float proportionalErrorToAchieve = 0.8;
+	float constantLinearFuzzy = 1.5;
+	float constantAngularFuzzy = 0.05;
+	float angleErrorMargin = 2.5;
 	common::pathToTarget pathToTarget;
+	common::Position targets[20];
 	geometry_msgs::Twist stop;
 	stop.angular.x = 0;
 	stop.angular.y = 0;
@@ -160,436 +38,286 @@ int Coordinator::runNode() {
 	stop.linear.x = 0;
 	stop.linear.y = 0;
 	stop.linear.z = 0;
-	std_msgs::Bool updateWorld;
-	updateWorld.data = true;
-	bool firstTime = true;
-	bool comingBack = true;
-	int count = 0;
-	common::Position targets[20];
-	std::vector<int> cellsInThePath;
-	int x;
-	int y;
-
-	for(x = 0 ;x < 10; x++) {
-		cellsInThePath.push_back(x);
-	}
-
-	for(y = 10; y < 100; y = y + 10) {
-		cellsInThePath.push_back(x + y);
-	}
-
 	while(ros::ok()) {
-		sleepAndSpin(rate);
+		sleepAndSpin(500);
+		float smallestLaserReading = *std::min_element(laserValues.begin(),
+			laserValues.end());
 		if(count < 10 && occupancyGrid.info.height != 0 && laserValues.capacity() != 0) {
-			float smallestLaserReading = *std::min_element(laserValues.begin(),
-				laserValues.end());
 			if(firstTime) {
-				common::Position pos;
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,9);
-				targets[0] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,99);
-				targets[1] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,90);
-				targets[2] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,20);
-				targets[3] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,27);
-				targets[4] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,77);
-				targets[5] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,72);
-				targets[6] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,42);
-				targets[7] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,45);
-				targets[8] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,65);
-				targets[9] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,45);
-				targets[10] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,42);
-				targets[11] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,72);
-				targets[12] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,77);
-				targets[13] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,27);
-				targets[14] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,20);
-				targets[15] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,90);
-				targets[16] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,99);
-				targets[17] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,9);
-				targets[18] = pos;
-
-				GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,pos,0);
-				targets[19] = pos;
-
+				ROS_INFO("Mapeando o ambiente");
+				createSlamPath(targets);
 				firstTime = false;
 			}
+			ROS_INFO("Indo para a posicao x:%f y:%f", targets[count].x, targets[count].y);
 			publisherMap[targetPositionTopic].publish(targets[count]);
-			for(int i = 0; i < 60; i++) {
-				sleepAndSpin(50);
-			}
-			while(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.8)) {
-				sleepAndSpin(250);
+			sleepAndSpin(3000);
+			while(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,proportionalErrorToAchieve)) {
+				sleepAndSpin(500);
 				smallestLaserReading = *std::min_element(laserValues.begin(),
 					laserValues.end());
-				ROS_INFO("smallestLaserReading %f",smallestLaserReading);
-				if(NumericUtils::isFirstGreater<float>(smallestLaserReading, 0.4)) {
+				ROS_DEBUG("smallestLaserReading %f",smallestLaserReading);
+				if(NumericUtils::isFirstGreater<float>(smallestLaserReading, fuzzyTresholdToAct)) {
+					ROS_INFO("Usando controlador cinematico");
 					publisherMap[cmdVelTopic].publish(proportionalVelocity);
 				} else {
+					ROS_INFO("Usando controlador fuzzy");
 					geometry_msgs::Twist move;
-					move.linear.x = smallestLaserReading * 1.5;
-					move.angular.z = 0.05 * fuzzyTurnAngle.data;
-					ROS_INFO("Setting fuzzy velocity linear %f and angular %f",move.linear.x,move.angular.z);
+					move.linear.x = smallestLaserReading * constantLinearFuzzy;
+					move.angular.z = constantAngularFuzzy * fuzzyTurnAngle.data;
+					ROS_DEBUG("Setting fuzzy velocity linear %f and angular %f",move.linear.x,move.angular.z);
 					publisherMap[cmdVelTopic].publish(move);
 				}
 			}
 			publisherMap[cmdVelTopic].publish(stop);
-			for(int i = 0; i < 60; i++) {
-				sleepAndSpin(50);
-			}
+			sleepAndSpin(3000);
 
-			geometry_msgs::Twist rotate;
-			rotate.angular.x = 0;
-			rotate.angular.y = 0;
-			rotate.angular.z = 0.2;
-			rotate.linear.x = 0;
-			rotate.linear.y = 0;
-			rotate.linear.z = 0;
-			publisherMap[cmdVelTopic].publish(rotate);
+//			geometry_msgs::Twist rotate;
+//			rotate.angular.x = 0;
+//			rotate.angular.y = 0;
+//			rotate.angular.z = 0.2;
+//			rotate.linear.x = 0;
+//			rotate.linear.y = 0;
+//			rotate.linear.z = 0;
+//			publisherMap[cmdVelTopic].publish(rotate);
 
-			double angle = OdometryUtils::getAngleFromQuaternation(
-				tf::Quaternion(0,0,
-				robotPose.pose.orientation.z,
-				robotPose.pose.orientation.w),false);
-			double desiredAngle = 90 * ((count + 1) % 4);
-
-			ROS_INFO("desiredAngle %f", desiredAngle);
-
-			while(NumericUtils::isFirstGreaterEqual<float>(angle,desiredAngle - 2.5) &&
-				NumericUtils::isFirstLessEqual<float>(angle,desiredAngle + 2.5)) {
-					sleepAndSpin(250);
-					angle = OdometryUtils::getAngleFromQuaternation(
-						tf::Quaternion(0,0,
-						robotPose.pose.orientation.z,
-						robotPose.pose.orientation.w),false);
-			}
+//			double angle = OdometryUtils::getAngleFromQuaternation(
+//				tf::Quaternion(0,0,
+//				robotPose.pose.orientation.z,
+//				robotPose.pose.orientation.w),false);
+//			double desiredAngle = 90 * ((count + 1) % 4);
+//
+//			ROS_DEBUG("desiredAngle %f", desiredAngle);
+//
+//			while(NumericUtils::isFirstGreaterEqual<float>(angle,desiredAngle - angleErrorMargin) &&
+//				NumericUtils::isFirstLessEqual<float>(angle,desiredAngle + angleErrorMargin)) {
+//					sleepAndSpin(500);
+//					angle = OdometryUtils::getAngleFromQuaternation(
+//						tf::Quaternion(0,0,
+//						robotPose.pose.orientation.z,
+//						robotPose.pose.orientation.w),false);
+//			}
 			count++;
 		}
 		else if(count >= 10 && count < 20 && occupancyGrid.info.height != 0 && laserValues.capacity() != 0){
-			if(comingBack) {
-				double angle = OdometryUtils::getAngleFromQuaternation(
-					tf::Quaternion(0,0,
-					robotPose.pose.orientation.z,
-					robotPose.pose.orientation.w),false);
-				double desiredAngle = 270;
-
-				ROS_INFO("desiredAngle %f", desiredAngle);
-
-				while(NumericUtils::isFirstGreaterEqual<float>(angle,desiredAngle - 2.5) &&
-					  NumericUtils::isFirstLessEqual<float>(angle,desiredAngle + 2.5)) {
-							sleepAndSpin(250);
-							angle = OdometryUtils::getAngleFromQuaternation(
-								tf::Quaternion(0,0,
-								robotPose.pose.orientation.z,
-								robotPose.pose.orientation.w),false);
-				}
-				comingBack = false;
-			}
-			float smallestLaserReading = *std::min_element(laserValues.begin(),
-				laserValues.end());
+//			if(comingBack) {
+//				double angle = OdometryUtils::getAngleFromQuaternation(
+//					tf::Quaternion(0,0,
+//					robotPose.pose.orientation.z,
+//					robotPose.pose.orientation.w),false);
+//				double desiredAngle = 270;
+//
+//				ROS_DEBUG("desiredAngle %f", desiredAngle);
+//
+//				while(NumericUtils::isFirstGreaterEqual<float>(angle,desiredAngle - angleErrorMargin) &&
+//					 NumericUtils::isFirstLessEqual<float>(angle,desiredAngle +angleErrorMargin)) {
+//						sleepAndSpin(250);
+//						angle = OdometryUtils::getAngleFromQuaternation(
+//							tf::Quaternion(0,0,
+//							robotPose.pose.orientation.z,
+//							robotPose.pose.orientation.w),false);
+//				}
+//				comingBack = false;
+//			}
 			publisherMap[targetPositionTopic].publish(targets[count]);
-			for(int i = 0; i < 60; i++) {
-				sleepAndSpin(50);
-			}
-			while(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.8)) {
-				sleepAndSpin(250);
+			ROS_INFO("Indo para a posicao x:%f y:%f", targets[count].x, targets[count].y);
+			sleepAndSpin(3000);
+			while(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,proportionalErrorToAchieve)) {
+				sleepAndSpin(500);
 				smallestLaserReading = *std::min_element(laserValues.begin(),
 						laserValues.end());
-				ROS_INFO("smallestLaserReading %f",smallestLaserReading);
-				if(NumericUtils::isFirstGreater<float>(smallestLaserReading, 0.4)) {
+				ROS_DEBUG("smallestLaserReading %f",smallestLaserReading);
+				if(NumericUtils::isFirstGreater<float>(smallestLaserReading, fuzzyTresholdToAct)) {
+					ROS_INFO("Usando controlador cinematico");
 					publisherMap[cmdVelTopic].publish(proportionalVelocity);
 				} else {
+					ROS_INFO("Usando controlador fuzzy");
 					geometry_msgs::Twist move;
-					move.linear.x = smallestLaserReading * 1.5;
-					move.angular.z = 0.05 * fuzzyTurnAngle.data;
-					ROS_INFO("Setting fuzzy velocity linear %f and angular %f",move.linear.x,move.angular.z);
+					move.linear.x = smallestLaserReading * constantLinearFuzzy;
+					move.angular.z = constantAngularFuzzy * fuzzyTurnAngle.data;
+					ROS_DEBUG("Setting fuzzy velocity linear %f and angular %f",move.linear.x,move.angular.z);
 					publisherMap[cmdVelTopic].publish(move);
 				}
 			}
 			publisherMap[cmdVelTopic].publish(stop);
-			for(int i = 0; i < 60; i++) {
-				sleepAndSpin(50);
-			}
+			sleepAndSpin(3000);
 
-			geometry_msgs::Twist rotate;
-			rotate.angular.x = 0;
-			rotate.angular.y = 0;
-			rotate.angular.z = -0.2;
-			rotate.linear.x = 0;
-			rotate.linear.y = 0;
-			rotate.linear.z = 0;
-			publisherMap[cmdVelTopic].publish(rotate);
+//			geometry_msgs::Twist rotate;
+//			rotate.angular.x = 0;
+//			rotate.angular.y = 0;
+//			rotate.angular.z = -0.2;
+//			rotate.linear.x = 0;
+//			rotate.linear.y = 0;
+//			rotate.linear.z = 0;
+//			publisherMap[cmdVelTopic].publish(rotate);
 
-			double angle = OdometryUtils::getAngleFromQuaternation(
-				tf::Quaternion(0,0,
-				robotPose.pose.orientation.z,
-				robotPose.pose.orientation.w),false);
-			double desiredAngle = -90 * ((count + 1) % 4);
-
-			ROS_INFO("desiredAngle %f", desiredAngle);
-
-			while(NumericUtils::isFirstGreaterEqual<float>(angle,desiredAngle - 2.5) &&
-				  NumericUtils::isFirstLessEqual<float>(angle,desiredAngle + 2.5)) {
-					sleepAndSpin(250);
-					angle = OdometryUtils::getAngleFromQuaternation(
-						tf::Quaternion(0,0,
-						robotPose.pose.orientation.z,
-						robotPose.pose.orientation.w),false);
-			}
+//			double angle = OdometryUtils::getAngleFromQuaternation(
+//				tf::Quaternion(0,0,
+//				robotPose.pose.orientation.z,
+//				robotPose.pose.orientation.w),false);
+//			double desiredAngle = -90 * ((count + 1) % 4);
+//
+//			ROS_DEBUG("desiredAngle %f", desiredAngle);
+//
+//			while(NumericUtils::isFirstGreaterEqual<float>(angle,desiredAngle - angleErrorMargin) &&
+//				  NumericUtils::isFirstLessEqual<float>(angle,desiredAngle + angleErrorMargin)) {
+//					sleepAndSpin(500);
+//					angle = OdometryUtils::getAngleFromQuaternation(
+//						tf::Quaternion(0,0,
+//						robotPose.pose.orientation.z,
+//						robotPose.pose.orientation.w),false);
+//			}
 			count++;
-		}
-		else {
-			publisherMap[cmdVelTopic].publish(stop);
-			for(int i = 0; i < 60; i++) {
-				sleepAndSpin(50);
+		} else if(occupancyGrid.info.height != 0 && laserValues.capacity() != 0) {
+			if(updateWorld) {
+				std_msgs::Bool updateWorldTemp;
+				updateWorldTemp.data = updateWorld;
+				publisherMap[updateWorldTopic].publish(updateWorldTemp);
+				sleepAndSpin(3000);
+				updateWorld = false;
+				ROS_INFO("Navegando por um ambiente mapeado");
+			}
+			int cellGridIndex;
+			common::pathToTarget pathTotarget;
+			pathToTarget.request.x = targets[17].x;
+			pathToTarget.request.y = targets[17].y;
+			if(!reachedFinalGoal && pathToTarget.request.x != 0 && pathToTarget.request.y != 0) {
+				if(!triedToFindPath ||
+				   (recalculatePath && NumericUtils::isFirstGreater<float>(smallestLaserReading, fuzzyTresholdToAct))) {
+						ROS_INFO("Chamando servico para obter melhor caminho ate a posicao x:%f y:%f",
+							pathToTarget.request.x,pathToTarget.request.y);
+						serviceClientsMap[bestPathService].call(pathToTarget);
+						pathPosition = 0;
+						triedToFindPath = true;
+						recalculatePath = false;
+				} else {
+					common::Position position;
+					if(pathToTarget.response.path.size() == 0) {
+						ROS_DEBUG("Could not find path to x:%f y:%f",
+							pathToTarget.request.x,pathToTarget.request.y);
+						position.x = pathToTarget.request.x;
+						position.y = pathToTarget.request.y;
+						publisherMap[targetPositionTopic].publish(position);
+						sleepAndSpin(3000);
+					} else if(pathToTarget.response.path.size() > 1){
+						ROS_DEBUG("Found a path to x:%f y:%f",
+							pathToTarget.request.x,pathToTarget.request.y);
+						int charsWrote = 0;
+						char buffer [pathToTarget.response.path.size() * 6];
+			
+						for(int i = 0; i < pathToTarget.response.path.size();i++) {
+							charsWrote += sprintf(buffer + charsWrote,
+								" %d,",pathToTarget.response.path[i]);
+						}
+						ROS_INFO("Achou o caminho [%s]",buffer);
+			
+						common::Position position = cellGridPosition(pathToTarget.response.path[pathPosition]);
+						ROS_INFO("Indo para a celula %d",pathToTarget.response.path[pathPosition]);
+						publisherMap[targetPositionTopic].publish(position);
+						sleepAndSpin(3000);
+					} else if(pathToTarget.response.path.size() == 1){
+						if(pathToTarget.response.path[0] == -3) {
+							ROS_ERROR("Could not retrieve data from V-Rep");
+							return shutdownAndExit();
+						} else {
+							ROS_DEBUG("Cell is occupied");
+							publisherMap[cmdVelTopic].publish(stop);
+							sleepAndSpin(3000);
+							ROS_DEBUG("Setting velocity liner 0 and angular 0");
+							reachedFinalGoal = true;
+							triedToFindPath = false;
+						}
+					}
+				}
+			
+				if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,proportionalErrorToAchieve) && !reachedFinalGoal) {
+					ROS_DEBUG("The smallest element is %f",smallestLaserReading);
+					ROS_DEBUG("Proportional error %f",proportionalError.data);
+					if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, fuzzyTresholdToAct)) {
+						ROS_INFO("Usando controlador fuzzy");
+						geometry_msgs::Twist move;
+						move.linear.x = constantLinearFuzzy * smallestLaserReading;
+						ROS_DEBUG("fuzzyTurnAngle %f",fuzzyTurnAngle.data);
+						move.angular.z = constantAngularFuzzy * fuzzyTurnAngle.data ;
+						publisherMap[cmdVelTopic].publish(move);
+						ROS_DEBUG("Setting velocity liner %f and angular %f",move.linear.x,move.angular.z);
+						recalculatePath = true;
+					} else {
+						ROS_INFO("Usando controlador cinematico");
+						publisherMap[cmdVelTopic].publish(proportionalVelocity);
+						ROS_DEBUG("Setting velocity liner %f and angular %f",
+							proportionalVelocity.linear.x,proportionalVelocity.angular.z);
+					}
+				} else {
+					if((pathToTarget.response.path.size() == 0 &&
+						NumericUtils::isFirstLessEqual<float>(proportionalError.data,proportionalErrorToAchieve) &&
+						NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0))) {
+							publisherMap[cmdVelTopic].publish(stop);
+							ROS_DEBUG("Setting velocity liner 0 and angular 0");
+							reachedFinalGoal = true;
+							triedToFindPath = false;
+					} else if(pathToTarget.response.path.size() > 1){
+						ROS_DEBUG("pathPosition %d pathToTarget.response.path.size() %lu",
+							pathPosition,pathToTarget.response.path.size());
+						if(pathPosition == pathToTarget.response.path.size()) {
+							publisherMap[cmdVelTopic].publish(stop);
+							sleepAndSpin(3000);
+							ROS_DEBUG("Setting velocity liner 0 and angular 0");
+							reachedFinalGoal = true;
+							triedToFindPath = false;
+						} else {
+							pathPosition++;
+						}
+					}
+				}
 			}
 		}
- 	}
+	}
 	return shutdownAndExit();
 }
 
-//Methods
-//int Coordinator::runNode() {
-//	ROS_INFO("Running node");
-//	ros::Rate rate(1/0.5);
-//	common::pathToTarget pathToTarget;
-//	geometry_msgs::Twist stop;
-//	stop.angular.x = 0;
-//	stop.angular.y = 0;
-//	stop.angular.z = 0;
-//	stop.linear.x = 0;
-//	stop.linear.y = 0;
-//	stop.linear.z = 0;
-//	std_msgs::Bool updateWorld;
-//	updateWorld.data = true;
-//	while(ros::ok()) {
-//		publisherMap[updateWorldTopic].publish(updateWorld);
-//		sleepAndSpin(rate);
-//		if(laserValues.capacity() != 0) {
-//			float smallestLaserReading = *std::min_element(laserValues.begin(),
-//				laserValues.end());
-//			int cellGridIndex;
-//			if(targetPositionsSlam.size() != 0) {
-//				pathToTarget.request.x = targetPositionsSlam.back().x;
-//				pathToTarget.request.y = targetPositionsSlam.back().y;
-//			} else if(targetPositionsGuided.size() != 0){
-//				pathToTarget.request.x = targetPositionsGuided.back().x;
-//				pathToTarget.request.y = targetPositionsGuided.back().y;
-//			}
-//			if(!reachedFinalGoal && pathToTarget.request.x != 0 && pathToTarget.request.y != 0) {
-//				if((targetPositionsSlam.size() == 0) && (!triedToFindPath ||
-//					(recalculatePath && NumericUtils::isFirstGreater<float>(smallestLaserReading, 0.5)))) {
-//						ROS_DEBUG("Calling service to get best path to x:%f y:%f ",
-//							pathToTarget.request.x,pathToTarget.request.y);
-//						serviceClientsMap[bestPathService].call(pathToTarget);
-//						pathPosition = 0;
-//						triedToFindPath = true;
-//						recalculatePath = false;
-//				} else {
-//					common::Position position;
-//					if(targetPositionsSlam.size() != 0 || pathToTarget.response.path.size() == 0) {
-//						ROS_DEBUG("Could not find path to x:%f y:%f",
-//							pathToTarget.request.x,pathToTarget.request.y);
-//						position.x = pathToTarget.request.x;
-//						position.y = pathToTarget.request.y;
-//						publisherMap[targetPositionTopic].publish(position);
-//						cellGridIndex = GridUtils::getDataVectorPosition(occupancyGrid,position);
-//						for(int i = 0; i < 60; i++) {
-//							sleepAndSpin(50);
-//						}
-//					} else if(pathToTarget.response.path.size() > 1){
-//						ROS_DEBUG("Found a path to x:%f y:%f",
-//							pathToTarget.request.x,pathToTarget.request.y);
-//						int charsWrote = 0;
-//						char buffer [pathToTarget.response.path.size() * 6];
-//
-//						for(int i = 0; i < pathToTarget.response.path.size();i++) {
-//							charsWrote += sprintf(buffer + charsWrote,
-//								" %d,",pathToTarget.response.path[i]);
-//						}
-//						ROS_DEBUG("Optimized path: [%s]",buffer);
-//
-//						common::Position position = cellGridPosition(pathToTarget.response.path[pathPosition]);
-//						ROS_DEBUG("Going to cell %d",pathToTarget.response.path[pathPosition]);
-//						publisherMap[targetPositionTopic].publish(position);
-//						cellGridIndex = GridUtils::getDataVectorPosition(occupancyGrid,position);
-//						for(int i = 0; i < 60; i++) {
-//							sleepAndSpin(50);
-//						}
-//					} else if(pathToTarget.response.path.size() == 1){
-//						if(pathToTarget.response.path[0] == -3) {
-//							ROS_ERROR("Could not retrieve data from V-Rep");
-//							return shutdownAndExit();
-//						} else {
-//							ROS_DEBUG("Cell is occupied");
-//							publisherMap[cmdVelTopic].publish(stop);
-//							for(int i = 0; i < 60; i++) {
-//								sleepAndSpin(50);
-//							}
-//							ROS_DEBUG("Setting velocity liner 0 and angular 0");
-//							reachedFinalGoal = true;
-//							triedToFindPath = false;
-//							targetPositionsSlam.pop_back();
-//							if(targetPositionsSlam.size() != 0) {
-//								reachedFinalGoal = false;
-//							} else {
-////								int8_t myints[100];
-////								for(int i =0; i < 100; i++) {
-////									myints[i] = occupancyGrid.data[i];
-////								}
-////								int8_t * unknownCell;
-////								unknownCell = std::find(myints, myints+100, -1);
-////								common::Position unknownCellPosition;
-////								if (unknownCell != myints + 100) {
-////									common::Position unknownCellPosition;
-////									GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
-////										unknownCellPosition,*unknownCell);
-////									targetPositionsSlam.push_back(unknownCellPosition);
-////									reachedFinalGoal = false;
-////								}
-//							}
-//						}
-//					}
-//
-//					if(NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0.75) && !reachedFinalGoal) {
-//						ROS_DEBUG("The smallest element is %f",smallestLaserReading);
-//						ROS_DEBUG("Proportional error %f",proportionalError.data);
-//						if(NumericUtils::isFirstLessEqual<float>(smallestLaserReading, 0.5)) {
-//							geometry_msgs::Twist move;
-//							move.linear.x = 0.75 * smallestLaserReading;
-//							ROS_DEBUG("fuzzyTurnAngle %f",fuzzyTurnAngle.data);
-//							move.angular.z = 0.04 * fuzzyTurnAngle.data ;
-//							publisherMap[cmdVelTopic].publish(move);
-//							ROS_DEBUG("Setting velocity liner %f and angular %f",move.linear.x,move.angular.z);
-//							if(targetPositionsSlam.size() == 0) {
-//								recalculatePath = true;
-//							}
-//						} else {
-//							publisherMap[cmdVelTopic].publish(proportionalVelocity);
-//							ROS_DEBUG("Setting velocity liner %f and angular %f",
-//								proportionalVelocity.linear.x,proportionalVelocity.angular.z);
-//						}
-//					} else {
-//						if((pathToTarget.response.path.size() == 0 &&
-//							NumericUtils::isFirstLessEqual<float>(proportionalError.data,0.75) &&
-//							NumericUtils::isFirstGreaterEqual<float>(proportionalError.data,0))) {
-//								publisherMap[cmdVelTopic].publish(stop);
-//								ROS_DEBUG("Setting velocity liner 0 and angular 0");
-//								reachedFinalGoal = true;
-//								triedToFindPath = false;
-//								targetPositionsSlam.pop_back();
-//								if(targetPositionsSlam.size() != 0) {
-//									reachedFinalGoal = false;
-//								} else {
-////									int8_t myints[100];
-////									for(int i =0; i < 100; i++) {
-////										myints[i] = occupancyGrid.data[i];
-////									}
-////									int8_t * unknownCell;
-////									unknownCell = std::find(myints, myints+100, -1);
-////									common::Position unknownCellPosition;
-////									if (unknownCell != myints + 100) {
-////										common::Position unknownCellPosition;
-////										GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
-////											unknownCellPosition,*unknownCell);
-////										targetPositionsSlam.push_back(unknownCellPosition);
-////										reachedFinalGoal = false;
-////									}
-//								}
-//						} else if(targetPositionsSlam.size() == 0 && pathToTarget.response.path.size() > 1){
-//							ROS_DEBUG("pathPosition %d pathToTarget.response.path.size() %lu",
-//								pathPosition,pathToTarget.response.path.size());
-//							if(pathPosition == pathToTarget.response.path.size() + 1) {
-//								publisherMap[cmdVelTopic].publish(stop);
-//								for(int i = 0; i < 60; i++) {
-//									sleepAndSpin(50);
-//								}
-//								ROS_DEBUG("Setting velocity liner 0 and angular 0");
-//								reachedFinalGoal = true;
-//								triedToFindPath = false;
-//								targetPositionsSlam.pop_back();
-//								if(targetPositionsSlam.size() != 0) {
-//									reachedFinalGoal = false;
-//								} else {
-////									int8_t myints[100];
-////									for(int i =0; i < 100; i++) {
-////										myints[i] = occupancyGrid.data[i];
-////									}
-////									int8_t * unknownCell;
-////									unknownCell = std::find(myints, myints+100, -1);
-////									common::Position unknownCellPosition;
-////									if (unknownCell != myints + 100) {
-////										common::Position unknownCellPosition;
-////										GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
-////											unknownCellPosition,*unknownCell);
-////										targetPositionsSlam.push_back(unknownCellPosition);
-////										reachedFinalGoal = false;
-////									}
-//								}
-//							} else {
-//								pathPosition++;
-//								ROS_DEBUG("Going to %d cell of the path",pathPosition);
-//							}
-//						}
-//					}
-//				}
-//			} else {
-////				int unknownCell = occupancyGrid.data.at(-1);
-////				if(targetPositionsSlam.size() != 0) {
-////					reachedFinalGoal = false;
-////					targetPositionsSlam.pop_back();
-////				}
-////				else if(unknownCell != -1)  {
-////					common::Position unknownCellPosition;
-////					GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid,
-////						unknownCellPosition,unknownCell);
-////					targetPositionsSlam.push_back(unknownCellPosition);
-////				}
-////				else if(unknownCell == -1){
-////					updateWorld.data = false;
-////					if(targetPositionsGuided.size() != 0 ) {
-////						reachedFinalGoal = false;
-////						targetPositionsGuided.pop_back();
-////					}
-////				}
-//			}
-//		}
-//	}
-//	return shutdownAndExit();
-//}
+void Coordinator::createSlamPath(common::Position targets[20]) {
+	common::Position pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 9);
+	targets[0] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 99);
+	targets[1] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 90);
+	targets[2] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 20);
+	targets[3] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 27);
+	targets[4] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 77);
+	targets[5] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 72);
+	targets[6] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 42);
+	targets[7] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 45);
+	targets[8] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 65);
+	targets[9] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 45);
+	targets[10] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 42);
+	targets[11] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 72);
+	targets[12] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 77);
+	targets[13] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 27);
+	targets[14] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 20);
+	targets[15] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 90);
+	targets[16] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 99);
+	targets[17] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 9);
+	targets[18] = pos;
+	GridUtils::getCoordinatesFromDataVectorPosition(occupancyGrid, pos, 0);
+	targets[19] = pos;
+}
 
 const common::Position Coordinator::cellGridPosition(int cellGrid) {
 	common::Position position;
@@ -600,10 +328,10 @@ const common::Position Coordinator::cellGridPosition(int cellGrid) {
 bool Coordinator::subscribeToTopics() {
 	ROS_INFO("Subscribing to topics");
 	return addSubscribedTopic<const common::Position::ConstPtr&,Coordinator>(nodeHandler,targetTopic,
-			&Coordinator::receiveTarget,this) &&
+		&Coordinator::receiveTarget,this) &&
 
-			addSubscribedTopic<const geometry_msgs::PoseStamped::ConstPtr&, Coordinator>(nodeHandler,poseTopic,
-						&Coordinator::receivedRobotPose,this) &&
+		addSubscribedTopic<const geometry_msgs::PoseStamped::ConstPtr&, Coordinator>(nodeHandler,poseTopic,
+			&Coordinator::receivedRobotPose,this) &&
 
 		addSubscribedTopic<const sensor_msgs::LaserScan::ConstPtr&, Coordinator>(nodeHandler,laserTopic,
 			&Coordinator::receivedLaserValues,this) &&
@@ -681,7 +409,6 @@ void Coordinator::receiveTarget(const common::Position::ConstPtr& target){
 	common::Position pos;
 	pos.x = robotPose.pose.position.x + target->x;
 	pos.y = robotPose.pose.position.y + target->y;
-	targetPositionsSlam.push_back(pos);
 	reachedFinalGoal = false;
 }
 

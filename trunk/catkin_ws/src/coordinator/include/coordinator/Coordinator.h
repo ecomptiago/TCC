@@ -13,7 +13,6 @@
 #include "common/BaseRosNode.h"
 #include "common/Position.h"
 #include "common/pathToTarget.h"
-#include "common/cellGridPosition.h"
 #include "common/utils/NumericUtils.h"
 #include "common/utils/GridUtils.h"
 #include "common/utils/OdometryUtils.h"
@@ -53,22 +52,12 @@ class Coordinator : public BaseRosNode{
 		bool reachedFinalGoal;
 		bool recalculatePath;
 		int pathPosition;
-		std::vector<common::Position> targetPositionsSlam;
-		std::vector<common::Position> targetPositionsGuided;
 		nav_msgs::OccupancyGrid occupancyGrid;
 		std_msgs::Float32MultiArray neuralGrid;
-		std::vector<int> cellsInThePath;
 
 		//Methods
 		const common::Position cellGridPosition(int cellGrid);
-		void moveToCell(int targetCell);
-		void turnRobot(int targetAngle);
-		bool isFree(int neuralGridCell);
-		int getRobotCell();
-		void moveForward();
-		void stop();
-		bool isCellInPath(int robotCell);
-
+		void createSlamPath(common::Position targets[20]);
 
 	public:
 		//Constructor

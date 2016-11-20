@@ -116,6 +116,7 @@ catkin_package(
 include_directories(
   include
   ../common/include/
+  ../../devel/include/
   ${catkin_INCLUDE_DIRS}
 )
 

@@ -34,7 +34,6 @@ NeuralNetwork::NeuralNetwork(int argc, char **argv, int cellArea,
 int NeuralNetwork::runNode() {
 
 	ROS_INFO("Running node");
-    ros::Rate rate(1/0.5);
 
 	neural_network::simRosGetObjectChild simRosGetObjectChild;
 	bool firstLoop = true;
@@ -73,30 +72,9 @@ int NeuralNetwork::runNode() {
 		return shutdownAndExit();
 	}
 
-//	occupancyGrid.data[20] = occupiedCell;
-//	occupancyGrid.data[21] = occupiedCell;
-//	occupancyGrid.data[22] = occupiedCell;
-//	occupancyGrid.data[23] = occupiedCell;
-//	occupancyGrid.data[24] = occupiedCell;
-//
-//	occupancyGrid.data[43] = occupiedCell;
-//	occupancyGrid.data[44] = occupiedCell;
-//	occupancyGrid.data[45] = occupiedCell;
-//	occupancyGrid.data[46] = occupiedCell;
-//	occupancyGrid.data[47] = occupiedCell;
-//
-//	occupancyGrid.data[71] = occupiedCell;
-//	occupancyGrid.data[72] = occupiedCell;
-//	occupancyGrid.data[73] = occupiedCell;
-//	occupancyGrid.data[74] = occupiedCell;
-//	occupancyGrid.data[75] = occupiedCell;
-
 	while(ros::ok()) {
-//		for(int i = 0; i < 10; i++) {
-			sleepAndSpin(rate);
-			publisherMap[occupancyGridTopic].publish(occupancyGrid);
-//		}
-	    if(updateWorld) {
+		sleepAndSpin(500);
+		if(updateWorld) {
 			output = fann_run(ann, laserValues);
 
 			double angle = OdometryUtils::getAngleFromQuaternation(
@@ -107,37 +85,16 @@ int NeuralNetwork::runNode() {
 				angle = angle + 360;
 			}
 
-//			ROS_DEBUG("Angle %f",angle);
-//			if(NumericUtils::isFirstGreaterEqual<float>(angle,80) &&
-//				NumericUtils::isFirstLessEqual<float>(angle, 100)) {
-//					angle = 90;
-//					fillWorldgrid(angle);
-//			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,170) &&
-//				NumericUtils::isFirstLessEqual<float>(angle, 190)) {
-//					angle = 180;
-//					fillWorldgrid(angle);
-//			} else if(NumericUtils::isFirstGreaterEqual<float>(angle,260) &&
-//				NumericUtils::isFirstLessEqual<float>(angle, 280)) {
-//					angle = 270;
-//					fillWorldgrid(angle);
-//			} else if((NumericUtils::isFirstGreaterEqual<float>(angle,0) &&
-//				NumericUtils::isFirstLessEqual<float>(angle, 10)) ||
-//				(NumericUtils::isFirstGreaterEqual<float>(angle,350) &&
-//				NumericUtils::isFirstLessEqual<float>(angle, 360))) {
-//					angle = 0;
-//					fillWorldgrid(angle);
-//			}
-
 			fillWorldgrid(angle);
 
-			std_msgs::Float32MultiArray grid;
-			grid.data.resize(outputSize);
-			for(int i = 0; i < outputSize ; i++) {
-				grid.data[i] = output[i];
-			}
-			publisherMap[neuralGridTopic].publish(grid);
+//			std_msgs::Float32MultiArray grid;
+//			grid.data.resize(outputSize);
+//			for(int i = 0; i < outputSize ; i++) {
+//				grid.data[i] = output[i];
+//			}
+//			publisherMap[neuralGridTopic].publish(grid);
 	    }
-
+		publisherMap[occupancyGridTopic].publish(occupancyGrid);
 	}
 	return shutdownAndExit();
 }
@@ -157,35 +114,14 @@ void NeuralNetwork::fillWorldgrid(double angle) {
 				position.y = y;
 				int cellPosition =
 					GridUtils::getDataVectorPosition(occupancyGrid,position);
-//						ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d, neuralCellValue %f, "
-//							"output %d", x, y, cellPosition,output[i], i);
+						ROS_DEBUG("Position.x %f , Position.y %f , cellPosition %d, neuralCellValue %f, "
+							"output %d", x, y, cellPosition,output[i], i);
 				if(cellPosition != -1) {
 					if(NumericUtils::isFirstLessEqual<float>(output[i], 0.7)) {
-	//					occupancyGrid.data[cellPosition] = freeCell;
 						freeCellVector[cellPosition]=freeCellVector[cellPosition]+1;
-					} else {//if(occupancyGrid.data[cellPosition] != freeCell){
-	//					occupancyGrid.data[cellPosition] = occupiedCell;
+					} else {
 						occupiedCellVector[cellPosition]++;
 					}
-
-	//				int charsWrote = 0;
-	//				char buffer [400];
-	//
-	//				for(int i = 0; i < 100;i++) {
-	//					charsWrote += sprintf(buffer + charsWrote,
-	//						" %d,",freeCellVector[i]);
-	//				}
-	//				ROS_DEBUG("freeCellVector: [%s]",buffer);
-	//
-	//				charsWrote = 0;
-	//				char buffer2 [400];
-	//
-	//				for(int i = 0; i < 100;i++) {
-	//					charsWrote += sprintf(buffer2 + charsWrote,
-	//						" %d,",occupiedCellVector[i]);
-	//				}
-	//				ROS_DEBUG("occupiedCellVector: [%s]",buffer2);
-
 					float i;
 					if(occupiedCellVector[cellPosition] != 0) {
 						i = freeCellVector[cellPosition] / occupiedCellVector[cellPosition];
@@ -198,7 +134,6 @@ void NeuralNetwork::fillWorldgrid(double angle) {
 					} else if(visitedCell[cellPosition] != 1){
 						occupancyGrid.data[cellPosition] = occupiedCell;
 					}
-	//				occupancyGrid.data[cellPosition] = output[i];
 				}
 				i++;
 			} else {

@@ -29,7 +29,6 @@
 #include "common/utils/OdometryUtils.h"
 #include "common/Position.h"
 #include "common/Position.h"
-#include "controlador_de_trajetoria/Movimentation_error.h"
 #include "controller/MovimentControllerInterface.h"
 #include "controller/ProportionalMovimentController.h"
 #include "tf/transform_datatypes.h"

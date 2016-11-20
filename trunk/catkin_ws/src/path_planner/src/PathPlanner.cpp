@@ -93,7 +93,7 @@ bool PathPlanner::bestPath(common::pathToTarget::Request  &req,
 							" %d,",cellPosition);
 					}
 					ROS_DEBUG("Optimized path: [%s]",buffer);
-					ROS_INFO("Found path to (%f,%f)",req.x,req.y);
+					ROS_DEBUG("Found path to (%f,%f)",req.x,req.y);
 				} else {
 					int targetCellPosition =
 							GridUtils::getDataVectorPosition(occupancyGrid, targetPosition);

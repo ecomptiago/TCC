@@ -11,9 +11,9 @@ MovimentationExecutor::MovimentationExecutor(int argc, char **argv,
 
 //Methods
 int MovimentationExecutor::runNode() {
-	ros::Rate rate(1/wakeUpTime);
 	ROS_INFO("Running node");
 	while(ros::ok()) {
+		sleepAndSpin(500);
 		if(pointerTargetPosition != NULL) {
 			ROS_DEBUG("Moving robot to position x: %f y: %f from actual position "
 				"x:%f y:%f and angle:%f",pointerTargetPosition->x,pointerTargetPosition->y,
@@ -28,7 +28,6 @@ int MovimentationExecutor::runNode() {
 			float32.data = proportionalController.calculateError();
 			publisherMap[errorTopic].publish(float32);
 		}
-		sleepAndSpin(rate);
 	}
 	return shutdownAndExit();
 }

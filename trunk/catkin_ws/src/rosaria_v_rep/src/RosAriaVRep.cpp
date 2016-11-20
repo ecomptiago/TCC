@@ -185,11 +185,11 @@ void RosAriaVRep::receivedTwist(
 			ROS_DEBUG("Setting velocity %f for left wheel and %f to right wheel",
 				simRosSetJointState.request.values.at(1), simRosSetJointState.request.values.at(0));
 			serviceClientsMap[setJointStateService].call(simRosSetJointState);
-			if(simRosSetJointState.response.result == responseError) {
-				ROS_INFO("Could not set velocity to wheels");
-			} else {
-				ROS_INFO("Wheels velocity set");
-			}
+//			if(simRosSetJointState.response.result == responseError) {
+//				ROS_INFO("Could not set velocity to wheels");
+//			} else {
+//				ROS_INFO("Wheels velocity set");
+//			}
 		} else if(twist->linear.x == 0 && twist->angular.z == 0){
 			stop();
 		}
